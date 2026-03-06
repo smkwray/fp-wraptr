@@ -9,6 +9,8 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    env:
+      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-lint-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -21,6 +23,8 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+    env:
+      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-test-${{ matrix.python-version }}-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -33,6 +37,8 @@ jobs:
     # Optional: enable only when FP assets provisioning inputs are configured.
     if: ${{ vars.FP_INTEGRATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
+    env:
+      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-fp-integration-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
