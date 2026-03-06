@@ -257,6 +257,21 @@ function makeSelect(options, value, onChange) {
   return select;
 }
 
+function buildCompactControl({ label, value, options, onChange, variable }) {
+  const field = document.createElement("label");
+  field.className = "control-field";
+
+  const tag = document.createElement("span");
+  tag.className = "control-tag";
+  tag.textContent = label;
+  field.appendChild(tag);
+
+  const select = makeSelect(options, value, onChange);
+  select.setAttribute("aria-label", `${variable} ${label}`);
+  field.appendChild(select);
+  return field;
+}
+
 function renderVariableControls() {
   dom.variableControls.innerHTML = "";
   for (const variable of state.selectedVariables) {
@@ -269,28 +284,23 @@ function renderVariableControls() {
     header.className = "var-card-header";
     header.innerHTML = `
       <strong>${variable}</strong>
-      <span>${record.short_name || "No short name"}</span>
+      <span>${record.short_name || ""}</span>
     `;
-    wrapper.appendChild(header);
 
     const grid = document.createElement("div");
     grid.className = "var-grid";
-
-    const transformField = document.createElement("div");
-    transformField.className = "control-field";
-    const transformLabel = document.createElement("label");
-    transformLabel.textContent = "Transform";
-    transformField.appendChild(transformLabel);
-    transformField.appendChild(
-      makeSelect(
-        [
+    grid.appendChild(
+      buildCompactControl({
+        label: "Transform",
+        value: cfg.transformMode,
+        variable,
+        options: [
           { value: TRANSFORM_LEVEL, label: "Level" },
           { value: TRANSFORM_PCT_OF, label: "% of denominator" },
           { value: TRANSFORM_LVL_CHANGE, label: "Lvl change" },
           { value: TRANSFORM_PCT_CHANGE, label: "% change" },
         ],
-        cfg.transformMode,
-        (event) => {
+        onChange: (event) => {
           sanitizeVariableConfig(variable, {
             ...cfg,
             transformMode: event.target.value,
@@ -298,49 +308,41 @@ function renderVariableControls() {
           renderVariableControls();
           renderCharts();
         },
-      ),
+      }),
     );
-    grid.appendChild(transformField);
 
     if (cfg.transformMode === TRANSFORM_PCT_OF) {
-      const denominatorField = document.createElement("div");
-      denominatorField.className = "control-field";
-      const denominatorLabel = document.createElement("label");
-      denominatorLabel.textContent = "Denominator";
-      denominatorField.appendChild(denominatorLabel);
-      denominatorField.appendChild(
-        makeSelect(
-          state.manifest.available_variables.map((name) => ({
+      grid.appendChild(
+        buildCompactControl({
+          label: "Denom",
+          value: cfg.denominator,
+          variable,
+          options: state.manifest.available_variables.map((name) => ({
             value: name,
             label: name,
           })),
-          cfg.denominator,
-          (event) => {
+          onChange: (event) => {
             sanitizeVariableConfig(variable, {
               ...cfg,
               denominator: event.target.value,
             });
             renderCharts();
           },
-        ),
+        }),
       );
-      grid.appendChild(denominatorField);
     }
 
-    const compareField = document.createElement("div");
-    compareField.className = "control-field";
-    const compareLabel = document.createElement("label");
-    compareLabel.textContent = "Run comparison";
-    compareField.appendChild(compareLabel);
-    compareField.appendChild(
-      makeSelect(
-        [
+    grid.appendChild(
+      buildCompactControl({
+        label: "Compare",
+        value: cfg.compareMode,
+        variable,
+        options: [
           { value: COMPARE_NONE, label: "None" },
           { value: COMPARE_DIFF_VS_RUN, label: "Diff vs run" },
           { value: COMPARE_PCT_DIFF_VS_RUN, label: "% diff vs run" },
         ],
-        cfg.compareMode,
-        (event) => {
+        onChange: (event) => {
           sanitizeVariableConfig(variable, {
             ...cfg,
             compareMode: event.target.value,
@@ -348,35 +350,31 @@ function renderVariableControls() {
           renderVariableControls();
           renderCharts();
         },
-      ),
+      }),
     );
-    grid.appendChild(compareField);
 
     if (cfg.compareMode !== COMPARE_NONE && state.selectedRunIds.length > 1) {
-      const referenceField = document.createElement("div");
-      referenceField.className = "control-field";
-      const referenceLabel = document.createElement("label");
-      referenceLabel.textContent = "Reference run";
-      referenceField.appendChild(referenceLabel);
-      referenceField.appendChild(
-        makeSelect(
-          state.runMeta.map((run) => ({
+      grid.appendChild(
+        buildCompactControl({
+          label: "Ref",
+          value: cfg.referenceRunId,
+          variable,
+          options: state.runMeta.map((run) => ({
             value: run.run_id,
             label: run.label,
           })),
-          cfg.referenceRunId,
-          (event) => {
+          onChange: (event) => {
             sanitizeVariableConfig(variable, {
               ...cfg,
               referenceRunId: event.target.value,
             });
             renderCharts();
           },
-        ),
+        }),
       );
-      grid.appendChild(referenceField);
     }
 
+    wrapper.appendChild(header);
     wrapper.appendChild(grid);
     dom.variableControls.appendChild(wrapper);
   }
@@ -394,25 +392,15 @@ function renderRunInfo() {
 
   const detailItems = Array.isArray(run.details) ? run.details : [];
   const detailList = detailItems.length > 0
-    ? `<ul>${detailItems.map((item) => `<li>${item}</li>`).join("")}</ul>`
+    ? detailItems.map((item) => `<p class="run-info-text">${item}</p>`).join("")
     : `<p class="hint">No additional scenario notes were exported for this run.</p>`;
 
   card.innerHTML = `
-    <div class="run-info-header">
-      <strong>${run.label}</strong>
-      <span>${run.timestamp || "Unknown timestamp"}</span>
-    </div>
-    <p class="run-info-summary">${run.summary || "No summary available."}</p>
-    <dl class="run-info-meta">
-      <div>
-        <dt>Scenario</dt>
-        <dd>${run.scenario_name || "Unknown"}</dd>
-      </div>
-      <div>
-        <dt>Forecast</dt>
-        <dd>${run.forecast_start || "?"} to ${run.forecast_end || "?"}</dd>
-      </div>
-    </dl>
+    <p class="run-info-title">${run.label}</p>
+    <p class="run-info-text">Scenario: ${run.scenario_name || "Unknown"}</p>
+    <p class="run-info-text">Forecast: ${run.forecast_start || "?"} to ${run.forecast_end || "?"}</p>
+    <p class="run-info-text">Artifact: ${run.timestamp || "Unknown timestamp"}</p>
+    <p class="run-info-text">${run.summary || "No summary available."}</p>
     ${detailList}
   `;
   dom.runInfo.appendChild(card);

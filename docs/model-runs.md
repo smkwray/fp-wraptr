@@ -68,6 +68,7 @@ Only portable, relative asset paths are written into the bundle.
 
 The checked-in default bundle targets:
 
+- `stock_fm_baseline`
 - `low_15h`
 - `high_15h`
 - `pse2025_base`
