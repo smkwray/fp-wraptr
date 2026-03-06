@@ -54,6 +54,10 @@ class PagesRunSpec(BaseModel):
     run_id: str = Field(description="Stable public run id without timestamps")
     scenario_name: str = Field(description="Exact scenario name to resolve from artifacts")
     label: str = Field(default="", description="Optional display label for the site")
+    summary: str = Field(default="", description="Optional one-line scenario summary")
+    details: list[str] = Field(
+        default_factory=list, description="Optional scenario detail bullets"
+    )
 
     @field_validator("run_id")
     @classmethod
@@ -70,6 +74,21 @@ class PagesRunSpec(BaseModel):
         if not token:
             raise ValueError("scenario_name is required")
         return token
+
+    @field_validator("label", "summary")
+    @classmethod
+    def _normalize_text(cls, value: str) -> str:
+        return " ".join(str(value or "").split()).strip()
+
+    @field_validator("details")
+    @classmethod
+    def _normalize_details(cls, value: list[str]) -> list[str]:
+        out: list[str] = []
+        for item in value or []:
+            token = " ".join(str(item or "").split()).strip()
+            if token:
+                out.append(token)
+        return out
 
     @property
     def resolved_label(self) -> str:
@@ -261,15 +280,10 @@ def export_pages_bundle(
         "title": spec.title,
         "site_subpath": spec.site_subpath,
         "runs": [
-            {
-                "run_id": item.spec.run_id,
-                "label": item.spec.resolved_label,
-                "scenario_name": item.run.scenario_name,
-                "timestamp": item.run.timestamp,
-                "forecast_start": run_payloads[item.spec.run_id]["forecast_start"],
-                "forecast_end": run_payloads[item.spec.run_id]["forecast_end"],
-                "data_path": f"runs/{item.spec.run_id}.json",
-            }
+            _manifest_run_record(
+                item=item,
+                run_payload=run_payloads[item.spec.run_id],
+            )
             for item in selected_runs
         ],
         "available_variables": available_variable_list,
@@ -303,6 +317,23 @@ def export_pages_bundle(
         variable_count=len(available_variable_list),
         generated_at=generated_at,
     )
+
+
+def _manifest_run_record(*, item: _SelectedRun, run_payload: dict[str, Any]) -> dict[str, Any]:
+    record = {
+        "run_id": item.spec.run_id,
+        "label": item.spec.resolved_label,
+        "scenario_name": item.run.scenario_name,
+        "timestamp": item.run.timestamp,
+        "forecast_start": run_payload["forecast_start"],
+        "forecast_end": run_payload["forecast_end"],
+        "data_path": f"runs/{item.spec.run_id}.json",
+    }
+    if item.spec.summary:
+        record["summary"] = item.spec.summary
+    if item.spec.details:
+        record["details"] = list(item.spec.details)
+    return record
 
 
 @dataclass(frozen=True)

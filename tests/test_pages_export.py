@@ -93,6 +93,8 @@ def _write_spec(
                 "run_id": "fixture-run",
                 "label": "Fixture Run",
                 "scenario_name": scenario_name,
+                "summary": "Fixture summary",
+                "details": ["Fixture detail A", "Fixture detail B"],
             }
         ],
         "default_run_ids": ["fixture-run"],
@@ -130,11 +132,13 @@ def test_export_pages_bundle_resolves_latest_artifact_and_preserves_run_id(tmp_p
     assert manifest["runs"] == [
         {
             "data_path": "runs/fixture-run.json",
+            "details": ["Fixture detail A", "Fixture detail B"],
             "forecast_end": "2025.4",
             "forecast_start": "2025.1",
             "label": "Fixture Run",
             "run_id": "fixture-run",
             "scenario_name": "scenario",
+            "summary": "Fixture summary",
             "timestamp": "20260306_130000",
         }
     ]
@@ -258,9 +262,48 @@ def test_export_pages_bundle_uses_relative_static_paths(tmp_path: Path) -> None:
 
     assert 'href="./styles.css"' in index_html
     assert 'src="./app.js"' in index_html
+    assert 'id="variableSearch"' in index_html
+    assert 'id="runInfo"' in index_html
     assert manifest["dictionary_path"] == "dictionary.json"
     assert manifest["presets_path"] == "presets.json"
     assert all(not item["data_path"].startswith("/") for item in manifest["runs"])
+
+
+def test_export_pages_bundle_preserves_run_labels_with_symbols(tmp_path: Path) -> None:
+    _write_run(tmp_path, scenario_name="scenario", timestamp="20260306_130000")
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    spec_payload = {
+        "version": 1,
+        "title": "Fixture Explorer",
+        "site_subpath": "model-runs",
+        "runs": [
+            {
+                "run_id": "fixture-run",
+                "label": "PSE2025 High $25/h",
+                "scenario_name": "scenario",
+            }
+        ],
+        "default_run_ids": ["fixture-run"],
+        "presets": [
+            {
+                "id": "fixture-preset",
+                "label": "Fixture Preset",
+                "variables": ["GDP"],
+            }
+        ],
+        "default_preset_ids": ["fixture-preset"],
+    }
+    spec_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_path.write_text(yaml.safe_dump(spec_payload, sort_keys=False), encoding="utf-8")
+
+    result = export_pages_bundle(
+        spec_path=spec_path,
+        artifacts_dir=tmp_path / "artifacts",
+        out_dir=tmp_path / "public" / "model-runs",
+    )
+
+    manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
+    assert manifest["runs"][0]["label"] == "PSE2025 High $25/h"
 
 
 def test_export_pages_cli_writes_bundle(tmp_path: Path) -> None:
