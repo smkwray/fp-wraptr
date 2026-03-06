@@ -20,6 +20,7 @@ const state = {
   runCache: new Map(),
   variableConfigs: new Map(),
   variableSearchQuery: "",
+  selectedRunInfoId: "",
 };
 
 const dom = {
@@ -32,6 +33,7 @@ const dom = {
   applyPresetButton: document.querySelector("#applyPresetButton"),
   variableSearch: document.querySelector("#variableSearch"),
   variableSelect: document.querySelector("#variableSelect"),
+  runInfoSelect: document.querySelector("#runInfoSelect"),
   runInfo: document.querySelector("#runInfo"),
   variableControls: document.querySelector("#variableControls"),
   charts: document.querySelector("#charts"),
@@ -212,6 +214,17 @@ function syncPresetSelect() {
   }
 }
 
+function syncRunInfoSelect() {
+  dom.runInfoSelect.innerHTML = "";
+  for (const run of state.runMeta) {
+    const option = document.createElement("option");
+    option.value = run.run_id;
+    option.textContent = run.label;
+    option.selected = run.run_id === state.selectedRunInfoId;
+    dom.runInfoSelect.appendChild(option);
+  }
+}
+
 function syncVariableSelect() {
   dom.variableSelect.innerHTML = "";
   const query = `${state.variableSearchQuery || ""}`.trim().toLowerCase();
@@ -371,44 +384,38 @@ function renderVariableControls() {
 
 function renderRunInfo() {
   dom.runInfo.innerHTML = "";
-  const runs = state.selectedRunIds
-    .map((runId) => getRunMeta(runId))
-    .filter(Boolean);
-
-  if (runs.length === 0) {
-    dom.runInfo.innerHTML = `<div class="empty-state">Select one or more runs to see scenario details.</div>`;
+  const run = getRunMeta(state.selectedRunInfoId);
+  if (!run) {
+    dom.runInfo.innerHTML = `<div class="empty-state">Select a scenario to see its details.</div>`;
     return;
   }
+  const card = document.createElement("article");
+  card.className = "run-info-card";
 
-  for (const run of runs) {
-    const card = document.createElement("article");
-    card.className = "run-info-card";
+  const detailItems = Array.isArray(run.details) ? run.details : [];
+  const detailList = detailItems.length > 0
+    ? `<ul>${detailItems.map((item) => `<li>${item}</li>`).join("")}</ul>`
+    : `<p class="hint">No additional scenario notes were exported for this run.</p>`;
 
-    const detailItems = Array.isArray(run.details) ? run.details : [];
-    const detailList = detailItems.length > 0
-      ? `<ul>${detailItems.map((item) => `<li>${item}</li>`).join("")}</ul>`
-      : `<p class="hint">No additional scenario notes were exported for this run.</p>`;
-
-    card.innerHTML = `
-      <div class="run-info-header">
-        <strong>${run.label}</strong>
-        <span>${run.timestamp || "Unknown timestamp"}</span>
+  card.innerHTML = `
+    <div class="run-info-header">
+      <strong>${run.label}</strong>
+      <span>${run.timestamp || "Unknown timestamp"}</span>
+    </div>
+    <p class="run-info-summary">${run.summary || "No summary available."}</p>
+    <dl class="run-info-meta">
+      <div>
+        <dt>Scenario</dt>
+        <dd>${run.scenario_name || "Unknown"}</dd>
       </div>
-      <p class="run-info-summary">${run.summary || "No summary available."}</p>
-      <dl class="run-info-meta">
-        <div>
-          <dt>Scenario</dt>
-          <dd>${run.scenario_name || "Unknown"}</dd>
-        </div>
-        <div>
-          <dt>Forecast</dt>
-          <dd>${run.forecast_start || "?"} to ${run.forecast_end || "?"}</dd>
-        </div>
-      </dl>
-      ${detailList}
-    `;
-    dom.runInfo.appendChild(card);
-  }
+      <div>
+        <dt>Forecast</dt>
+        <dd>${run.forecast_start || "?"} to ${run.forecast_end || "?"}</dd>
+      </div>
+    </dl>
+    ${detailList}
+  `;
+  dom.runInfo.appendChild(card);
 }
 
 function valueOrNull(value) {
@@ -685,6 +692,8 @@ async function initialize() {
   syncRunSelect();
   syncPresetSelect();
   syncVariableSelect();
+  state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
+  syncRunInfoSelect();
 
   await ensureRunsLoaded(state.selectedRunIds);
   renderRunInfo();
@@ -699,9 +708,13 @@ dom.runSelect.addEventListener("change", async () => {
   for (const variable of state.selectedVariables) {
     sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
   }
-  renderRunInfo();
   renderVariableControls();
   renderCharts();
+});
+
+dom.runInfoSelect.addEventListener("change", () => {
+  state.selectedRunInfoId = dom.runInfoSelect.value;
+  renderRunInfo();
 });
 
 dom.applyPresetButton.addEventListener("click", async () => {

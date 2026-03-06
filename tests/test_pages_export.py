@@ -263,6 +263,7 @@ def test_export_pages_bundle_uses_relative_static_paths(tmp_path: Path) -> None:
     assert 'href="./styles.css"' in index_html
     assert 'src="./app.js"' in index_html
     assert 'id="variableSearch"' in index_html
+    assert 'id="runInfoSelect"' in index_html
     assert 'id="runInfo"' in index_html
     assert manifest["dictionary_path"] == "dictionary.json"
     assert manifest["presets_path"] == "presets.json"
