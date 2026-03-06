@@ -529,52 +529,86 @@
     "pse2025_low"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-03-06T22:56:53Z",
+  "generated_at": "2026-03-06T23:32:34Z",
   "presets_path": "presets.json",
   "runs": [
     {
       "data_path": "runs/low_15h.json",
+      "details": [
+        "JGSWITCH=1, JGHILO=0.",
+        "UBGH=0.5, so UBSH=0.5.",
+        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
+        "JGW is fixed at 0.015 ($15/hour) and JGCOLA stays 0."
+      ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "15h Floor Low",
+      "label": "PSE2025 $15/h Low",
       "run_id": "low_15h",
       "scenario_name": "low_15h",
+      "summary": "Job Guarantee on with low take-up and a flat $15/hour wage.",
       "timestamp": "20260306_160317"
     },
     {
       "data_path": "runs/high_15h.json",
+      "details": [
+        "JGSWITCH=1, JGHILO=1.",
+        "UBGH=0.5, so UBSH=0.5.",
+        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
+        "JGW is fixed at 0.015 ($15/hour) and JGCOLA stays 0."
+      ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "15h Floor High",
+      "label": "PSE2025 $15/h High",
       "run_id": "high_15h",
       "scenario_name": "high_15h",
+      "summary": "Job Guarantee on with high take-up and a flat $15/hour wage.",
       "timestamp": "20260306_160307"
     },
     {
       "data_path": "runs/pse2025_base.json",
+      "details": [
+        "JGSWITCH=0, JGPHASE=0, JGHILO=0.",
+        "UBGH=1, so UBSH=0.",
+        "JGCOLA=0."
+      ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE 2025 Base",
+      "label": "PSE2025 Base",
       "run_id": "pse2025_base",
       "scenario_name": "pse2025_base",
+      "summary": "Baseline with the Job Guarantee switched off.",
       "timestamp": "20260306_160238"
     },
     {
       "data_path": "runs/pse2025_high.json",
+      "details": [
+        "JGSWITCH=1, JGHILO=1.",
+        "UBGH=0.5, so UBSH=0.5.",
+        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
+        "JGW starts at 0.020 and JGCOLA is 0.05737126344 for 2026.1-2026.4, then 0 afterward."
+      ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE 2025 High",
+      "label": "PSE2025 High $25/h",
       "run_id": "pse2025_high",
       "scenario_name": "pse2025_high",
+      "summary": "Job Guarantee on with high take-up and a wage ramp from $20/hour to $25/hour.",
       "timestamp": "20260306_160258"
     },
     {
       "data_path": "runs/pse2025_low.json",
+      "details": [
+        "JGSWITCH=1, JGHILO=0.",
+        "UBGH=0.5, so UBSH=0.5.",
+        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
+        "JGW starts at 0.020 and JGCOLA is 0.05737126344 for 2026.1-2026.4, then 0 afterward."
+      ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE 2025 Low",
+      "label": "PSE2025 Low $25/h",
       "run_id": "pse2025_low",
       "scenario_name": "pse2025_low",
+      "summary": "Job Guarantee on with low take-up and a wage ramp from $20/hour to $25/hour.",
       "timestamp": "20260306_160248"
     }
   ],

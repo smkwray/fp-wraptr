@@ -19,6 +19,7 @@ const state = {
   selectedVariables: [],
   runCache: new Map(),
   variableConfigs: new Map(),
+  variableSearchQuery: "",
 };
 
 const dom = {
@@ -29,7 +30,9 @@ const dom = {
   runSelect: document.querySelector("#runSelect"),
   presetSelect: document.querySelector("#presetSelect"),
   applyPresetButton: document.querySelector("#applyPresetButton"),
+  variableSearch: document.querySelector("#variableSearch"),
   variableSelect: document.querySelector("#variableSelect"),
+  runInfo: document.querySelector("#runInfo"),
   variableControls: document.querySelector("#variableControls"),
   charts: document.querySelector("#charts"),
   chartEmpty: document.querySelector("#chartEmpty"),
@@ -192,7 +195,7 @@ function syncRunSelect() {
   for (const run of state.runMeta) {
     const option = document.createElement("option");
     option.value = run.run_id;
-    option.textContent = `${run.label} (${run.timestamp})`;
+    option.textContent = run.label;
     option.selected = state.selectedRunIds.includes(run.run_id);
     dom.runSelect.appendChild(option);
   }
@@ -211,8 +214,15 @@ function syncPresetSelect() {
 
 function syncVariableSelect() {
   dom.variableSelect.innerHTML = "";
+  const query = `${state.variableSearchQuery || ""}`.trim().toLowerCase();
   for (const variable of state.manifest.available_variables) {
     const record = getDictionaryRecord(variable);
+    const haystack = [variable, record.short_name, record.description]
+      .join(" ")
+      .toLowerCase();
+    if (query && !haystack.includes(query)) {
+      continue;
+    }
     const option = document.createElement("option");
     option.value = variable;
     option.textContent = record.short_name ? `${variable} - ${record.short_name}` : variable;
@@ -254,6 +264,7 @@ function renderVariableControls() {
     grid.className = "var-grid";
 
     const transformField = document.createElement("div");
+    transformField.className = "control-field";
     const transformLabel = document.createElement("label");
     transformLabel.textContent = "Transform";
     transformField.appendChild(transformLabel);
@@ -278,29 +289,33 @@ function renderVariableControls() {
     );
     grid.appendChild(transformField);
 
-    const denominatorField = document.createElement("div");
-    const denominatorLabel = document.createElement("label");
-    denominatorLabel.textContent = "Denominator";
-    denominatorField.appendChild(denominatorLabel);
-    denominatorField.appendChild(
-      makeSelect(
-        state.manifest.available_variables.map((name) => ({
-          value: name,
-          label: name,
-        })),
-        cfg.denominator,
-        (event) => {
-          sanitizeVariableConfig(variable, {
-            ...cfg,
-            denominator: event.target.value,
-          });
-          renderCharts();
-        },
-      ),
-    );
-    grid.appendChild(denominatorField);
+    if (cfg.transformMode === TRANSFORM_PCT_OF) {
+      const denominatorField = document.createElement("div");
+      denominatorField.className = "control-field";
+      const denominatorLabel = document.createElement("label");
+      denominatorLabel.textContent = "Denominator";
+      denominatorField.appendChild(denominatorLabel);
+      denominatorField.appendChild(
+        makeSelect(
+          state.manifest.available_variables.map((name) => ({
+            value: name,
+            label: name,
+          })),
+          cfg.denominator,
+          (event) => {
+            sanitizeVariableConfig(variable, {
+              ...cfg,
+              denominator: event.target.value,
+            });
+            renderCharts();
+          },
+        ),
+      );
+      grid.appendChild(denominatorField);
+    }
 
     const compareField = document.createElement("div");
+    compareField.className = "control-field";
     const compareLabel = document.createElement("label");
     compareLabel.textContent = "Run comparison";
     compareField.appendChild(compareLabel);
@@ -324,30 +339,75 @@ function renderVariableControls() {
     );
     grid.appendChild(compareField);
 
-    const referenceField = document.createElement("div");
-    const referenceLabel = document.createElement("label");
-    referenceLabel.textContent = "Reference run";
-    referenceField.appendChild(referenceLabel);
-    referenceField.appendChild(
-      makeSelect(
-        state.runMeta.map((run) => ({
-          value: run.run_id,
-          label: run.label,
-        })),
-        cfg.referenceRunId,
-        (event) => {
-          sanitizeVariableConfig(variable, {
-            ...cfg,
-            referenceRunId: event.target.value,
-          });
-          renderCharts();
-        },
-      ),
-    );
-    grid.appendChild(referenceField);
+    if (cfg.compareMode !== COMPARE_NONE && state.selectedRunIds.length > 1) {
+      const referenceField = document.createElement("div");
+      referenceField.className = "control-field";
+      const referenceLabel = document.createElement("label");
+      referenceLabel.textContent = "Reference run";
+      referenceField.appendChild(referenceLabel);
+      referenceField.appendChild(
+        makeSelect(
+          state.runMeta.map((run) => ({
+            value: run.run_id,
+            label: run.label,
+          })),
+          cfg.referenceRunId,
+          (event) => {
+            sanitizeVariableConfig(variable, {
+              ...cfg,
+              referenceRunId: event.target.value,
+            });
+            renderCharts();
+          },
+        ),
+      );
+      grid.appendChild(referenceField);
+    }
 
     wrapper.appendChild(grid);
     dom.variableControls.appendChild(wrapper);
+  }
+}
+
+function renderRunInfo() {
+  dom.runInfo.innerHTML = "";
+  const runs = state.selectedRunIds
+    .map((runId) => getRunMeta(runId))
+    .filter(Boolean);
+
+  if (runs.length === 0) {
+    dom.runInfo.innerHTML = `<div class="empty-state">Select one or more runs to see scenario details.</div>`;
+    return;
+  }
+
+  for (const run of runs) {
+    const card = document.createElement("article");
+    card.className = "run-info-card";
+
+    const detailItems = Array.isArray(run.details) ? run.details : [];
+    const detailList = detailItems.length > 0
+      ? `<ul>${detailItems.map((item) => `<li>${item}</li>`).join("")}</ul>`
+      : `<p class="hint">No additional scenario notes were exported for this run.</p>`;
+
+    card.innerHTML = `
+      <div class="run-info-header">
+        <strong>${run.label}</strong>
+        <span>${run.timestamp || "Unknown timestamp"}</span>
+      </div>
+      <p class="run-info-summary">${run.summary || "No summary available."}</p>
+      <dl class="run-info-meta">
+        <div>
+          <dt>Scenario</dt>
+          <dd>${run.scenario_name || "Unknown"}</dd>
+        </div>
+        <div>
+          <dt>Forecast</dt>
+          <dd>${run.forecast_start || "?"} to ${run.forecast_end || "?"}</dd>
+        </div>
+      </dl>
+      ${detailList}
+    `;
+    dom.runInfo.appendChild(card);
   }
 }
 
@@ -627,6 +687,7 @@ async function initialize() {
   syncVariableSelect();
 
   await ensureRunsLoaded(state.selectedRunIds);
+  renderRunInfo();
   renderVariableControls();
   renderCharts();
   renderDictionary();
@@ -638,6 +699,7 @@ dom.runSelect.addEventListener("change", async () => {
   for (const variable of state.selectedVariables) {
     sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
   }
+  renderRunInfo();
   renderVariableControls();
   renderCharts();
 });
@@ -649,7 +711,10 @@ dom.applyPresetButton.addEventListener("click", async () => {
 });
 
 dom.variableSelect.addEventListener("change", () => {
-  state.selectedVariables = [...dom.variableSelect.selectedOptions].map((item) => item.value);
+  const visibleVariables = [...dom.variableSelect.options].map((item) => item.value);
+  const hiddenSelected = state.selectedVariables.filter((variable) => !visibleVariables.includes(variable));
+  const visibleSelected = [...dom.variableSelect.selectedOptions].map((item) => item.value);
+  state.selectedVariables = unique([...hiddenSelected, ...visibleSelected]);
   const nextConfigs = new Map();
   for (const variable of state.selectedVariables) {
     nextConfigs.set(variable, sanitizeVariableConfig(variable, state.variableConfigs.get(variable)));
@@ -658,6 +723,11 @@ dom.variableSelect.addEventListener("change", () => {
   renderVariableControls();
   renderCharts();
   renderDictionary();
+});
+
+dom.variableSearch.addEventListener("input", () => {
+  state.variableSearchQuery = `${dom.variableSearch.value || ""}`;
+  syncVariableSelect();
 });
 
 dom.dictionarySearch.addEventListener("input", () => {

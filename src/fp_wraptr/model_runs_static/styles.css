@@ -204,13 +204,13 @@ select[multiple] {
 
 .variable-controls {
   display: grid;
-  gap: 12px;
-  margin: 18px 0 20px;
+  gap: 10px;
+  margin: 16px 0 18px;
 }
 
 .var-card {
-  padding: 14px;
-  border-radius: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
   border: 1px solid rgba(24, 32, 27, 0.08);
   background: rgba(255, 255, 255, 0.58);
 }
@@ -228,23 +228,86 @@ select[multiple] {
 
 .var-card-header span {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .var-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+  margin-top: 10px;
 }
 
 .var-grid label,
 .search-label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 0.84rem;
+  margin-bottom: 4px;
+  font-size: 0.76rem;
   color: var(--muted);
   font-weight: 600;
+}
+
+.control-field select {
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.run-info-list {
+  display: grid;
+  gap: 10px;
+}
+
+.run-info-card {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(24, 32, 27, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.run-info-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: start;
+}
+
+.run-info-header strong {
+  font-size: 0.98rem;
+}
+
+.run-info-header span {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.run-info-summary {
+  margin: 8px 0 10px;
+  line-height: 1.42;
+}
+
+.run-info-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.run-info-meta div {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(24, 32, 27, 0.06);
+}
+
+.run-info-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.run-info-card li + li {
+  margin-top: 6px;
 }
 
 .charts-grid {

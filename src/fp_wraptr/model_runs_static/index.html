@@ -64,8 +64,17 @@
 
           <section class="panel-card">
             <h2>Variables</h2>
+            <label class="search-label" for="variableSearch">Search variables</label>
+            <input id="variableSearch" type="search" placeholder="Filter by code or short name" />
             <select id="variableSelect" multiple size="10"></select>
             <p class="hint">Preset selection seeds variables; manual edits stay in-browser only.</p>
+          </section>
+
+          <section class="panel-card">
+            <h2>Run Info</h2>
+            <div id="runInfo" class="run-info-list">
+              <div class="empty-state">Select one or more runs to see scenario details.</div>
+            </div>
           </section>
         </aside>
 
