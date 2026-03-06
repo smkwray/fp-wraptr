@@ -42,7 +42,9 @@ CREATE_RE = re.compile(
     r"^(?P<indent>\s*)CREATE\s+(?P<symbol>[A-Za-z0-9_]+)\s*=\s*(?P<value>[^;]+)(?P<suffix>\s*;.*)$",
     re.IGNORECASE,
 )
-INPUT_RE = re.compile(r"(?im)^(?P<prefix>\s*INPUT\s+FILE\s*=\s*)(?P<name>[^;\r\n]+)(?P<suffix>\s*;.*)$")
+INPUT_RE = re.compile(
+    r"(?im)^(?P<prefix>\s*INPUT\s+FILE\s*=\s*)(?P<name>[^;\r\n]+)(?P<suffix>\s*;.*)$"
+)
 
 
 @dataclass(frozen=True)
@@ -78,7 +80,9 @@ def load_card_specs(
     if not cards_root.exists():
         return []
     payloads: list[CardSpec] = []
-    pattern = cards_root.glob("**/*.yaml") if family is None else (cards_root / family).glob("*.yaml")
+    pattern = (
+        cards_root.glob("**/*.yaml") if family is None else (cards_root / family).glob("*.yaml")
+    )
     for path in sorted(pattern):
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
@@ -104,7 +108,11 @@ def _validate_series_card_spec(raw: dict[str, object]) -> SeriesCardSpec:
         target_rows = raw.get("targets")
         if not isinstance(target_rows, list):
             raise
-        if not any(str(item.get("fp_method", "")).strip().upper() == "ADDDIFABS" for item in target_rows if isinstance(item, dict)):
+        if not any(
+            str(item.get("fp_method", "")).strip().upper() == "ADDDIFABS"
+            for item in target_rows
+            if isinstance(item, dict)
+        ):
             raise
         targets: list[SeriesTargetSpec] = []
         for item in target_rows:
@@ -145,7 +153,9 @@ def card_specs_by_id(*, repo_root: Path | str, family: str | None = None) -> dic
     return {spec.card_id: spec for spec in load_card_specs(repo_root=repo_root, family=family)}
 
 
-def initialize_card_instances(specs: list[CardSpec], existing: list[CardInstance]) -> list[CardInstance]:
+def initialize_card_instances(
+    specs: list[CardSpec], existing: list[CardInstance]
+) -> list[CardInstance]:
     by_id = {item.card_id: item for item in existing}
     merged: list[CardInstance] = []
     for spec in specs:
@@ -222,7 +232,9 @@ def resolve_card_defaults(
                 source = _find_source_path(file_spec.path, search_dirs)
                 if source is None:
                     continue
-                parsed = parse_create_assignments(source.read_text(encoding="utf-8", errors="replace"))
+                parsed = parse_create_assignments(
+                    source.read_text(encoding="utf-8", errors="replace")
+                )
                 for group in file_spec.groups:
                     for field in group.fields:
                         if field.symbol in parsed:
@@ -404,7 +416,9 @@ def compile_bundle_workspace(
     workspace_dir = Path(workspace_dir).resolve()
     paths = workspace_paths(workspace_dir)
     _reset_compile_dirs(paths)
-    bundle_source = BundleConfig.from_yaml(resolve_source_path(draft.source, repo_root=repo_root, expected_kind="bundle"))
+    bundle_source = BundleConfig.from_yaml(
+        resolve_source_path(draft.source, repo_root=repo_root, expected_kind="bundle")
+    )
     base_config = ScenarioConfig(**bundle_source.base)
     generated_files: list[Path] = []
     errors: list[str] = []
@@ -421,8 +435,15 @@ def compile_bundle_workspace(
             slug=f"{draft.slug}-{variant.variant_id}",
             label=variant.label,
             description=draft.description,
-            source=DraftSourceRef(kind="path", value=str(resolve_source_path(draft.source, repo_root=repo_root, expected_kind="bundle"))),
-            scenario_name=str(variant.scenario_name or f"{draft.bundle_name}_{variant.variant_id}"),
+            source=DraftSourceRef(
+                kind="path",
+                value=str(
+                    resolve_source_path(draft.source, repo_root=repo_root, expected_kind="bundle")
+                ),
+            ),
+            scenario_name=str(
+                variant.scenario_name or f"{draft.bundle_name}_{variant.variant_id}"
+            ),
             forecast_start=draft.forecast_start,
             forecast_end=draft.forecast_end,
             backend=draft.backend,
@@ -506,7 +527,9 @@ def _apply_card_instance(
 ) -> list[Path]:
     if isinstance(spec, DeckConstantsCardSpec):
         return _apply_deck_constants(instance, spec=spec, overlay_dir=overlay_dir)
-    return _apply_series_card(instance, spec=spec, overlay_dir=overlay_dir, fp_home=fp_home, imports_dir=imports_dir)
+    return _apply_series_card(
+        instance, spec=spec, overlay_dir=overlay_dir, fp_home=fp_home, imports_dir=imports_dir
+    )
 
 
 def _apply_deck_constants(
@@ -521,12 +544,10 @@ def _apply_deck_constants(
         target = overlay_dir / file_spec.path
         if not target.exists():
             raise FileNotFoundError(f"Deck constant file not found in overlay: {target}")
-        relevant_symbols = {
-            field.symbol
-            for group in file_spec.groups
-            for field in group.fields
+        relevant_symbols = {field.symbol for group in file_spec.groups for field in group.fields}
+        relevant_updates = {
+            symbol: value for symbol, value in updates.items() if symbol in relevant_symbols
         }
-        relevant_updates = {symbol: value for symbol, value in updates.items() if symbol in relevant_symbols}
         if not relevant_updates:
             continue
         rewritten, missing = rewrite_create_assignments(
@@ -534,7 +555,9 @@ def _apply_deck_constants(
             relevant_updates,
         )
         if missing:
-            raise ValueError(f"Missing CREATE assignments in {file_spec.path}: {', '.join(missing)}")
+            raise ValueError(
+                f"Missing CREATE assignments in {file_spec.path}: {', '.join(missing)}"
+            )
         target.write_text(rewritten, encoding="utf-8")
         written.append(target)
     return written
@@ -565,8 +588,12 @@ def _apply_series_card(
         raise ValueError("series card has no normalized quarterly points")
     output_path = overlay_dir / target_spec.output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    _write_series_target(output_path, points, target_spec=target_spec, variable=spec.variable, fp_home=fp_home)
-    apply_attach_rule(overlay_dir=overlay_dir, generated_path=output_path, rule=target_spec.attach_rule)
+    _write_series_target(
+        output_path, points, target_spec=target_spec, variable=spec.variable, fp_home=fp_home
+    )
+    apply_attach_rule(
+        overlay_dir=overlay_dir, generated_path=output_path, rule=target_spec.attach_rule
+    )
     return [output_path]
 
 

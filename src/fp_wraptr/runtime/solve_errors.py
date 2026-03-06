@@ -30,7 +30,9 @@ _SOLUTION_ERROR_RE = re.compile(
     r"Solution error in\s+(?P<solve>\w+)\.\s*(?:ITERS\s*=\s*(?P<iters>\d+)\s+(?P<period>\d{4}\.[1-4]))?",
     re.IGNORECASE,
 )
-_ITERS_LINE_RE = re.compile(r"ITERS\s*=\s*(?P<iters>\d+)\s+(?P<period>\d{4}\.[1-4])", re.IGNORECASE)
+_ITERS_LINE_RE = re.compile(
+    r"ITERS\s*=\s*(?P<iters>\d+)\s+(?P<period>\d{4}\.[1-4])", re.IGNORECASE
+)
 
 
 def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
@@ -85,7 +87,9 @@ def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
     raw_matches: list[SolveErrorMatch] = []
     for raw in lines:
         if "solution error" in raw.lower():
-            raw_matches.append(SolveErrorMatch(solve=None, iters=None, period=None, match=raw.strip()))
+            raw_matches.append(
+                SolveErrorMatch(solve=None, iters=None, period=None, match=raw.strip())
+            )
             if len(raw_matches) >= 10:
                 break
     return raw_matches

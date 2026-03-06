@@ -172,20 +172,18 @@ def _write_parity_run(
                 "engine_runs": {
                     "fpexe": {
                         "pabev_path": None,
-                        "details": (
-                            {
-                                **(
-                                    {"solution_errors": fpexe_solution_errors}
-                                    if fpexe_solution_errors is not None
-                                    else {}
-                                ),
-                                **(
-                                    {"preflight_report": fpexe_preflight_report}
-                                    if fpexe_preflight_report is not None
-                                    else {}
-                                ),
-                            }
-                        ),
+                        "details": ({
+                            **(
+                                {"solution_errors": fpexe_solution_errors}
+                                if fpexe_solution_errors is not None
+                                else {}
+                            ),
+                            **(
+                                {"preflight_report": fpexe_preflight_report}
+                                if fpexe_preflight_report is not None
+                                else {}
+                            ),
+                        }),
                     },
                     "fppy": {
                         "pabev_path": None,
@@ -296,7 +294,9 @@ def test_dashboard_home_active_run_checkbox_can_be_rechecked(tmp_path: Path) -> 
 
     initial_keys = list(at.session_state["dashboard_active_run_dirs"])
     assert len(initial_keys) == 3
-    first_checkbox_key = f"home_run_pick_{hashlib.sha1(initial_keys[0].encode('utf-8')).hexdigest()[:12]}"
+    first_checkbox_key = (
+        f"home_run_pick_{hashlib.sha1(initial_keys[0].encode('utf-8')).hexdigest()[:12]}"
+    )
 
     at.session_state[first_checkbox_key] = False
     at.run(timeout=10)
@@ -351,7 +351,9 @@ def test_dashboard_mini_run_picker_checkbox_can_be_rechecked(tmp_path: Path) -> 
 
     initial_keys = list(at.session_state["mini_dash_run_keys"])
     assert len(initial_keys) == 3
-    first_checkbox_key = f"mini_dash_run_pick_{hashlib.sha1(initial_keys[0].encode('utf-8')).hexdigest()[:12]}"
+    first_checkbox_key = (
+        f"mini_dash_run_pick_{hashlib.sha1(initial_keys[0].encode('utf-8')).hexdigest()[:12]}"
+    )
 
     at.session_state[first_checkbox_key] = False
     at.run(timeout=10)
@@ -710,12 +712,14 @@ def test_dashboard_parity_page_warns_for_fpexe_solution_errors(tmp_path: Path) -
         artifacts_dir,
         "baseline",
         "20260223_120014",
-        fpexe_solution_errors=[{
-            "solve_name": "SOLX",
-            "iters": 3,
-            "period": "2025.4",
-            "match": "Solution error in SOLX at 2025.4",
-        }],
+        fpexe_solution_errors=[
+            {
+                "solve_name": "SOLX",
+                "iters": 3,
+                "period": "2025.4",
+                "match": "Solution error in SOLX at 2025.4",
+            }
+        ],
     )
 
     page_path = _dashboard_root() / "pages" / "11_Parity.py"
@@ -1030,8 +1034,17 @@ def test_data_update_page_gate_failed_caveat_helpers() -> None:
     }
     assert module._should_show_gate_failed_caveat(summary) is True
     assert module._extract_top_diff_variables(summary) == ["RM", "RMA"]
-    assert module._should_show_gate_failed_caveat({"status": "hard_fail", "hard_fail_cell_count": 0}) is False
-    assert module._should_show_gate_failed_caveat({"status": "gate_failed", "hard_fail_cell_count": 1}) is False
+    assert (
+        module._should_show_gate_failed_caveat({"status": "hard_fail", "hard_fail_cell_count": 0})
+        is False
+    )
+    assert (
+        module._should_show_gate_failed_caveat({
+            "status": "gate_failed",
+            "hard_fail_cell_count": 1,
+        })
+        is False
+    )
 
 
 def test_equation_graph_discover_sources_includes_latest_pse_runs(tmp_path: Path) -> None:

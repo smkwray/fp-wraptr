@@ -74,20 +74,18 @@ def test_write_exogenous_series_value_by_period(tmp_path: Path) -> None:
 
 def test_parse_fmexog_handles_integer_vector_values() -> None:
     parsed = parse_fmexog_text(
-        "\n".join(
-            [
-                "SMPL 2025.4 2026.1;",
-                "CHANGEVAR;",
-                "JGSWITCH SAMEVALUE",
-                "1",
-                "JGPHASE ADDDIFABS",
-                "0",
-                "1",
-                ";",
-                "RETURN;",
-                "",
-            ]
-        )
+        "\n".join([
+            "SMPL 2025.4 2026.1;",
+            "CHANGEVAR;",
+            "JGSWITCH SAMEVALUE",
+            "1",
+            "JGPHASE ADDDIFABS",
+            "0",
+            "1",
+            ";",
+            "RETURN;",
+            "",
+        ])
     )
 
     changes = {item["variable"]: item["values"] for item in parsed["changes"]}

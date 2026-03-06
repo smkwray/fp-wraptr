@@ -14,15 +14,13 @@ from fp_wraptr.dashboard.ptcoef_editor import (
 
 
 def test_parse_ptcoef_text_collects_create_entries() -> None:
-    text = "\n".join(
-        [
-            "@ heading",
-            "CREATE JPTUR=0.438306;",
-            "  CREATE jchur = -1.1706049 ;",
-            "GENR X=1;",
-            "",
-        ]
-    )
+    text = "\n".join([
+        "@ heading",
+        "CREATE JPTUR=0.438306;",
+        "  CREATE jchur = -1.1706049 ;",
+        "GENR X=1;",
+        "",
+    ])
     doc = parse_ptcoef_text(text)
 
     assert [entry.symbol for entry in doc.entries] == ["JPTUR", "JCHUR"]
@@ -31,15 +29,13 @@ def test_parse_ptcoef_text_collects_create_entries() -> None:
 
 
 def test_rewrite_ptcoef_text_updates_symbols_and_preserves_comments() -> None:
-    original = "\n".join(
-        [
-            "@ section",
-            "CREATE JPTUR=0.438306;",
-            "CREATE JPTYD=-0.004794;",
-            "@ leave me",
-            "",
-        ]
-    )
+    original = "\n".join([
+        "@ section",
+        "CREATE JPTUR=0.438306;",
+        "CREATE JPTYD=-0.004794;",
+        "@ leave me",
+        "",
+    ])
 
     rewritten, missing = rewrite_ptcoef_text(original, {"jptur": "0.5", "missing": 1.2})
 

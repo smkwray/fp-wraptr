@@ -49,7 +49,9 @@ def test_dictionary_overlays_inherit_unmodified_stock_definitions(tmp_path: Path
 
     scenario_overlay = tmp_path / "scenario_overlay.json"
     scenario_overlay.write_text(
-        json.dumps({"variables": {"GDP": {"description": "Scenario-specific GDP definition."}}}, indent=2),
+        json.dumps(
+            {"variables": {"GDP": {"description": "Scenario-specific GDP definition."}}}, indent=2
+        ),
         encoding="utf-8",
     )
 

@@ -189,7 +189,9 @@ def patch_fmdata_like_file(
             newline=newline,
             path=out_path,
         )
-        return TargetWriteResult(paths=[out_path], kind=kind, variable=var_u, notes=["added_series"])
+        return TargetWriteResult(
+            paths=[out_path], kind=kind, variable=var_u, notes=["added_series"]
+        )
 
     # Apply updates, requiring all requested periods to exist.
     periods = periods_between(file_start, file_end)
@@ -197,10 +199,14 @@ def patch_fmdata_like_file(
     target = series[var_u]
     for p, v in series_values_by_period.items():
         if p not in index:
-            raise TargetError(f"Period '{p}' not in fmdata sample window ({file_start}..{file_end})")
+            raise TargetError(
+                f"Period '{p}' not in fmdata sample window ({file_start}..{file_end})"
+            )
         target[index[p]] = float(v)
     series[var_u] = target
 
     newline = _detect_newline(in_path)
-    write_fmdata(sample_start=file_start, sample_end=file_end, series=series, newline=newline, path=out_path)
+    write_fmdata(
+        sample_start=file_start, sample_end=file_end, series=series, newline=newline, path=out_path
+    )
     return TargetWriteResult(paths=[out_path], kind=kind, variable=var_u, notes=[])

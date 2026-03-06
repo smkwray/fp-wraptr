@@ -97,7 +97,9 @@ steps:
 
     result = run_pipeline(pipeline_path=yaml_path, output_report=None, dry_run=False)
     assert out_path.exists()
-    assert any((s.get("target") or {}).get("kind") == "include_changevar" for s in result.report["steps"])
+    assert any(
+        (s.get("target") or {}).get("kind") == "include_changevar" for s in result.report["steps"]
+    )
     text = out_path.read_text(encoding="utf-8")
     assert "INTGADJ" in text
 

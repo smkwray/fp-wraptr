@@ -1235,9 +1235,7 @@ def apply_eq_backfill(
                             # Keep retained context assignments scoped to the solve
                             # window to avoid replaying them over historical samples.
                             step_window = assignment_window_override
-                        target = (
-                            _resolve_existing_column(output, assignment.lhs) or assignment.lhs
-                        )
+                        target = _resolve_existing_column(output, assignment.lhs) or assignment.lhs
                         if target not in output.columns:
                             output[target] = pd.Series(np.nan, index=output.index, dtype="float64")
                         deferred_step = _DeferredStep(

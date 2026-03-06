@@ -332,7 +332,9 @@ def _augment_fminput_keyboard_targets(
                 existing.append(str(token).upper())
             j += 1
         if j >= len(lines) or lines[j].strip() != ";":
-            payload["error"] = "Could not find KEYBOARD terminator ';' after SOLVE FILEVAR=KEYBOARD"
+            payload["error"] = (
+                "Could not find KEYBOARD terminator ';' after SOLVE FILEVAR=KEYBOARD"
+            )
             return payload
 
         existing_set = set(existing)

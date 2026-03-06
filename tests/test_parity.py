@@ -72,7 +72,9 @@ def _write_two_period_pabev(path: Path, *, first: float, second: float) -> None:
 def test_scan_fpexe_solution_errors_accepts_short_format(tmp_path) -> None:
     work_dir = tmp_path / "work_fpexe"
     work_dir.mkdir(parents=True, exist_ok=True)
-    (work_dir / "fmout.txt").write_text("header\nSolution error in SOL1.\nfooter\n", encoding="utf-8")
+    (work_dir / "fmout.txt").write_text(
+        "header\nSolution error in SOL1.\nfooter\n", encoding="utf-8"
+    )
 
     rows = _scan_fpexe_solution_errors(work_dir)
 
@@ -467,7 +469,9 @@ def test_run_parity_plumbs_fppy_eq_iter_trace_and_links_trace_artifact(
                 stdout="",
                 stderr="",
                 working_dir=work_dir,
-                input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
+                input_file=Path(input_file)
+                if input_file is not None
+                else work_dir / "fminput.txt",
                 output_file=work_dir / "fmout.txt",
                 duration_seconds=0.0,
             )
@@ -826,7 +830,9 @@ def test_run_parity_writes_absolute_fp_home_in_artifact_scenario(tmp_path, monke
     monkeypatch.chdir(tmp_path)
     fp_home = tmp_path / "fp_home"
     fp_home.mkdir()
-    config = ScenarioConfig(name="abs_fp_home_case", fp_home=Path("fp_home"), forecast_end="2025.4")
+    config = ScenarioConfig(
+        name="abs_fp_home_case", fp_home=Path("fp_home"), forecast_end="2025.4"
+    )
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
         assert work_dir is not None

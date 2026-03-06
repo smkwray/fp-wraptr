@@ -9,12 +9,10 @@ def test_infer_printvar_order_appends_non_fmout_columns(tmp_path) -> None:
     # The variable-map heuristic in `_infer_printvar_variable_order` should not
     # drop variables that exist in the runtime frame but do not appear in fmout.
     (tmp_path / "fmout_coefs.txt").write_text(
-        "\n".join(
-            [
-                "A 1 B 2",
-                "",
-            ]
-        ),
+        "\n".join([
+            "A 1 B 2",
+            "",
+        ]),
         encoding="utf-8",
     )
     frame = pd.DataFrame(

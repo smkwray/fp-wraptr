@@ -94,7 +94,11 @@ def load_ptcoef_deck(*, overlay_dir: Path | str | None, fp_home: Path | str) -> 
 
     overlay_path = Path(overlay_dir) if overlay_dir is not None else None
     fp_home_path = Path(fp_home)
-    target_path = _safe_target_path(overlay_path) if overlay_path is not None else fp_home_path / "ptcoef.txt"
+    target_path = (
+        _safe_target_path(overlay_path)
+        if overlay_path is not None
+        else fp_home_path / "ptcoef.txt"
+    )
 
     source_path: Path | None = None
     source_kind: str | None = None
@@ -127,7 +131,9 @@ def load_ptcoef_deck(*, overlay_dir: Path | str | None, fp_home: Path | str) -> 
     )
 
 
-def _render_updated_text(deck: PtcoefDeck, updates: dict[str, float]) -> tuple[str, tuple[str, ...]]:
+def _render_updated_text(
+    deck: PtcoefDeck, updates: dict[str, float]
+) -> tuple[str, tuple[str, ...]]:
     entry_by_name = {entry.name: entry for entry in deck.entries}
     effective_updates = {
         name.upper(): float(new_value)

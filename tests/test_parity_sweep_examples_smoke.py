@@ -5,7 +5,9 @@ from pathlib import Path
 
 
 def _load_module():
-    script_path = Path(__file__).resolve().parents[1] / "scripts" / "parity_sweep_examples_smoke.py"
+    script_path = (
+        Path(__file__).resolve().parents[1] / "scripts" / "parity_sweep_examples_smoke.py"
+    )
     spec = importlib.util.spec_from_file_location("parity_sweep_examples_smoke", script_path)
     assert spec is not None
     assert spec.loader is not None

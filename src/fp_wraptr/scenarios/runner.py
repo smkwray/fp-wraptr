@@ -44,8 +44,13 @@ def load_scenario_config(path: Path | str) -> ScenarioConfig:
         raw_payload = yaml.safe_load(scenario_path.read_text(encoding="utf-8"))
     except Exception:
         raw_payload = None
-    explicit_fp_home = isinstance(raw_payload, dict) and raw_payload.get("fp_home") not in (None, "")
-    explicit_overlay = isinstance(raw_payload, dict) and raw_payload.get("input_overlay_dir") not in (
+    explicit_fp_home = isinstance(raw_payload, dict) and raw_payload.get("fp_home") not in (
+        None,
+        "",
+    )
+    explicit_overlay = isinstance(raw_payload, dict) and raw_payload.get(
+        "input_overlay_dir"
+    ) not in (
         None,
         "",
     )

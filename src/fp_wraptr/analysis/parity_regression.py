@@ -179,10 +179,14 @@ def _pabev_paths(run_dir: Path) -> tuple[Path, Path]:
         return None
 
     left_report = _resolve_candidate(
-        (engine_runs.get("fpexe") or {}).get("pabev_path") if isinstance(engine_runs.get("fpexe"), dict) else None
+        (engine_runs.get("fpexe") or {}).get("pabev_path")
+        if isinstance(engine_runs.get("fpexe"), dict)
+        else None
     )
     right_report = _resolve_candidate(
-        (engine_runs.get("fppy") or {}).get("pabev_path") if isinstance(engine_runs.get("fppy"), dict) else None
+        (engine_runs.get("fppy") or {}).get("pabev_path")
+        if isinstance(engine_runs.get("fppy"), dict)
+        else None
     )
     if left_report is not None and right_report is not None:
         return left_report, right_report

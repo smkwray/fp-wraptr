@@ -29,24 +29,22 @@ runner = CliRunner()
 def _write_loadformat(path: Path, *, wf: list[float], pf: list[float], gdp: list[float]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        "\n".join(
-            [
-                "SMPL 2025.1 2025.4;",
-                "LOAD WF;",
-                " " + " ".join(str(value) for value in wf),
-                "'END'",
-                "LOAD PF;",
-                " " + " ".join(str(value) for value in pf),
-                "'END'",
-                "LOAD GDP;",
-                " " + " ".join(str(value) for value in gdp),
-                "'END'",
-                "LOAD GDPR;",
-                " " + " ".join(str(value) for value in gdp),
-                "'END'",
-                "",
-            ]
-        ),
+        "\n".join([
+            "SMPL 2025.1 2025.4;",
+            "LOAD WF;",
+            " " + " ".join(str(value) for value in wf),
+            "'END'",
+            "LOAD PF;",
+            " " + " ".join(str(value) for value in pf),
+            "'END'",
+            "LOAD GDP;",
+            " " + " ".join(str(value) for value in gdp),
+            "'END'",
+            "LOAD GDPR;",
+            " " + " ".join(str(value) for value in gdp),
+            "'END'",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -83,7 +81,9 @@ def _write_run(
     return run_dir
 
 
-def _write_spec(path: Path, *, title: str = "Fixture Explorer", scenario_name: str = "scenario") -> None:
+def _write_spec(
+    path: Path, *, title: str = "Fixture Explorer", scenario_name: str = "scenario"
+) -> None:
     payload = {
         "version": 1,
         "title": title,
@@ -138,7 +138,9 @@ def test_export_pages_bundle_resolves_latest_artifact_and_preserves_run_id(tmp_p
             "timestamp": "20260306_130000",
         }
     ]
-    run_payload = json.loads((result.out_dir / "runs" / "fixture-run.json").read_text(encoding="utf-8"))
+    run_payload = json.loads(
+        (result.out_dir / "runs" / "fixture-run.json").read_text(encoding="utf-8")
+    )
     assert run_payload["run_id"] == "fixture-run"
     assert run_payload["scenario_name"] == "scenario"
     assert run_payload["series"]["GDP"] == [200.0, 201.0, 202.0, 203.0]
@@ -164,7 +166,9 @@ def test_export_pages_bundle_uses_loadformat_adds_wr_and_serializes_nonfinite_to
     )
 
     run_payload = json.loads(
-        (tmp_path / "public" / "model-runs" / "runs" / "fixture-run.json").read_text(encoding="utf-8")
+        (tmp_path / "public" / "model-runs" / "runs" / "fixture-run.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert run_payload["series"]["WF"] == [1.0, 2.0, 3.0, 4.0]
     assert run_payload["series"]["WR"] == [0.1, None, 0.6, 0.8]
@@ -185,7 +189,10 @@ def test_export_pages_bundle_applies_dictionary_overlay_precedence(tmp_path: Pat
         encoding="utf-8",
     )
     (overlay_dir / "dictionary_overlays" / "scenario.json").write_text(
-        json.dumps({"variables": {"GDP": {"description": "Scenario GDP description", "units": "Index"}}}, indent=2),
+        json.dumps(
+            {"variables": {"GDP": {"description": "Scenario GDP description", "units": "Index"}}},
+            indent=2,
+        ),
         encoding="utf-8",
     )
 
@@ -245,7 +252,9 @@ def test_export_pages_bundle_uses_relative_static_paths(tmp_path: Path) -> None:
     )
 
     index_html = (tmp_path / "public" / "model-runs" / "index.html").read_text(encoding="utf-8")
-    manifest = json.loads((tmp_path / "public" / "model-runs" / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (tmp_path / "public" / "model-runs" / "manifest.json").read_text(encoding="utf-8")
+    )
 
     assert 'href="./styles.css"' in index_html
     assert 'src="./app.js"' in index_html

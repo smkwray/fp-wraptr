@@ -105,7 +105,9 @@ def _resolve_relative_paths(config: SeriesPipelineConfig, *, base_dir: Path) -> 
             ]
 
 
-def _read_source(step_id: str, source: object) -> tuple[list[str], list[float | None], dict[str, Any]]:
+def _read_source(
+    step_id: str, source: object
+) -> tuple[list[str], list[float | None], dict[str, Any]]:
     if isinstance(source, CsvSource):
         frame = read_series_from_csv(source)
         return frame.periods, frame.values, {"kind": "csv", "path": str(source.path)}
@@ -259,7 +261,9 @@ def run_pipeline(
                 }
             elif isinstance(target, FmdataPatchTarget):
                 in_path = Path(_resolve_template(str(target.fmdata_in), context=ctx)).expanduser()
-                out_path = Path(_resolve_template(str(target.fmdata_out), context=ctx)).expanduser()
+                out_path = Path(
+                    _resolve_template(str(target.fmdata_out), context=ctx)
+                ).expanduser()
                 # Patch only the periods present in source.
                 updates = {
                     normalize_period_token(p): float(v)  # type: ignore[arg-type]
@@ -299,7 +303,9 @@ def run_pipeline(
                 else:
                     step_record["dry_run_write_to"] = [str(out_path)]
             else:
-                raise PipelineRunError(f"Step '{step.id}' has unsupported target kind '{target_kind}'")
+                raise PipelineRunError(
+                    f"Step '{step.id}' has unsupported target kind '{target_kind}'"
+                )
         except (ExtrapolationError, TargetError, PeriodError, IndexError, ValueError) as exc:
             raise PipelineRunError(f"Step '{step.id}' failed: {exc}") from exc
 
@@ -311,6 +317,8 @@ def run_pipeline(
 
     if output_report:
         output_report.parent.mkdir(parents=True, exist_ok=True)
-        output_report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        output_report.write_text(
+            json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     return PipelineRunResult(config=config, report=report, written_paths=written_paths)

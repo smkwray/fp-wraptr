@@ -122,9 +122,7 @@ def normalize_preset_transforms(
         if mode not in _VALID_TRANSFORM_MODES:
             mode = TRANSFORM_LEVEL
         denominator = (
-            str(raw_cfg.get("denominator", DEFAULT_TRANSFORM_DENOMINATOR) or "")
-            .strip()
-            .upper()
+            str(raw_cfg.get("denominator", DEFAULT_TRANSFORM_DENOMINATOR) or "").strip().upper()
             or DEFAULT_TRANSFORM_DENOMINATOR
         )
         if mode == TRANSFORM_LEVEL:
@@ -484,10 +482,7 @@ def build_multi_panel_png(
 
     axes_list = list(axes.flatten()) if hasattr(axes, "flatten") else [axes]
     palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
-    color_by_run = {
-        run.legend_label: palette[idx % len(palette)]
-        for idx, run in enumerate(runs)
-    }
+    color_by_run = {run.legend_label: palette[idx % len(palette)] for idx, run in enumerate(runs)}
 
     for ax, var_name in zip(axes_list, normalized_vars, strict=False):
         _plot_axis(

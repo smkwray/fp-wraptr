@@ -157,7 +157,9 @@ def test_scan_empty_dir(tmp_path: Path) -> None:
     assert scan_artifacts(tmp_path / "empty") == []
 
 
-def test_existing_overlay_paths_applies_shared_extensions_before_scenario_overlay(tmp_path: Path) -> None:
+def test_existing_overlay_paths_applies_shared_extensions_before_scenario_overlay(
+    tmp_path: Path,
+) -> None:
     project_root = tmp_path
     overlay_dir = project_root / "projects_local" / "pse2025"
     overlay_ext = overlay_dir / "dictionary_extensions"
@@ -241,7 +243,9 @@ def test_existing_overlay_paths_maps_stock_fm_baseline_to_baseline_overlay(tmp_p
     assert any(path.name == "baseline.json" for path in paths)
 
 
-def test_existing_overlay_paths_applies_global_baseline_before_scenario_overlay(tmp_path: Path) -> None:
+def test_existing_overlay_paths_applies_global_baseline_before_scenario_overlay(
+    tmp_path: Path,
+) -> None:
     project_root = tmp_path
     shared_root = project_root / "projects_local" / "dictionary_overlays"
     shared_root.mkdir(parents=True, exist_ok=True)

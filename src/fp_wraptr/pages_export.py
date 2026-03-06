@@ -180,7 +180,9 @@ class PagesExportSpec(BaseModel):
 
         missing_default_runs = sorted(set(self.default_run_ids) - set(run_ids))
         if missing_default_runs:
-            raise ValueError(f"default_run_ids not present in runs: {', '.join(missing_default_runs)}")
+            raise ValueError(
+                f"default_run_ids not present in runs: {', '.join(missing_default_runs)}"
+            )
 
         missing_default_presets = sorted(set(self.default_preset_ids) - set(preset_ids))
         if missing_default_presets:
