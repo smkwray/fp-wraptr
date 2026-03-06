@@ -1,0 +1,1576 @@
+# FP Model Data Source Map
+#
+# Maps FP model variables to their real-world data sources for the
+# data update pipeline. Each entry specifies where to fetch fresh
+# observations so fmdata.txt can be regenerated independently of
+# the Yale FP website.
+#
+# Sources:
+#   fred   — FRED (Federal Reserve Economic Data), via fredapi
+#   bea    — BEA/NIPA tables, via BEA REST API
+#   bls    — Bureau of Labor Statistics, via BLS Public Data API
+#   census — Census Bureau
+#   treas  — US Treasury
+#
+# Frequency: Q = quarterly, M = monthly (aggregated to Q), A = annual
+# Transform: level, growth_rate, index, cumulative
+# Units follow FP model convention (billions SAAR, percent, index)
+#
+# This file is the authoritative reference for the data pipeline.
+# When Table A.5 from the dictionary (pabapa.pdf) is parsed, entries
+# here should be cross-referenced and expanded.
+#
+# STATUS: Expanded baseline — 60+ variables mapped, including full coverage
+# of variables currently carrying dictionary raw-data links. Continue curation
+# by filling concrete series/table locators for placeholder entries.
+
+# ============================================================
+# National Income and Product Accounts (GDP & components)
+# ============================================================
+
+GDPR:
+  description: "Real gross domestic product"
+  source: bea
+  series_id: GDPC1
+  fred_fallback: GDPC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  scale: 0.001
+  bea_table: "T10106"
+  bea_line: 1
+
+CS:
+  description: "Consumer spending: services"
+  source: bea
+  series_id: PCESV
+  fred_fallback: PCESV
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  scale: 0.001
+  bea_table: "T10106"
+  bea_line: 6
+
+CN:
+  description: "Consumer spending: nondurable goods"
+  source: bea
+  series_id: PCND
+  fred_fallback: PCND
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  scale: 0.001
+  bea_table: "T10106"
+  bea_line: 5
+
+CD:
+  description: "Consumer spending: durable goods"
+  source: bea
+  series_id: PCDG
+  fred_fallback: PCDG
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  scale: 0.001
+  bea_table: "T10106"
+  bea_line: 4
+
+IHH:
+  description: "Residential fixed investment"
+  source: bea
+  series_id: PRFI
+  fred_fallback: PRFI
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  bea_table: "T10106"
+  bea_line: 12
+
+IF:
+  description: "Nonresidential fixed investment"
+  source: bea
+  series_id: PNFI
+  fred_fallback: PNFI
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  bea_table: "T10106"
+  bea_line: 9
+
+EX:
+  description: "Exports of goods and services"
+  source: bea
+  series_id: EXPGSC1
+  fred_fallback: EXPGSC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  bea_table: "T10106"
+  bea_line: 15
+
+IM:
+  description: "Imports of goods and services"
+  source: bea
+  series_id: IMPGSC1
+  fred_fallback: IMPGSC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  scale: 0.001
+  bea_table: "T10106"
+  bea_line: 16
+
+COG:
+  description: "Federal government consumption expenditures"
+  source: bea
+  series_id: FGCE
+  fred_fallback: FGCE
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  bea_table: "T10106"
+  bea_line: 21
+
+# ============================================================
+# Labor Market
+# ============================================================
+
+UR:
+  description: "Civilian unemployment rate"
+  source: bls
+  series_id: LNS14000000
+  fred_fallback: UNRATE
+  frequency: M
+  aggregation: mean
+  units: "Percent"
+  transform: level
+  scale: 0.01
+  notes: "Monthly, averaged to quarterly"
+
+JF:
+  description: "Civilian labor force"
+  source: bls
+  series_id: LNS11000000
+  fred_fallback: CLF16OV
+  frequency: M
+  aggregation: mean
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+  notes: "Monthly, averaged to quarterly"
+
+E:
+  description: "Civilian employment"
+  source: bls
+  series_id: LNS12000000
+  fred_fallback: CE16OV
+  frequency: M
+  aggregation: mean
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+
+HN:
+  description: "Average weekly hours, nonfarm"
+  source: fred
+  series_id: AWHNONAG
+  frequency: M
+  units: "Hours"
+  transform: level
+
+WF:
+  description: "Average hourly earnings, private nonfarm"
+  source: bls
+  series_id: CES0500000003
+  fred_fallback: CES0500000003
+  frequency: M
+  aggregation: mean
+  units: "Dollars per hour"
+  transform: level
+  notes: "BLS CES survey"
+
+# ============================================================
+# Prices & Inflation
+# ============================================================
+
+PCY:
+  description: "Consumer price index (all urban, all items)"
+  source: fred
+  series_id: CPIAUCSL
+  frequency: M
+  units: "Index 1982-84=100"
+  transform: level
+
+PIEF:
+  description: "GDP implicit price deflator"
+  source: bea
+  series_id: GDPDEF
+  fred_fallback: GDPDEF
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  bea_table: "T10109"
+  bea_line: 1
+
+GDPD:
+  description: "GDP price deflator"
+  source: fred
+  series_id: GDPDEF
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+  notes: "Alias mapping aligned with PIEF."
+
+PIM:
+  description: "Import price index"
+  source: fred
+  series_id: IR
+  frequency: Q
+  units: "Index"
+  transform: level
+  scale: 0.01
+
+PEX:
+  description: "Export price index"
+  source: fred
+  series_id: IQ
+  frequency: Q
+  units: "Index"
+  transform: level
+  scale: 0.01
+
+# ============================================================
+# Interest Rates & Financial
+# ============================================================
+
+RS:
+  description: "3-month Treasury bill rate"
+  source: fred
+  series_id: TB3MS
+  frequency: M
+  units: "Percent"
+  transform: level
+
+RL:
+  description: "10-year Treasury bond rate"
+  source: fred
+  series_id: GS10
+  frequency: M
+  units: "Percent"
+  transform: level
+
+RFF:
+  description: "Effective federal funds rate"
+  source: fred
+  series_id: FEDFUNDS
+  frequency: M
+  units: "Percent"
+  transform: level
+
+M1:
+  description: "M1 money stock"
+  source: fred
+  series_id: M1SL
+  frequency: M
+  units: "Billions of dollars"
+  transform: level
+
+BO:
+  description: "Bank borrowing from the Fed"
+  source: fred
+  series_id: BORROW
+  frequency: M
+  units: "Millions of dollars"
+  transform: level
+  scale: 0.001
+  notes: "Total borrowings from the Federal Reserve; convert to billions downstream as needed."
+
+BR:
+  description: "Total bank reserves"
+  source: fred
+  series_id: TOTRESNS
+  frequency: M
+  units: "Billions of dollars"
+  transform: level
+
+# ============================================================
+# Government Sector (fiscal)
+# ============================================================
+
+TRGHQ:
+  description: "Federal government transfer payments to persons"
+  source: bea
+  bea_table: "T30900"
+  bea_line: 16
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  fred_fallback: W823RC1Q027SBEA
+
+TRGSQ:
+  description: "State/local government transfer payments to persons"
+  source: bea
+  bea_table: "T30900"
+  bea_line: 29
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+TBGQ:
+  description: "Federal government tax receipts"
+  source: bea
+  bea_table: "T30200"
+  bea_line: 2
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  fred_fallback: FGRECPT
+
+SGP:
+  description: "Federal government surplus or deficit (-)"
+  source: fred
+  series_id: FGDEF
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+# NOTE: D1G is used in policy DSL and model equations as an effective tax-rate parameter.
+# It must not be updated from raw BEA line items (which are dollar flows) without an explicit
+# derived-rate computation (e.g., receipts / taxable income). We intentionally leave it
+# unmapped for now to prevent catastrophic scale errors in updated bundles.
+
+# ============================================================
+# Income & Saving
+# ============================================================
+
+YS:
+  description: "Total output (production side GDP)"
+  source: fred
+  series_id: GDPC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Same as GDPR on production side"
+
+SR:
+  description: "Personal saving rate"
+  source: fred
+  series_id: PSAVERT
+  frequency: M
+  units: "Percent"
+  transform: level
+
+YD:
+  description: "Disposable personal income"
+  source: fred
+  series_id: DSPIC96
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+GNP:
+  description: "Gross national product"
+  source: fred
+  series_id: GNP
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+GNPR:
+  description: "Gross national product, real"
+  source: fred
+  series_id: GNPC96
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+GNPD:
+  description: "GNP implicit price deflator"
+  source: fred
+  series_id: GNPDEF
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+
+IHF:
+  description: "Residential investment, firms (real proxy)"
+  source: fred
+  series_id: PRFIC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Real private residential fixed investment proxy."
+
+IKB:
+  description: "Nonresidential fixed investment, real aggregate proxy"
+  source: fred
+  series_id: PNFIC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Real private nonresidential fixed investment aggregate proxy."
+
+# ============================================================
+# International
+# ============================================================
+
+EXR:
+  description: "Trade-weighted US dollar index"
+  source: fred
+  series_id: TWEXBMTH
+  frequency: M
+  units: "Index Jan 2006=100"
+  transform: level
+  notes: "Broad trade-weighted; monthly, averaged to quarterly"
+
+EXPG:
+  description: "Exports of goods and services, nominal"
+  source: fred
+  series_id: EXPGS
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Nominal export counterpart to real export series."
+
+# ============================================================
+# Population & Demographic
+# ============================================================
+
+POP:
+  description: "Civilian noninstitutional population 16+"
+  source: fred
+  series_id: CNP16OV
+  frequency: M
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+
+POP1:
+  description: "Noninstitutional population of men 25-54"
+  source: census
+  frequency: Q
+  units: "Millions of persons"
+  transform: level
+  notes: "CPS age/sex population slice; pull from Census CPS microdata series."
+
+POP2:
+  description: "Noninstitutional population of women 25-54"
+  source: census
+  frequency: Q
+  units: "Millions of persons"
+  transform: level
+  notes: "CPS age/sex population slice; pull from Census CPS microdata series."
+
+POP3:
+  description: "Noninstitutional population of all others, 16+"
+  source: census
+  frequency: Q
+  units: "Millions of persons"
+  transform: level
+  notes: "Derived from CPS population totals minus POP1/POP2 cohorts."
+
+AG1:
+  description: "Population age-share spread: 26-55 minus 16-25"
+  source: census
+  frequency: Q
+  units: "Percent"
+  transform: level
+  notes: "Derived from Census age-share population bins."
+
+AG2:
+  description: "Population age-share spread: 56-65 minus 16-25"
+  source: census
+  frequency: Q
+  units: "Percent"
+  transform: level
+  notes: "Derived from Census age-share population bins."
+
+AG3:
+  description: "Population age-share spread: 66+ minus 16-25"
+  source: census
+  frequency: Q
+  units: "Percent"
+  transform: level
+  notes: "Derived from Census age-share population bins."
+
+# ============================================================
+# Broader dictionary coverage (proxy/derived mappings)
+# ============================================================
+
+COS:
+  description: "Purchases of consumption and investment goods, state/local proxy"
+  source: fred
+  series_id: SLCEC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Proxy using real state/local consumption expenditures and gross investment."
+
+PCD:
+  description: "Price deflator for consumer durables"
+  source: fred
+  series_id: DDURRG3Q086SBEA
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+
+PCN:
+  description: "Price deflator for consumer nondurables"
+  source: fred
+  series_id: DNDGRG3Q086SBEA
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+
+PCS:
+  description: "Price deflator for consumer services"
+  source: fred
+  series_id: DSERRG3Q086SBEA
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+
+PX:
+  description: "Price deflator for total sales"
+  source: fred
+  series_id: GDPDEF
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  scale: 0.01
+  notes: "Proxy using GDP implicit price deflator."
+
+RNT:
+  description: "Rental income of persons"
+  source: fred
+  series_id: NA000269Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Rental income with CCAdj; convert units downstream as needed."
+
+RNTQ:
+  description: "Rental income of persons, real proxy"
+  source: fred
+  series_id: NA000269Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Nominal rental-income base series; real conversion occurs downstream."
+
+HF:
+  description: "Average hours paid per job, firms proxy"
+  source: fred
+  series_id: AWHMAN
+  frequency: M
+  units: "Hours per week"
+  transform: level
+  notes: "Manufacturing weekly-hours proxy; aggregate/scale to quarterly model units downstream."
+
+HO:
+  description: "Average overtime hours paid per job, firms proxy"
+  source: fred
+  series_id: AWOTMAN
+  frequency: M
+  units: "Hours per week"
+  transform: level
+  notes: "Manufacturing overtime-hours proxy."
+
+L1:
+  description: "Labor force of men 25-54 proxy"
+  source: fred
+  series_id: TOTLLM2564
+  frequency: M
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+  notes: "Closest public slice is men 25-64; convert to millions downstream."
+
+L2:
+  description: "Labor force of women 25-54 proxy"
+  source: fred
+  series_id: TOTLLW2564
+  frequency: M
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+  notes: "Closest public slice is women 25-64; convert to millions downstream."
+
+L3:
+  description: "Labor force of all others, 16+, residual proxy"
+  source: fred
+  series_id: CLF16OV
+  frequency: M
+  units: "Thousands of persons"
+  transform: level
+  notes: "Total civilian labor force base; downstream residual logic can subtract L1/L2 proxies."
+
+RSA:
+  description: "After-tax bill rate proxy"
+  source: fred
+  series_id: TB3MS
+  frequency: M
+  units: "Percent"
+  transform: level
+  notes: "Pre-tax base series; model applies tax adjustment downstream."
+
+RMA:
+  description: "After-tax mortgage rate proxy"
+  source: fred
+  series_id: MORTGAGE30US
+  frequency: M
+  units: "Percent"
+  transform: level
+  notes: "Pre-tax base series; source is weekly and is aggregated to monthly/quarterly downstream."
+
+PCGDPR:
+  description: "Percent change in real GDP (annual rate)"
+  source: fred
+  series_id: GDPC1
+  frequency: Q
+  units: "Percent at annual rate"
+  transform: growth_rate
+  notes: "Derived growth metric computed from GDPC1."
+
+PCGDPD:
+  description: "Percent change in GDP deflator (annual rate)"
+  source: fred
+  series_id: GDPDEF
+  frequency: Q
+  units: "Percent at annual rate"
+  transform: growth_rate
+  notes: "Derived growth metric computed from GDPDEF."
+
+PCM1:
+  description: "Percent change in M1 (annual rate)"
+  source: fred
+  series_id: M1SL
+  frequency: M
+  units: "Percent at annual rate"
+  transform: growth_rate
+  notes: "Derived growth metric computed from M1 money stock."
+
+X:
+  description: "Total sales, real proxy"
+  source: fred
+  series_id: GDPC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Proxy aligned with aggregate real output scale."
+
+XX:
+  description: "Total sales, nominal proxy"
+  source: fred
+  series_id: GDP
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Proxy aligned with aggregate nominal output scale."
+
+Y:
+  description: "Total production, real proxy"
+  source: fred
+  series_id: GDPC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Proxy aligned with aggregate real production."
+
+DB:
+  description: "Net dividends paid, domestic financial sectors"
+  source: fred
+  series_id: BOGZ1FA796121073Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct domestic-financial-sectors net-dividends-paid transactions series; aligns with DB = DCB - DCBN split; convert millions to billions downstream."
+
+DF:
+  description: "Net dividends paid, nonfinancial corporate business"
+  source: fred
+  series_id: BOGZ1FA106121075Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct nonfinancial-corporate-business net-dividends-paid transactions series; aligns with DF = DCBN; convert millions to billions downstream."
+
+IVF:
+  description: "Change in private inventories proxy"
+  source: fred
+  series_id: CBI
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+IVA:
+  description: "Inventory valuation adjustment, corporate business"
+  source: fred
+  series_id: CIVA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Direct corporate-business IVA adjustment series."
+
+JG:
+  description: "Federal government employment jobs"
+  source: bls
+  series_id: CES9091000001
+  fred_fallback: CES9091000001
+  frequency: M
+  aggregation: mean
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+  notes: "BLS CES federal payroll employment; convert to model job units downstream if needed."
+
+PROD:
+  description: "Output per paid worker hour (productivity) proxy"
+  source: fred
+  series_id: OPHNFB
+  frequency: Q
+  units: "Index 2017=100"
+  transform: level
+  notes: "Nonfarm business labor-productivity index proxy."
+
+PUG:
+  description: "Purchases of goods and services, federal government"
+  source: fred
+  series_id: FGCE
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+PUS:
+  description: "Purchases of goods and services, state/local government"
+  source: fred
+  series_id: SLCE
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+Q:
+  description: "Gold and foreign exchange official reserve assets, government"
+  source: fred
+  series_id: BOGZ1FL313011005Q
+  frequency: Q
+  units: "Millions of dollars"
+  transform: level
+  notes: "Federal official reserve-assets level; convert millions to billions downstream."
+
+RECG:
+  description: "Federal government current receipts"
+  source: fred
+  series_id: FGRECPT
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+RECS:
+  description: "State and local government current receipts"
+  source: fred
+  series_id: W023RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+SSP:
+  description: "NIPA surplus or deficit, state/local government"
+  source: fred
+  series_id: AD03RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "NIPA net lending (+) / net borrowing (-) concept."
+
+STATP:
+  description: "Statistical discrepancy related to chain-type price index use"
+  source: fred
+  series_id: A960RX1Q020SBEA
+  frequency: Q
+  units: "Billions of chained 2017 dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Real GDP residual series used for chain-type nonadditivity discrepancy."
+
+TBG:
+  description: "Corporate profit taxes, business to federal government"
+  source: fred
+  series_id: B075RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+U:
+  description: "Unemployment level"
+  source: bls
+  series_id: LNS13000000
+  fred_fallback: UNEMPLOY
+  frequency: M
+  aggregation: mean
+  units: "Thousands of persons"
+  transform: level
+  scale: 0.001
+  notes: "Seasonally adjusted unemployment level."
+
+UB:
+  description: "Government social benefits to persons: unemployment insurance"
+  source: fred
+  series_id: W825RC1
+  frequency: M
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+
+CCF1:
+  description: "Capital consumption, financial-sector proxy"
+  source: fred
+  series_id: FBCFCEQ027S
+  frequency: Q
+  units: "Millions of dollars"
+  transform: level
+  notes: "Domestic financial sectors consumption of fixed capital; convert units downstream."
+
+CCH:
+  description: "Capital consumption, households and institutions"
+  source: fred
+  series_id: W279RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+
+CCS:
+  description: "Capital consumption, state/local government proxy"
+  source: fred
+  series_id: A919RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+
+CCGQ:
+  description: "Capital consumption, government (real)"
+  source: fred
+  series_id: A264RX1Q020SBEA
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+
+CCHQ:
+  description: "Capital consumption, households (real proxy)"
+  source: fred
+  series_id: W279RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  notes: "Nominal households series used as proxy until a quarterly real counterpart is curated."
+
+CCSQ:
+  description: "Capital consumption, state/local government (real proxy)"
+  source: fred
+  series_id: B986RX1Q020SBEA
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+  notes: "Real state/local government fixed-capital-consumption component proxy."
+
+INTF:
+  description: "Net interest payments, domestic industries proxy"
+  source: fred
+  series_id: W272RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+
+TCS:
+  description: "Corporate profit tax receipts, state/local government"
+  source: fred
+  series_id: B102RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+
+TRGR:
+  description: "Transfer payments, government to rest of world proxy"
+  source: fred
+  series_id: W017RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+
+TRHR:
+  description: "Transfer payments, households to rest of world proxy"
+  source: fred
+  series_id: BOGZ1FA156901201Q
+  frequency: Q
+  units: "Millions of dollars"
+  transform: level
+  notes: "Flow of Funds transaction proxy; convert units downstream."
+
+IBTG:
+  description: "Indirect business taxes proxy"
+  source: fred
+  series_id: W254RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Proxy uses taxes on production and imports less subsidies."
+
+SUBG:
+  description: "Subsidies less current surplus of government enterprises proxy"
+  source: fred
+  series_id: GDISUBS
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Subsidies component proxy; current-surplus adjustment remains model-side."
+
+SIFS:
+  description: "Employer social insurance contributions, federal-to-state proxy"
+  source: fred
+  series_id: B039RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Aggregate compensation supplement proxy; sector split remains model-specific."
+
+TBS:
+  description: "Corporate profit taxes, business to state/local government"
+  source: fred
+  series_id: B102RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Concept-aligned state/local taxes on corporate income."
+
+TFR:
+  description: "Taxes, federal to rest of world"
+  source: fred
+  series_id: W008RC1Q027SBEA
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Direct federal current-tax-receipts line: taxes from the rest of the world."
+
+TTRRF:
+  description: "Current taxes, social-insurance contributions, and transfer payments paid by rest of world (proxy)"
+  source: fred
+  series_id: BOGZ1FA266400201Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Best available quarterly Flow-of-Funds aggregate for rest-of-world current taxes/contributions/transfers paid; used as proxy for TTRRF; convert millions to billions downstream."
+
+NNF:
+  description: "Net acquisition of nonproduced nonfinancial assets, federal government proxy"
+  source: fred
+  series_id: FGANNAQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Federal government transactions line; convert millions to billions downstream."
+
+NNG:
+  description: "Net acquisition of nonproduced nonfinancial assets, state/local government proxy"
+  source: fred
+  series_id: SLGANNQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "State and local government transactions line; convert millions to billions downstream."
+
+NNR:
+  description: "Net acquisition of nonproduced nonfinancial assets, rest of world"
+  source: fred
+  series_id: ROWNNAQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Rest-of-world transactions line; convert millions to billions downstream."
+
+NNS:
+  description: "Net acquisition of nonproduced nonfinancial assets, business proxy"
+  source: fred
+  series_id: NCBANAQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  notes: "Nonfinancial corporate business proxy; convert millions to billions downstream."
+
+CTB:
+  description: "Net capital transfers paid, financial corporations"
+  source: fred
+  series_id: FBNCPTQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct domestic-financial-sectors net-capital-transfers-paid series; convert millions to billions downstream."
+
+CTGB:
+  description: "Financial stabilization payments"
+  source: fred
+  series_id: BOGZ1FA315410093Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  window_start: "2008Q4"
+  window_end: "2012Q2"
+  outside_window_value: 0.0
+  notes: "Direct federal capital transfers paid to financial corporations under financial-stabilization program; enforce active crisis window and zero-fill outside window; convert millions to billions downstream."
+
+CTGMB:
+  description: "Net capital transfers paid, government, excluding financial stabilization payments"
+  source: fred
+  series_id: BOGZ1FA315440095Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct federal net-capital-transfers-paid excluding stabilization-program payments; convert millions to billions downstream."
+
+CTR:
+  description: "Net capital transfers paid, rest of world"
+  source: fred
+  series_id: RWNCPTQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct rest-of-world net-capital-transfers-paid transactions series; convert millions to billions downstream."
+
+CTS:
+  description: "Net capital transfers paid, state and local governments"
+  source: fred
+  series_id: SLGNCTQ027S
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct state-and-local net-capital-transfers-paid transactions series; convert millions to billions downstream."
+
+DISF:
+  description: "Sector discrepancy, nonfinancial corporate business"
+  source: fred
+  series_id: BOGZ1FA107005005Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct nonfinancial-corporate-business sector discrepancy transactions series; convert millions to billions downstream."
+
+DISH:
+  description: "Sector discrepancy, households and nonprofit organizations"
+  source: fred
+  series_id: BOGZ1FA157005005Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct household-and-nonprofit sector discrepancy transactions series; convert millions to billions downstream."
+
+DISR:
+  description: "Sector discrepancy, rest of world (FOF basis)"
+  source: fred
+  series_id: BOGZ1FA267005005Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct rest-of-world sector discrepancy (FOF basis) transactions series; convert millions to billions downstream."
+
+DISS:
+  description: "Sector discrepancy, state and local governments"
+  source: fred
+  series_id: BOGZ1FA217005005Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct state-and-local sector discrepancy transactions series; convert millions to billions downstream."
+
+GSMA:
+  description: "Gross saving, MA"
+  source: fred
+  series_id: BOGZ1FA716000105Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct monetary-authority gross-saving transactions series; convert millions to billions downstream."
+
+INS:
+  description: "Insurance and pension reserves to households from government"
+  source: fred
+  series_id: BOGZ1FA313154015Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Federal life-insurance and pension-fund-reserves adjustment series; convert millions to billions downstream."
+
+PIEFRET:
+  description: "Foreign earnings retained abroad, nonfinancial corporate business"
+  source: fred
+  series_id: BOGZ1FA106006065Q
+  frequency: Q
+  units: "Millions of dollars, SAAR"
+  transform: level
+  scale: 0.001
+  annual_rate: true
+  notes: "Direct nonfinancial-corporate-business foreign-earnings-retained-abroad transactions series; convert millions to billions downstream."
+
+TRFH:
+  description: "Transfer payments, business to households (net other)"
+  source: fred
+  series_id: B1874C1A027NBEA
+  frequency: A
+  units: "Billions of dollars"
+  transform: level
+  notes: "Direct concept match from annual NIPA/FRED series; annual frequency only."
+
+AFT:
+  description: "Total armed forces proxy"
+  source: fred
+  series_id: B4380C0A173NBEA
+  frequency: A
+  units: "Thousands of full-time equivalent employees"
+  transform: level
+  notes: "Federal military FTE proxy."
+
+IKF:
+  description: "Nonresidential fixed investment, firms proxy"
+  source: fred
+  series_id: PNFIC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+
+IKG:
+  description: "Nonresidential fixed investment, government proxy"
+  source: fred
+  series_id: PNFIC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+  notes: "Aggregate real nonresidential fixed investment proxy pending government-specific disaggregation."
+
+IKH:
+  description: "Nonresidential fixed investment, household/housing-side proxy"
+  source: fred
+  series_id: PRFIC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+  notes: "Residential fixed investment proxy."
+
+IGZ:
+  description: "Gross investment, government proxy (nominal)"
+  source: fred
+  series_id: GCE
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  notes: "Government consumption plus investment aggregate proxy."
+
+IGZQ:
+  description: "Gross investment, government proxy (real)"
+  source: fred
+  series_id: GCEC1
+  frequency: Q
+  units: "Billions of chained 2017 dollars"
+  transform: level
+  notes: "Real government consumption plus investment aggregate proxy."
+
+# ============================================================
+# Dictionary raw-data linked variables (expanded coverage set)
+# ============================================================
+
+GDP:
+  description: "Gross domestic product, nominal"
+  source: bea
+  series_id: GDP
+  fred_fallback: GDP
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  bea_table: "T10105"
+  bea_line: 1
+  raw_data_codes: [R11]
+
+CCG:
+  description: "Capital consumption, government"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 48
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  raw_data_codes: [R64, R204]
+  notes: "Locator seeded from raw-data links (R64/R204)."
+
+CDH:
+  description: "Capital expenditures, consumer durable goods, household sector"
+  source: bea
+  bea_table: "R117"
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  raw_data_codes: [R35]
+  notes: "Locator seeded from raw-data links (R35)."
+
+CTF1:
+  description: "Net capital transfers paid, nonfinancial corporations"
+  source: bea
+  bea_table: "105440005"
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  raw_data_codes: [R99]
+  notes: "Locator seeded from raw-data links (R99)."
+
+CTH:
+  description: "Net capital transfers paid, household sector"
+  source: bea
+  bea_table: "155440005"
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  raw_data_codes: [R120]
+  notes: "Locator seeded from raw-data links (R120)."
+
+CTNN:
+  description: "Net capital transfers paid, nonfinancial noncorporate sector"
+  source: bea
+  bea_table: "115440005"
+  frequency: Q
+  units: "Billions of dollars, SAAR"
+  transform: level
+  annual_rate: true
+  raw_data_codes: [R109]
+  notes: "Locator seeded from raw-data links (R109)."
+
+FA:
+  description: "Financial assets aggregate"
+  source: bea
+  bea_table: "1.3.3"
+  bea_line: 4
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R22, R80]
+  notes: "Locator seeded from raw-data links (R22/R80)."
+
+GSCA:
+  description: "Gross saving, corporate sector A"
+  source: bea
+  bea_table: "406000105"
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R149]
+  notes: "Locator seeded from raw-data links (R149)."
+
+GSNN:
+  description: "Gross saving, nonfinancial noncorporate sector"
+  source: bea
+  bea_table: "R110"
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R137]
+  notes: "Locator seeded from raw-data links (R137)."
+
+INTGR:
+  description: "Net interest paid, government-related aggregate"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 35
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R62]
+  notes: "Locator seeded from raw-data links (R62)."
+
+JS:
+  description: "State and local government employment jobs"
+  source: bls
+  series_id: CES9093000001
+  frequency: M
+  units: "Thousands of jobs"
+  transform: level
+  raw_data_codes: [R194]
+  notes: "BLS CES local government payroll employment; proxy for state/local aggregate jobs."
+
+NNH:
+  description: "Net acquisition of nonproduced nonfinancial assets, households"
+  source: bea
+  bea_table: "R119"
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R16]
+  notes: "Locator seeded from raw-data links (R16)."
+
+RB:
+  description: "Bond rate"
+  source: fred
+  series_id: BAA
+  frequency: M
+  units: "Percent"
+  transform: level
+  raw_data_codes: [R180]
+  notes: "Mapped to Moody's Seasoned Baa Corporate Bond Yield."
+
+RM:
+  description: "Mortgage rate"
+  source: fred
+  series_id: MORTGAGE30US
+  frequency: M
+  units: "Percent"
+  transform: level
+  raw_data_codes: [R170]
+  notes: "Mapped to 30-Year Fixed Rate Mortgage Average; weekly series aggregated downstream."
+
+SIFG:
+  description: "Employer social insurance contributions, firms to federal government"
+  source: bea
+  bea_table: "R202"
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R105]
+  notes: "Locator seeded from raw-data links (R105)."
+
+SIG:
+  description: "Social insurance contributions, government aggregate"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 10
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R47]
+  notes: "Locator seeded from raw-data links (R47)."
+
+SIHG:
+  description: "Social insurance contributions, household to government"
+  source: bea
+  bea_table: "R200"
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R118]
+  notes: "Locator seeded from raw-data links (R118)."
+
+SIS:
+  description: "Social insurance contributions, state/local aggregate"
+  source: bea
+  bea_table: "3.3"
+  bea_line: 12
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R68, R156]
+  notes: "Locator seeded from raw-data links (R68/R156)."
+
+STAT:
+  description: "Statistical discrepancy"
+  source: bea
+  bea_table: "1.7.5"
+  bea_line: 15
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R26, R147]
+  notes: "Locator seeded from raw-data links (R26/R147)."
+
+SUBS:
+  description: "Subsidies less current surplus of government enterprises, state/local"
+  source: bea
+  bea_table: "3.3"
+  bea_line: 31
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R79]
+  notes: "Locator seeded from raw-data links (R79)."
+
+TCG:
+  description: "Corporate profit tax receipts, federal government"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 8
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R45]
+  notes: "Locator seeded from raw-data links (R45)."
+
+THG:
+  description: "Personal income taxes, households to federal government"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 3
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R43, R100]
+  notes: "Locator seeded from raw-data links (R43/R100)."
+
+THS:
+  description: "Personal income taxes, households to state/local government"
+  source: bea
+  bea_table: "3.3"
+  bea_line: 3
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R65]
+  notes: "Locator seeded from raw-data links (R65)."
+
+TRFG:
+  description: "Transfer payments, firms to federal government"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 20
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R52]
+  notes: "Locator seeded from raw-data links (R52)."
+
+TRFR:
+  description: "Transfer payments, firms to rest of world"
+  source: bea
+  bea_table: "1.12"
+  bea_line: 24
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R28]
+  notes: "Locator seeded from raw-data links (R28)."
+
+TRFS:
+  description: "Transfer payments, firms to state/local government"
+  source: bea
+  bea_table: "3.3"
+  bea_line: 19
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R72]
+  notes: "Locator seeded from raw-data links (R72)."
+
+TRG:
+  description: "Transfer payments, federal government aggregate"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 9
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R46]
+  notes: "Locator seeded from raw-data links (R46)."
+
+TRGS:
+  description: "Transfer payments, federal to state/local governments"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 31
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R59]
+  notes: "Locator seeded from raw-data links (R59)."
+
+TRRG2:
+  description: "Taxes, rest of world to federal government"
+  source: bea
+  bea_table: "3.2"
+  bea_line: 12
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R48]
+  notes: "Locator seeded from raw-data links (R48)."
+
+TRRS:
+  description: "Transfer payments, rest of world to state/local governments"
+  source: bea
+  bea_table: "3.3"
+  bea_line: 21
+  frequency: Q
+  units: "Billions of dollars"
+  transform: level
+  raw_data_codes: [R74]
+  notes: "Locator seeded from raw-data links (R74)."

@@ -1,0 +1,51 @@
+# JG Variant Bundle — sweep wage and jobs parameters
+#
+# This bundle runs a base JG scenario plus explicit variants and a
+# parameter grid, producing results for comparison.
+#
+# To run: fp bundle run examples/jg/jg_bundle.yaml
+#
+# Produces:
+#   - 2 explicit variants (low absorption, high absorption)
+#   - 9 grid variants (3 wages x 3 job counts)
+#   - 11 total runs + comparison data
+
+base:
+  name: jg_baseline
+  description: "Federal JG baseline for variant sweep"
+  extends: examples/baseline.yaml
+  policies:
+    - type: job_guarantee
+      jobs: 15000000
+      wage: 15.0
+  track_variables:
+    - GDPR
+    - UR
+    - PCY
+    - PIEF
+    - RS
+    - SGP
+    - TRGHQ
+
+# Explicit named variants with specific parameter patches
+variants:
+  - name: low_absorption
+    patch:
+      policies[0].jobs: 8000000
+      policies[0].wage: 12.0
+  - name: high_absorption
+    patch:
+      policies[0].jobs: 20000000
+      policies[0].wage: 18.0
+
+# Parameter grid — cartesian product of all values
+# Produces: 3 wages x 3 job counts = 9 variants
+variant_grid:
+  policies[0].wage: [12.0, 15.0, 18.0]
+  policies[0].jobs: [10000000, 15000000, 20000000]
+
+# Variables to highlight in comparison tables
+focus_variables:
+  - GDPR
+  - UR
+  - PCY

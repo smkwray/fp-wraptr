@@ -1,0 +1,23 @@
+# Inflation shock scenario: import-price cost-push pressure.
+#
+# Raises PIM (import price process) by a fixed absolute amount each period,
+# which typically lifts inflation measures and weighs on real activity.
+
+name: inflation_shock
+description: "Cost-push inflation shock through import prices"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fpexe
+overrides:
+  PIM:
+    method: CHGSAMEABS
+    value: 0.25
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - PIM

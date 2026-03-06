@@ -1,0 +1,40 @@
+# Job Guarantee Variant — 12M jobs at $18/hr
+#
+# Higher wage, lower absorption variant. Tests wage-price pressure
+# channel with more generous compensation but fewer total participants.
+
+name: jg_12m_18hr
+description: "Federal JG: 12M jobs at $18/hr (higher wage variant)"
+extends: examples/baseline.yaml
+
+policies:
+  - type: job_guarantee
+    jobs: 12000000
+    wage: 18.0
+    benefits_rate: 0.20
+    admin_rate: 0.05
+    wage_pass_through: 0.20
+    phase_in:
+      start: "2025.4"
+      step_per_quarter: 0.20
+
+alerts:
+  UR:
+    max: 6.0
+  PCY:
+    min: -2.0
+
+track_variables:
+  - GDPR
+  - UR
+  - PCY
+  - PIEF
+  - RS
+  - YS
+  - CS
+  - TRGHQ
+  - SGP
+
+metrics:
+  - macro_core_scoreboard
+  - jg_metrics_pack

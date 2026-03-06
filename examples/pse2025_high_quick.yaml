@@ -1,0 +1,23 @@
+# PSE2025 quick smoke (single quarter) for fp-py debugging.
+
+name: pse2025_high_quick
+description: "PSE2025 high (single-quarter smoke at forecast boundary)"
+fp_home: ../FM
+input_overlay_dir: ../projects_local/pse2025
+input_file: psehigh.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fppy
+fppy:
+  eq_flags_preset: parity
+input_patches:
+  "SMPL 2025.4 2029.4;": "SMPL 2025.4 2025.4;"
+  "SMPL 1952.1 2029.4;": "SMPL 1952.1 2025.4;"
+track_variables:
+  - PIEF
+  - PCPF
+  - PF
+  - JGJ
+  - E
+  - JF
+  - RS

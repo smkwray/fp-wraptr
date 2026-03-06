@@ -1,0 +1,40 @@
+# Job Guarantee Variant — 20M jobs at $15/hr
+#
+# Maximum absorption variant. Tests upper bound of fiscal impact
+# and GDP stimulus with largest plausible program size.
+
+name: jg_20m_15hr
+description: "Federal JG: 20M jobs at $15/hr (maximum absorption variant)"
+extends: examples/baseline.yaml
+
+policies:
+  - type: job_guarantee
+    jobs: 20000000
+    wage: 15.0
+    benefits_rate: 0.20
+    admin_rate: 0.05
+    wage_pass_through: 0.20
+    phase_in:
+      start: "2025.4"
+      step_per_quarter: 0.20
+
+alerts:
+  UR:
+    max: 8.0
+  PCY:
+    min: -3.0
+
+track_variables:
+  - GDPR
+  - UR
+  - PCY
+  - PIEF
+  - RS
+  - YS
+  - CS
+  - TRGHQ
+  - SGP
+
+metrics:
+  - macro_core_scoreboard
+  - jg_metrics_pack

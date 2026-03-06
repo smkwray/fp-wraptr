@@ -1,0 +1,67 @@
+# fp-wraptr
+
+> Python utilities to modernize the Fair-Parke (FP) macroeconomic model workflow.
+
+## Project overview
+fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python tooling for scenario management, IO parsing, result comparison, visualization, and LLM-assisted exploration.
+
+## Key entry points
+- `src/fp_wraptr/cli.py` -- Typer CLI app. Subcommands: `run`, `validate`, `batch`, `report`, `graph`, `history`, `dashboard`, `diff`, `version`, `info`, `io parse-output`, `io parse-input`, `viz plot`.
+- `src/fp_wraptr/runtime/fp_exe.py` -- Subprocess wrapper for fp.exe.
+- `src/fp_wraptr/io/parser.py` -- FP output file parser (forecast tables -> pandas DataFrames).
+- `src/fp_wraptr/io/input_parser.py` -- FP input file parser.
+- `src/fp_wraptr/io/writer.py` -- Write FP-format files from Python objects.
+- `src/fp_wraptr/scenarios/config.py` -- Pydantic models for scenario YAML configs.
+- `src/fp_wraptr/scenarios/runner.py` -- Scenario execution pipeline.
+- `src/fp_wraptr/scenarios/batch.py` -- Batch scenario execution and comparison.
+- `src/fp_wraptr/analysis/diff.py` -- Compare two FP runs, produce summary deltas.
+- `src/fp_wraptr/analysis/report.py` -- Build markdown reports from run output.
+- `src/fp_wraptr/analysis/graph.py` -- Build variable dependency graphs from input file.
+- `src/fp_wraptr/viz/plots.py` -- Matplotlib charts for forecast series.
+- `src/fp_wraptr/dashboard/artifacts.py` -- Discover and parse run artifacts.
+- `src/fp_wraptr/dashboard/charts.py` -- Plotly chart helpers.
+- `src/fp_wraptr/mcp_server.py` (+ `mcp/server.py` compatibility shim) -- FastMCP server exposing 22 tools
+  (scenario run/bundle execution, scenario create/update/validate, parse/diff, dictionary/source-map, data update)
+  and resources `fp://output/variables`, `fp://output/equations` (if resource API is available).
+  Canonical tool docs: `docs/mcp-tools.md`.
+- Dashboard entry points:
+  - Streamlit dashboard launcher: `fp dashboard`
+  - Home: `apps/dashboard/app.py`
+  - Pages: `0_Run_Panels`, `2_Compare_Runs`, `3_New_Run`, `4_Equation_Graph`
+
+## Data files (not in repo, gitignored)
+- `FM/fp.exe` -- Fair-Parke Windows executable.
+- `FM/fminput.txt` -- Model input/control file (custom DSL).
+- `FM/fmdata.txt` -- Historical time series data (FORTRAN format).
+- `FM/fmout.txt` -- Model output log (estimation + forecast tables).
+- `FM/fmexog.txt` -- Exogenous variable assumptions.
+- `FM/fmage.txt` -- Age demographic variables.
+
+## FP file format notes
+- Input DSL commands: SPACE, SETUPSOLVE, SETUPEST, LOADDATA, SMPL, CREATE, GENR, EQ, IDENT, SOLVE, EXTRAPOLATE, CHANGEVAR, PRINTVAR.
+- Comments start with `@`.
+- Data files: `SMPL <start> <end>; LOAD <varname>;` followed by FORTRAN-format floats (e.g., `0.25820000000E+03`).
+- Output: echo of input commands + estimation results + forecast table with columns: var_id, var_name, P lv/P ch/P %ch, quarterly values.
+- Exogenous: `CHANGEVAR;` blocks with `<VARNAME> <METHOD>` (CHGSAMEPCT, SAMEVALUE, CHGSAMEABS) and a value.
+
+## Architecture
+- Package: `src/fp_wraptr/` (installed as `fp_wraptr`).
+- CLI: Typer with `fp` entry point.
+- Config: Pydantic models, YAML scenarios.
+- Build: hatchling, managed by uv.
+- Lint/format: ruff.
+- Tests: pytest (tests/ directory).
+- Docs: MkDocs Material + mkdocstrings.
+- MCP: FastMCP (optional extra).
+
+## Conventions
+- Python 3.11+, ruff for style.
+- Tests skip automatically when FM/ files are missing.
+- Scenario configs are YAML files in examples/.
+- Run artifacts go to artifacts/ (gitignored).
+
+## Documentation
+- `docs/index.md` -- Home page.
+- `docs/quickstart.md` -- Getting started guide.
+- `docs/architecture.md` -- Design decisions.
+- `docs/api.md` -- Auto-generated API reference.

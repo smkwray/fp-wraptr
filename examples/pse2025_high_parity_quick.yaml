@@ -1,0 +1,22 @@
+# PSE2025 parity smoke (single quarter) for fp.exe vs fp-py.
+#
+# Note: Requires Wine on macOS for fp.exe execution.
+
+name: pse2025_high_parity_quick
+description: "PSE2025 high parity (single-quarter gate at forecast boundary)"
+fp_home: ../FM
+input_overlay_dir: ../projects_local/pse2025
+input_file: psehigh.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fpexe
+fppy:
+  eq_flags_preset: parity
+track_variables:
+  - PIEF
+  - PCPF
+  - PF
+  - JGJ
+  - E
+  - JF
+  - RS

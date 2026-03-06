@@ -1,0 +1,91 @@
+[project]
+name = "fp-wraptr"
+version = "0.2.0"
+description = "Python utilities to modernize the Fair-Parke (FP) macroeconomic model workflow"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Shane Wray" }]
+keywords = ["economics", "macroeconomics", "fair-model", "econometrics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "pydantic>=2.0",
+    "pandas>=2.2",
+    "numpy>=2.1",
+    "typer>=0.12",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+graph = ["networkx>=3.0"]
+viz = ["matplotlib>=3.7"]
+dashboard = ["streamlit>=1.30", "plotly>=5.18", "matplotlib>=3.7"]
+excel = ["openpyxl>=3.0"]
+mcp = ["fastmcp>=2.0"]
+fred = ["fredapi>=0.5"]
+forecast = ["statsmodels>=0.14"]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.8",
+    "pre-commit>=3.6",
+]
+all = ["fp-wraptr[graph,viz,dashboard,excel,mcp,fred,forecast,docs,dev]"]
+
+[project.scripts]
+fp = "fp_wraptr.cli:app"
+fp-mcp = "fp_wraptr.mcp_server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fp_wraptr", "src/fppy", "src/fp_py"]
+include = ["src/fp_wraptr/py.typed"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/fp_wraptr",
+    "/src/fppy",
+    "/src/fp_py",
+    "/scripts/assets/install_fp_exe.py",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
+
+[tool.ruff]
+src = ["src"]
+target-version = "py311"
+preview = true
+extend-exclude = ["mkdocs.yml"]
+line-length = 99
+cache-dir = "/tmp/ruff-cache-fp-wraptr"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "RUF"]
+ignore = ["E501", "B008", "SIM102", "RUF069"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["fp_wraptr"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--assert=plain -p pytest_hygiene -p no:cacheprovider -v --tb=short --cov=fp_wraptr --cov-report=term-missing:skip-covered"
+markers = [
+    "requires_fp: tests that require fp.exe to be available",
+]

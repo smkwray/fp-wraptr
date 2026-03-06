@@ -1,0 +1,44 @@
+version: 1
+title: FP Model Runs Explorer
+site_subpath: model-runs
+runs:
+  - run_id: low_15h
+    label: 15h Floor Low
+    scenario_name: low_15h
+  - run_id: high_15h
+    label: 15h Floor High
+    scenario_name: high_15h
+  - run_id: pse2025_base
+    label: PSE 2025 Base
+    scenario_name: pse2025_base
+  - run_id: pse2025_high
+    label: PSE 2025 High
+    scenario_name: pse2025_high
+  - run_id: pse2025_low
+    label: PSE 2025 Low
+    scenario_name: pse2025_low
+default_run_ids:
+  - pse2025_base
+  - pse2025_high
+  - pse2025_low
+presets:
+  - id: pse-economy
+    label: PSE Economy
+    variables:
+      - GDPR
+      - GDP
+      - PCPF
+      - PIEF
+      - SG
+      - RS
+  - id: pse-employment-wages
+    label: PSE Employment/Wages
+    variables:
+      - UR
+      - E
+      - JGJ
+      - JF
+      - WF
+      - WR
+default_preset_ids:
+  - pse-economy

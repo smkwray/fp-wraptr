@@ -1,0 +1,3119 @@
+{
+  "schema_version": 1,
+  "variables": {
+    "AA": {
+      "code": "AA",
+      "description": "Total net wealth, h, B2017$.",
+      "short_name": "Real Household Net Wealth",
+      "units": "B2017$"
+    },
+    "AA1": {
+      "code": "AA1",
+      "description": "Total net financial wealth, h, B2017$.",
+      "short_name": "Real Household Financial Wealth",
+      "units": "B2017$"
+    },
+    "AA1Z": {
+      "code": "AA1Z",
+      "description": "Ratio: AA1 / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "AA2": {
+      "code": "AA2",
+      "description": "Total net housing wealth, h, B2017$.",
+      "short_name": "Real Household Housing Wealth",
+      "units": "B2017$"
+    },
+    "AA2Z": {
+      "code": "AA2Z",
+      "description": "Ratio: AA2 / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "AAF": {
+      "code": "AAF",
+      "description": "Negative of AF",
+      "short_name": "",
+      "units": ""
+    },
+    "AAG": {
+      "code": "AAG",
+      "description": "Negative of AG",
+      "short_name": "",
+      "units": ""
+    },
+    "AAZ": {
+      "code": "AAZ",
+      "description": "Ratio: AA / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "AB": {
+      "code": "AB",
+      "description": "Net financial assets, b, B$.",
+      "short_name": "Bank Net Financial Assets",
+      "units": "B$"
+    },
+    "AF": {
+      "code": "AF",
+      "description": "Net financial assets, f, B$.",
+      "short_name": "Firm Net Financial Assets",
+      "units": "B$"
+    },
+    "AFT": {
+      "code": "AFT",
+      "description": "Total armed forces, g, millions",
+      "short_name": "Armed Forces",
+      "units": "millions"
+    },
+    "AG": {
+      "code": "AG",
+      "description": "Net financial assets, g, B$.",
+      "short_name": "Federal Net Financial Assets",
+      "units": "B$"
+    },
+    "AG1": {
+      "code": "AG1",
+      "description": "Percent of 16+ population 26-55 minus percent 16-25.",
+      "short_name": "Age 26-55 Share Gap",
+      "units": ""
+    },
+    "AG2": {
+      "code": "AG2",
+      "description": "Percent of 16+ population 56-65 minus percent 16-25.",
+      "short_name": "Age 56-65 Share Gap",
+      "units": ""
+    },
+    "AG3": {
+      "code": "AG3",
+      "description": "Percent of 16+ population 66+ minus percent 16-25.",
+      "short_name": "Age 66 Plus Share Gap",
+      "units": ""
+    },
+    "AGZGDP": {
+      "code": "AGZGDP",
+      "description": "Ratio: -(AG) / (4*GDP)",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "AH": {
+      "code": "AH",
+      "description": "Net financial assets, h, B$.",
+      "short_name": "Household Net Financial Assets",
+      "units": "B$"
+    },
+    "AR": {
+      "code": "AR",
+      "description": "Net financial assets, r, B$.",
+      "short_name": "Foreign Net Assets",
+      "units": "B$"
+    },
+    "AS": {
+      "code": "AS",
+      "description": "Net financial assets, s, B$.",
+      "short_name": "State Local Net Assets",
+      "units": "B$"
+    },
+    "ASZGDP": {
+      "code": "ASZGDP",
+      "description": "Ratio: -(AS) / (4*GDP)",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "BETA1": {
+      "code": "BETA1",
+      "description": "Model constant (0)",
+      "short_name": "",
+      "units": ""
+    },
+    "BETA2": {
+      "code": "BETA2",
+      "description": "Model constant (0)",
+      "short_name": "",
+      "units": ""
+    },
+    "BO": {
+      "code": "BO",
+      "description": "Bank borrowing from the Fed, B$.",
+      "short_name": "Bank Borrowing From Fed",
+      "units": "B$"
+    },
+    "BR": {
+      "code": "BR",
+      "description": "Total bank reserves, B$.",
+      "short_name": "Total Bank Reserves",
+      "units": "B$"
+    },
+    "C": {
+      "code": "C",
+      "description": "Model constant (1)",
+      "short_name": "",
+      "units": ""
+    },
+    "CCF1": {
+      "code": "CCF1",
+      "description": "Capital consumption, F1, B$.",
+      "short_name": "Nonfinancial Corp Cap Consumption",
+      "units": "B$"
+    },
+    "CCG": {
+      "code": "CCG",
+      "description": "Capital consumption, g, B$.",
+      "short_name": "Federal Capital Consumption",
+      "units": "B$"
+    },
+    "CCGQ": {
+      "code": "CCGQ",
+      "description": "Capital consumption, g, B2017$.",
+      "short_name": "Real Federal Capital Consumption",
+      "units": "B2017$"
+    },
+    "CCH": {
+      "code": "CCH",
+      "description": "Capital consumption, h, B$.",
+      "short_name": "Household Capital Consumption",
+      "units": "B$"
+    },
+    "CCHQ": {
+      "code": "CCHQ",
+      "description": "Capital consumption, h, B2017$.",
+      "short_name": "Real Household Capital Consumption",
+      "units": "B2017$"
+    },
+    "CCS": {
+      "code": "CCS",
+      "description": "Capital consumption, s, B$.",
+      "short_name": "State Local Capital Consumption",
+      "units": "B$"
+    },
+    "CCSQ": {
+      "code": "CCSQ",
+      "description": "Capital consumption, s, B2017$.",
+      "short_name": "Real State Local Capital Cons",
+      "units": "B2017$"
+    },
+    "CD": {
+      "code": "CD",
+      "description": "Consumer expenditures for durable goods, B2017$.",
+      "short_name": "Real Durable Goods Spending",
+      "units": "B2017$"
+    },
+    "CDH": {
+      "code": "CDH",
+      "description": "Capital expenditures, consumer durable goods, h, B$.",
+      "short_name": "Household Durable Outlays",
+      "units": "B$"
+    },
+    "CDZ": {
+      "code": "CDZ",
+      "description": "Ratio: CD / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "CG": {
+      "code": "CG",
+      "description": "Capital gains(+) or losses(-) on the financial assets of h, B$.",
+      "short_name": "Household Financial Capital Gains",
+      "units": "B$"
+    },
+    "CGZ3": {
+      "code": "CGZ3",
+      "description": "Ratio: (CG+CG(-1)+CG(-2)) / (PX*YS+PX(-1)*YS(-1)+PX(-2)*YS(-2))",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "CN": {
+      "code": "CN",
+      "description": "Consumer expenditures for nondurable goods, B2017$.",
+      "short_name": "Real Nondurable Goods Spending",
+      "units": "B2017$"
+    },
+    "CNST2CS": {
+      "code": "CNST2CS",
+      "description": "Model constant (1)",
+      "short_name": "",
+      "units": ""
+    },
+    "CNST2KK": {
+      "code": "CNST2KK",
+      "description": "Model constant (1)",
+      "short_name": "",
+      "units": ""
+    },
+    "CNST2L2": {
+      "code": "CNST2L2",
+      "description": "Model constant (1)",
+      "short_name": "",
+      "units": ""
+    },
+    "CNZ": {
+      "code": "CNZ",
+      "description": "Ratio: CN / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "COG": {
+      "code": "COG",
+      "description": "Purchases of consumption and investment goods, g, B2017$.",
+      "short_name": "Real Federal Goods Purchases",
+      "units": "B2017$"
+    },
+    "COGS": {
+      "code": "COGS",
+      "description": "Sum: COG, COS",
+      "short_name": "",
+      "units": ""
+    },
+    "COS": {
+      "code": "COS",
+      "description": "Purchases of consumption and investment goods, s, B2017$.",
+      "short_name": "Real State Local Goods Purchases",
+      "units": "B2017$"
+    },
+    "CS": {
+      "code": "CS",
+      "description": "Consumer expenditures for services, B2017$.",
+      "short_name": "Real Services Spending",
+      "units": "B2017$"
+    },
+    "CSZ": {
+      "code": "CSZ",
+      "description": "Ratio: CS / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "CTB": {
+      "code": "CTB",
+      "description": "Net capital transfers paid, financial corporations, B$.",
+      "short_name": "Bank Capital Transfers Paid",
+      "units": "B$"
+    },
+    "CTF1": {
+      "code": "CTF1",
+      "description": "Net capital transfers paid, nonfinancial corporations, B$.",
+      "short_name": "Nonfinancial Corp Cap Transfers",
+      "units": "B$"
+    },
+    "CTGB": {
+      "code": "CTGB",
+      "description": "Financial stabilization payments, B$.",
+      "short_name": "Financial Stabilization Payments",
+      "units": "B$"
+    },
+    "CTGMB": {
+      "code": "CTGMB",
+      "description": "Net capital transfers paid, g, less financial stabilization payments, B$.",
+      "short_name": "Federal Cap Transfers Ex Stabilize",
+      "units": "B$"
+    },
+    "CTH": {
+      "code": "CTH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "CTNN": {
+      "code": "CTNN",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "CTR": {
+      "code": "CTR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "CTS": {
+      "code": "CTS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "CUR": {
+      "code": "CUR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D1": {
+      "code": "D1",
+      "description": "Model constant (0)",
+      "short_name": "",
+      "units": ""
+    },
+    "D1G": {
+      "code": "D1G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D1S": {
+      "code": "D1S",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D2": {
+      "code": "D2",
+      "description": "Model constant (0)",
+      "short_name": "",
+      "units": ""
+    },
+    "D20083": {
+      "code": "D20083",
+      "description": "1 in 1952.1-2008.3; 0 otherwise.",
+      "short_name": "1952Q1-2008Q3 Dummy",
+      "units": ""
+    },
+    "D20201": {
+      "code": "D20201",
+      "description": "1 in 2020.1; 0 otherwise.",
+      "short_name": "2020 Q1 Dummy",
+      "units": ""
+    },
+    "D20202": {
+      "code": "D20202",
+      "description": "1 in 2020.2; 0 otherwise.",
+      "short_name": "2020 Q2 Dummy",
+      "units": ""
+    },
+    "D20203": {
+      "code": "D20203",
+      "description": "1 in 2020.3; 0 otherwise.",
+      "short_name": "2020 Q3 Dummy",
+      "units": ""
+    },
+    "D20204": {
+      "code": "D20204",
+      "description": "1 in 2020.4; 0 otherwise.",
+      "short_name": "2020 Q4 Dummy",
+      "units": ""
+    },
+    "D20211": {
+      "code": "D20211",
+      "description": "1 in 2021.1; 0 otherwise.",
+      "short_name": "2021 Q1 Dummy",
+      "units": ""
+    },
+    "D20212": {
+      "code": "D20212",
+      "description": "1 in 2021.2; 0 otherwise.",
+      "short_name": "2021 Q2 Dummy",
+      "units": ""
+    },
+    "D20213": {
+      "code": "D20213",
+      "description": "1 in 2021.3; 0 otherwise.",
+      "short_name": "2021 Q3 Dummy",
+      "units": ""
+    },
+    "D20214": {
+      "code": "D20214",
+      "description": "1 in 2021.4; 0 otherwise.",
+      "short_name": "2021 Q4 Dummy",
+      "units": ""
+    },
+    "D2G": {
+      "code": "D2G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D2S": {
+      "code": "D2S",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D3": {
+      "code": "D3",
+      "description": "Model constant (0)",
+      "short_name": "",
+      "units": ""
+    },
+    "D3G": {
+      "code": "D3G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D3S": {
+      "code": "D3S",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D4G": {
+      "code": "D4G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D593": {
+      "code": "D593",
+      "description": "1 in 1959.3; 0 otherwise.",
+      "short_name": "1959 Q3 Dummy",
+      "units": ""
+    },
+    "D594": {
+      "code": "D594",
+      "description": "1 in 1959.4; 0 otherwise.",
+      "short_name": "1959 Q4 Dummy",
+      "units": ""
+    },
+    "D5G": {
+      "code": "D5G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D601": {
+      "code": "D601",
+      "description": "1 in 1960.1; 0 otherwise.",
+      "short_name": "1960 Q1 Dummy",
+      "units": ""
+    },
+    "D691": {
+      "code": "D691",
+      "description": "1 in 1969.1; 0 otherwise.",
+      "short_name": "1969 Q1 Dummy",
+      "units": ""
+    },
+    "D692": {
+      "code": "D692",
+      "description": "1 in 1969.2; 0 otherwise.",
+      "short_name": "1969 Q2 Dummy",
+      "units": ""
+    },
+    "D6G": {
+      "code": "D6G",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "D714": {
+      "code": "D714",
+      "description": "1 in 1971.4; 0 otherwise.",
+      "short_name": "1971 Q4 Dummy",
+      "units": ""
+    },
+    "D721": {
+      "code": "D721",
+      "description": "1 in 1972.1; 0 otherwise.",
+      "short_name": "1972 Q1 Dummy",
+      "units": ""
+    },
+    "D794823": {
+      "code": "D794823",
+      "description": "1 in 1979.4-1982.3; 0 otherwise.",
+      "short_name": "1979Q4-1982Q3 Dummy",
+      "units": ""
+    },
+    "DB": {
+      "code": "DB",
+      "description": "Net dividends paid, b, B$.",
+      "short_name": "Bank Net Dividends Paid",
+      "units": "B$"
+    },
+    "DBQ": {
+      "code": "DBQ",
+      "description": "Net dividends paid, b, B2017$.",
+      "short_name": "Real Bank Dividends Paid",
+      "units": "B2017$"
+    },
+    "DELD": {
+      "code": "DELD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DELH": {
+      "code": "DELH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DELK": {
+      "code": "DELK",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DELTA1": {
+      "code": "DELTA1",
+      "description": "Model constant/parameter",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "DF": {
+      "code": "DF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DG": {
+      "code": "DG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISB": {
+      "code": "DISB",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISF": {
+      "code": "DISF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISG": {
+      "code": "DISG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISH": {
+      "code": "DISH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISR": {
+      "code": "DISR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DISS": {
+      "code": "DISS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DR": {
+      "code": "DR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DRQ": {
+      "code": "DRQ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "DS": {
+      "code": "DS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "E": {
+      "code": "E",
+      "description": "Total employment, civilian and military.",
+      "short_name": "Total employment",
+      "units": "Millions"
+    },
+    "EX": {
+      "code": "EX",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "EXKK": {
+      "code": "EXKK",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "EXL": {
+      "code": "EXL",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "EXPG": {
+      "code": "EXPG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "EXPGZGDP": {
+      "code": "EXPGZGDP",
+      "description": "Ratio: EXPG / GDP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "EXPS": {
+      "code": "EXPS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "FA": {
+      "code": "FA",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "GAP": {
+      "code": "GAP",
+      "description": "Ratio: (YS-Y) / YS",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "GDP": {
+      "code": "GDP",
+      "description": "Gross Domestic Product, B$.",
+      "short_name": "Nominal GDP",
+      "units": "Billions $"
+    },
+    "GDPD": {
+      "code": "GDPD",
+      "description": "GDP price deflator.",
+      "short_name": "GDP Deflator",
+      "units": ""
+    },
+    "GDPR": {
+      "code": "GDPR",
+      "description": "Gross Domestic Product, B2017$.",
+      "short_name": "Real GDP",
+      "units": "Billions of 2017 dollars"
+    },
+    "GNP": {
+      "code": "GNP",
+      "description": "Gross National Product, B$.",
+      "short_name": "Nominal GNP",
+      "units": "B$"
+    },
+    "GNPD": {
+      "code": "GNPD",
+      "description": "GNP price deflator.",
+      "short_name": "GNP Deflator",
+      "units": ""
+    },
+    "GNPR": {
+      "code": "GNPR",
+      "description": "Gross National Product, B2017$.",
+      "short_name": "Real GNP",
+      "units": "B2017$"
+    },
+    "GSB": {
+      "code": "GSB",
+      "description": "Gross saving, B, B$.",
+      "short_name": "Bank Gross Saving",
+      "units": "B$"
+    },
+    "GSBQ": {
+      "code": "GSBQ",
+      "description": "Gross saving, B, B2017$.",
+      "short_name": "Real Bank Gross Saving",
+      "units": "B2017$"
+    },
+    "GSCA": {
+      "code": "GSCA",
+      "description": "Gross saving, CA, B$.",
+      "short_name": "Current Account Saving",
+      "units": "B$"
+    },
+    "GSMA": {
+      "code": "GSMA",
+      "description": "Gross saving, MA, B$.",
+      "short_name": "Monetary Authority Saving",
+      "units": "B$"
+    },
+    "GSNN": {
+      "code": "GSNN",
+      "description": "Gross saving, NN, B$.",
+      "short_name": "Net National Saving",
+      "units": "B$"
+    },
+    "GSNNQ": {
+      "code": "GSNNQ",
+      "description": "Gross saving, NN, B2017$.",
+      "short_name": "Real Net National Saving",
+      "units": "B2017$"
+    },
+    "HF": {
+      "code": "HF",
+      "description": "Average number of hours paid per job, f, hours per quarter.",
+      "short_name": "Firm Hours Per Job",
+      "units": "hours per quarter"
+    },
+    "HFF": {
+      "code": "HFF",
+      "description": "Deviation of HFF from HFS.",
+      "short_name": "Firm Hours Gap",
+      "units": ""
+    },
+    "HFS": {
+      "code": "HFS",
+      "description": "Potential value of HFF.",
+      "short_name": "Potential Firm Hours",
+      "units": ""
+    },
+    "HG": {
+      "code": "HG",
+      "description": "Average number of hours paid per civilian job, g, hours per quarter.",
+      "short_name": "Federal Civilian Hours",
+      "units": "hours per quarter"
+    },
+    "HM": {
+      "code": "HM",
+      "description": "Average number of hours paid per military job, g, hours per quarter.",
+      "short_name": "Military Hours",
+      "units": "hours per quarter"
+    },
+    "HN": {
+      "code": "HN",
+      "description": "Average number of non overtime hours paid per job, f, hours per quarter.",
+      "short_name": "Firm Regular Hours",
+      "units": "hours per quarter"
+    },
+    "HO": {
+      "code": "HO",
+      "description": "Average number of overtime hours paid per job, f, hours per quarter.",
+      "short_name": "Firm Overtime Hours",
+      "units": "hours per quarter"
+    },
+    "HS": {
+      "code": "HS",
+      "description": "Average number of hours paid per job, s, hours per quarter.",
+      "short_name": "State Local Hours",
+      "units": "hours per quarter"
+    },
+    "IBTG": {
+      "code": "IBTG",
+      "description": "Indirect business taxes, s, B$.",
+      "short_name": "State Business Taxes",
+      "units": "B$"
+    },
+    "IBTS": {
+      "code": "IBTS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "IGZ": {
+      "code": "IGZ",
+      "description": "Gross investment, g, B$.",
+      "short_name": "Federal Gross Investment",
+      "units": "B$"
+    },
+    "IGZQ": {
+      "code": "IGZQ",
+      "description": "Gross investment, g, B2017$.",
+      "short_name": "Real Federal Gross Investment",
+      "units": "B2017$"
+    },
+    "IHF": {
+      "code": "IHF",
+      "description": "Residential investment, f, B2017$.",
+      "short_name": "Real Firm Residential Investment",
+      "units": "B2017$"
+    },
+    "IHH": {
+      "code": "IHH",
+      "description": "Residential investment, h, B2017$.",
+      "short_name": "Real Household Residential Inv",
+      "units": "B2017$"
+    },
+    "IHHZ": {
+      "code": "IHHZ",
+      "description": "Ratio: IHH / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "IKB": {
+      "code": "IKB",
+      "description": "Nonresidential fixed investment, B2017$.",
+      "short_name": "Real Nonres Fixed Investment",
+      "units": "B2017$"
+    },
+    "IKF": {
+      "code": "IKF",
+      "description": "Nonresidential fixed investment, f, B2017$.",
+      "short_name": "Real Firm Fixed Investment",
+      "units": "B2017$"
+    },
+    "IKG": {
+      "code": "IKG",
+      "description": "Nonresidential fixed investment, g, B2017$.",
+      "short_name": "Real Federal Fixed Investment",
+      "units": "B2017$"
+    },
+    "IKH": {
+      "code": "IKH",
+      "description": "Nonresidential fixed investment, h, B2017$.",
+      "short_name": "Real Household Fixed Investment",
+      "units": "B2017$"
+    },
+    "IM": {
+      "code": "IM",
+      "description": "Imports, B2017$.",
+      "short_name": "Real Imports",
+      "units": "B2017$"
+    },
+    "IMZ": {
+      "code": "IMZ",
+      "description": "Ratio: IM / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "INS": {
+      "code": "INS",
+      "description": "Insurance and pension reserves to h from g, B$.",
+      "short_name": "Federal Insurance Reserves",
+      "units": "B$"
+    },
+    "INTF": {
+      "code": "INTF",
+      "description": "Net interest payments, f, B$.",
+      "short_name": "Firm Net Interest",
+      "units": "B$"
+    },
+    "INTFZ": {
+      "code": "INTFZ",
+      "description": "Ratio: INTF / AAF",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "INTG": {
+      "code": "INTG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "INTGADJ": {
+      "code": "INTGADJ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "INTGR": {
+      "code": "INTGR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "INTGZ": {
+      "code": "INTGZ",
+      "description": "Ratio: INTG / AAG",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "INTGZGDP": {
+      "code": "INTGZGDP",
+      "description": "Ratio: INTG / GDP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "INTS": {
+      "code": "INTS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "INTZ": {
+      "code": "INTZ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "INTZQ": {
+      "code": "INTZQ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ISZ": {
+      "code": "ISZ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ISZQ": {
+      "code": "ISZQ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "IVA": {
+      "code": "IVA",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "IVF": {
+      "code": "IVF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JCHC0": {
+      "code": "JCHC0",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JCHJH": {
+      "code": "JCHJH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JCHUR": {
+      "code": "JCHUR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JCHYP": {
+      "code": "JCHYP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JF": {
+      "code": "JF",
+      "description": "Number of jobs in the firm sector.",
+      "short_name": "Firm-sector jobs",
+      "units": "Millions"
+    },
+    "JG": {
+      "code": "JG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGBEN": {
+      "code": "JGBEN",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGBENF": {
+      "code": "JGBENF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGBENH": {
+      "code": "JGBENH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGCHILD": {
+      "code": "JGCHILD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGCHLDU1": {
+      "code": "JGCHLDU1",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGCOLA": {
+      "code": "JGCOLA",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGEITCG": {
+      "code": "JGEITCG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGEITCS": {
+      "code": "JGEITCS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGFULLH": {
+      "code": "JGFULLH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGH": {
+      "code": "JGH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGHEALTH": {
+      "code": "JGHEALTH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGHILO": {
+      "code": "JGHILO",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGINCOME": {
+      "code": "JGINCOME",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGINTG": {
+      "code": "JGINTG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGJ": {
+      "code": "JGJ",
+      "description": "Custom PSE2025 job-guarantee jobs series from the Scott 2017 JG layer ported onto FM 2025.",
+      "short_name": "JG jobs",
+      "units": "Millions"
+    },
+    "JGMAT": {
+      "code": "JGMAT",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGMEDICG": {
+      "code": "JGMEDICG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGMEDICS": {
+      "code": "JGMEDICS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGNLC": {
+      "code": "JGNLC",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGNLCF": {
+      "code": "JGNLCF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGNLCH": {
+      "code": "JGNLCH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGNOTLF": {
+      "code": "JGNOTLF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPART": {
+      "code": "JGPART",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPARTH": {
+      "code": "JGPARTH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPHASE": {
+      "code": "JGPHASE",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPROD": {
+      "code": "JGPROD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPT": {
+      "code": "JGPT",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGPTJ1": {
+      "code": "JGPTJ1",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGSPEND": {
+      "code": "JGSPEND",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGSUPER": {
+      "code": "JGSUPER",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGSWITCH": {
+      "code": "JGSWITCH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGTAX": {
+      "code": "JGTAX",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGU": {
+      "code": "JGU",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGUB": {
+      "code": "JGUB",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGULLL1": {
+      "code": "JGULLL1",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGULLOT": {
+      "code": "JGULLOT",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGUUWKL1": {
+      "code": "JGUUWKL1",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGUUWKS": {
+      "code": "JGUUWKS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGVAC": {
+      "code": "JGVAC",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGW": {
+      "code": "JGW",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWAJHI": {
+      "code": "JGWAJHI",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWAJHIL": {
+      "code": "JGWAJHIL",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWAJLO": {
+      "code": "JGWAJLO",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWAJLOL": {
+      "code": "JGWAJLOL",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWFADJ": {
+      "code": "JGWFADJ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JGWFPASS": {
+      "code": "JGWFPASS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHGSZ": {
+      "code": "JHGSZ",
+      "description": "Ratio: (JG*HG+JM*HM+JS*HS) / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "JHIA0": {
+      "code": "JHIA0",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHIJH": {
+      "code": "JHIJH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHILF": {
+      "code": "JHILF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHIYP": {
+      "code": "JHIYP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHMIN": {
+      "code": "JHMIN",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JHPOP": {
+      "code": "JHPOP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JLOA0": {
+      "code": "JLOA0",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JLOJH": {
+      "code": "JLOJH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JLOLF": {
+      "code": "JLOLF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JLOYP": {
+      "code": "JLOYP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JM": {
+      "code": "JM",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JPTJD": {
+      "code": "JPTJD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JPTUR": {
+      "code": "JPTUR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JPTYD": {
+      "code": "JPTYD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JS": {
+      "code": "JS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JULJH": {
+      "code": "JULJH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JULUR": {
+      "code": "JULUR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JUWJH": {
+      "code": "JUWJH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "JUWUR": {
+      "code": "JUWUR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "KD": {
+      "code": "KD",
+      "description": "Stock of durable goods, B2017$.",
+      "short_name": "Real Durable Goods Stock",
+      "units": "B2017$"
+    },
+    "KDZ": {
+      "code": "KDZ",
+      "description": "Ratio: KD / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "KH": {
+      "code": "KH",
+      "description": "Stock of housing, h, B2017$.",
+      "short_name": "Real Housing Stock",
+      "units": "B2017$"
+    },
+    "KHZ": {
+      "code": "KHZ",
+      "description": "Ratio: KH / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "KK": {
+      "code": "KK",
+      "description": "Stock of capital, f, B2017$.",
+      "short_name": "Real Capital Stock",
+      "units": "B2017$"
+    },
+    "KKMIN": {
+      "code": "KKMIN",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "L1": {
+      "code": "L1",
+      "description": "Labor force of men 25-54, millions.",
+      "short_name": "Prime-Age Male Labor Force",
+      "units": "millions"
+    },
+    "L1Z": {
+      "code": "L1Z",
+      "description": "Ratio: L1 / POP1",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "L2": {
+      "code": "L2",
+      "description": "Labor force of women 25-54, millions.",
+      "short_name": "Prime-Age Female Labor Force",
+      "units": "millions"
+    },
+    "L2Z": {
+      "code": "L2Z",
+      "description": "Ratio: L2 / POP2",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "L3": {
+      "code": "L3",
+      "description": "Labor force of all others, 16+, millions.",
+      "short_name": "Other Labor Force",
+      "units": "millions"
+    },
+    "L3Z": {
+      "code": "L3Z",
+      "description": "Ratio: L3 / POP3",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "LAAZ": {
+      "code": "LAAZ",
+      "description": "Log of AAZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LAM": {
+      "code": "LAM",
+      "description": "Amount of output capable of being produced per worker hour.",
+      "short_name": "Output Per Worker Hour",
+      "units": ""
+    },
+    "LCDZ": {
+      "code": "LCDZ",
+      "description": "Log of CDZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LCNZ": {
+      "code": "LCNZ",
+      "description": "Log of CNZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LCOGSZ": {
+      "code": "LCOGSZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LCSZ": {
+      "code": "LCSZ",
+      "description": "Log of CSZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LCURL1Q": {
+      "code": "LCURL1Q",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LCURZ": {
+      "code": "LCURZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LDF": {
+      "code": "LDF",
+      "description": "Log of DF",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LDF1": {
+      "code": "LDF1",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LEX": {
+      "code": "LEX",
+      "description": "Log of EX",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LEXKK": {
+      "code": "LEXKK",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LEXL": {
+      "code": "LEXL",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LEXZ": {
+      "code": "LEXZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LFORCE": {
+      "code": "LFORCE",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "LFPOP": {
+      "code": "LFPOP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "LHF": {
+      "code": "LHF",
+      "description": "Log of HF",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LHF1": {
+      "code": "LHF1",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LHFL1A": {
+      "code": "LHFL1A",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LHO": {
+      "code": "LHO",
+      "description": "Log of HO",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LIBTZ": {
+      "code": "LIBTZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LIHHZ": {
+      "code": "LIHHZ",
+      "description": "Log of IHHZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LIMZ": {
+      "code": "LIMZ",
+      "description": "Log of IMZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LJF1": {
+      "code": "LJF1",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LJHGSZ": {
+      "code": "LJHGSZ",
+      "description": "Log of JHGSZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LKDZ": {
+      "code": "LKDZ",
+      "description": "Log of KDZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LKHZ": {
+      "code": "LKHZ",
+      "description": "Log of KHZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LKK": {
+      "code": "LKK",
+      "description": "Log of KK",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LKK1": {
+      "code": "LKK1",
+      "description": "Change in LKK vs prior period",
+      "short_name": "",
+      "units": ""
+    },
+    "LL1Z": {
+      "code": "LL1Z",
+      "description": "Log of L1Z",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LL2Z": {
+      "code": "LL2Z",
+      "description": "Log of L2Z",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LL3Z": {
+      "code": "LL3Z",
+      "description": "Log of L3Z",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LLMZ": {
+      "code": "LLMZ",
+      "description": "Log of LMZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LM": {
+      "code": "LM",
+      "description": "Number of \u201cmonoliths\u201d: difference between the total number of jobs (establishment data) and the total number of people employed (household survey data), millions.",
+      "short_name": "Jobs-People Wedge",
+      "units": "millions"
+    },
+    "LMFL1Q": {
+      "code": "LMFL1Q",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LMFZ": {
+      "code": "LMFZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LMZ": {
+      "code": "LMZ",
+      "description": "Ratio: LM / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "LPF": {
+      "code": "LPF",
+      "description": "Log of PF",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPFZ": {
+      "code": "LPFZ",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "LPFZPIM": {
+      "code": "LPFZPIM",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPH": {
+      "code": "LPH",
+      "description": "Log of PH",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPIEFAZ": {
+      "code": "LPIEFAZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPIM": {
+      "code": "LPIM",
+      "description": "Log of PIM",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPIMZ": {
+      "code": "LPIMZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LPOP": {
+      "code": "LPOP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "LTOTAL": {
+      "code": "LTOTAL",
+      "description": "Sum: L1, L2, L3",
+      "short_name": "",
+      "units": ""
+    },
+    "LTRGSZ": {
+      "code": "LTRGSZ",
+      "description": "Log of TRGSZ",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LU": {
+      "code": "LU",
+      "description": "Log of UMM",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LUB": {
+      "code": "LUB",
+      "description": "Log of UB",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LV": {
+      "code": "LV",
+      "description": "Log of V",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LVZ": {
+      "code": "LVZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LWAZPH": {
+      "code": "LWAZPH",
+      "description": "Log of WAZPH",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LWF": {
+      "code": "LWF",
+      "description": "Log of WF",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LWFD5": {
+      "code": "LWFD5",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LWFQ": {
+      "code": "LWFQ",
+      "description": "Log of WF",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LWFQZ": {
+      "code": "LWFQZ",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "LWFQZPF": {
+      "code": "LWFQZPF",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "LWFZPF": {
+      "code": "LWFZPF",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "LX": {
+      "code": "LX",
+      "description": "Log of X",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LXMFA": {
+      "code": "LXMFA",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LXMFAZ": {
+      "code": "LXMFAZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LXXXZ": {
+      "code": "LXXXZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LY": {
+      "code": "LY",
+      "description": "Log of Y",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LY1": {
+      "code": "LY1",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LYDZ": {
+      "code": "LYDZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "LYZ": {
+      "code": "LYZ",
+      "description": "Log transform",
+      "short_name": "",
+      "units": "log level"
+    },
+    "M1": {
+      "code": "M1",
+      "description": "Money supply, end of quarter, B$.",
+      "short_name": "Money Supply",
+      "units": "B$"
+    },
+    "MB": {
+      "code": "MB",
+      "description": "Net demand deposits and currency, b, B$.",
+      "short_name": "Bank Currency And Deposits",
+      "units": "B$"
+    },
+    "MDIF": {
+      "code": "MDIF",
+      "description": "Net increase in demand deposits and currency of banks in U.S. possessions plus change in demand deposits and currency of private nonbank financial institutions plus change in demand deposits and currency of federally sponsored credit agencies and mortgage pools minus mail float, U.S. government, B$.",
+      "short_name": "Money Supply Adjustment",
+      "units": "B$"
+    },
+    "MF": {
+      "code": "MF",
+      "description": "Demand deposits and currency, f, B$.",
+      "short_name": "Firm Currency And Deposits",
+      "units": "B$"
+    },
+    "MG": {
+      "code": "MG",
+      "description": "Demand deposits and currency, g, B$.",
+      "short_name": "Federal Currency And Deposits",
+      "units": "B$"
+    },
+    "MGQ": {
+      "code": "MGQ",
+      "description": "Demand deposits and currency, g, B2017$.",
+      "short_name": "Real Federal Currency Deposits",
+      "units": "B2017$"
+    },
+    "MH": {
+      "code": "MH",
+      "description": "Demand deposits and currency, h, B$.",
+      "short_name": "Household Currency And Deposits",
+      "units": "B$"
+    },
+    "MHQ": {
+      "code": "MHQ",
+      "description": "Demand deposits and currency, h, B2017$.",
+      "short_name": "Real Household Currency Deposits",
+      "units": "B2017$"
+    },
+    "MINWAGE": {
+      "code": "MINWAGE",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "MR": {
+      "code": "MR",
+      "description": "Demand deposits and currency, r, B$.",
+      "short_name": "Foreign Currency And Deposits",
+      "units": "B$"
+    },
+    "MRQ": {
+      "code": "MRQ",
+      "description": "Demand deposits and currency, r, B2017$.",
+      "short_name": "Real Foreign Currency Deposits",
+      "units": "B2017$"
+    },
+    "MS": {
+      "code": "MS",
+      "description": "Demand deposits and currency, s, B$.",
+      "short_name": "State Currency And Deposits",
+      "units": "B$"
+    },
+    "MSQ": {
+      "code": "MSQ",
+      "description": "Demand deposits and currency, s, B2017$.",
+      "short_name": "Real State Currency Deposits",
+      "units": "B2017$"
+    },
+    "MUH": {
+      "code": "MUH",
+      "description": "Amount of output capable of being produced per unit of capital.",
+      "short_name": "Output Per Unit Capital",
+      "units": ""
+    },
+    "MWBCOST": {
+      "code": "MWBCOST",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "MWBEN": {
+      "code": "MWBEN",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "NICD": {
+      "code": "NICD",
+      "description": "Net investment in consumer durables, h, B$.",
+      "short_name": "Household Net Durables Invest",
+      "units": "B$"
+    },
+    "NNF": {
+      "code": "NNF",
+      "description": "Net acquisition of nonproduced nonfinancial assets, f, B$.",
+      "short_name": "Firm Nonproduced Assets",
+      "units": "B$"
+    },
+    "NNG": {
+      "code": "NNG",
+      "description": "Net acquisition of nonproduced nonfinancial assets, g, B$.",
+      "short_name": "Federal Nonproduced Assets",
+      "units": "B$"
+    },
+    "NNH": {
+      "code": "NNH",
+      "description": "Net acquisition of nonproduced nonfinancial assets, h, B$.",
+      "short_name": "Household Nonproduced Assets",
+      "units": "B$"
+    },
+    "NNR": {
+      "code": "NNR",
+      "description": "Net acquisition of nonproduced nonfinancial assets, r, B$.",
+      "short_name": "Foreign Nonproduced Assets",
+      "units": "B$"
+    },
+    "NNS": {
+      "code": "NNS",
+      "description": "Net acquisition of nonproduced nonfinancial assets, s, B$.",
+      "short_name": "State Nonproduced Assets",
+      "units": "B$"
+    },
+    "NONE19": {
+      "code": "NONE19",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 19; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "NONE20": {
+      "code": "NONE20",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 20; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "NONE21": {
+      "code": "NONE21",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 21; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "NONE22": {
+      "code": "NONE22",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 22; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "NONE25": {
+      "code": "NONE25",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 25; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "NONE9": {
+      "code": "NONE9",
+      "description": "Placeholder/dummy LHS used to occupy omitted equation slot 9; no standalone economic meaning in this variant.",
+      "short_name": "",
+      "units": "none"
+    },
+    "ONEZGAP": {
+      "code": "ONEZGAP",
+      "description": "Reciprocal (shifted)",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "ONEZUR": {
+      "code": "ONEZUR",
+      "description": "Reciprocal of UR",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "PCD": {
+      "code": "PCD",
+      "description": "Price deflator for CD.",
+      "short_name": "Durables Deflator",
+      "units": ""
+    },
+    "PCGDPD": {
+      "code": "PCGDPD",
+      "description": "Percentage change in GDPD, annual rate, percentage points.",
+      "short_name": "GDP Deflator Growth",
+      "units": "percentage points"
+    },
+    "PCGDPD4": {
+      "code": "PCGDPD4",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCGDPR": {
+      "code": "PCGDPR",
+      "description": "Percentage change in GDPR, annual rate, percentage points.",
+      "short_name": "Real GDP Growth",
+      "units": "percentage points"
+    },
+    "PCGDPR4": {
+      "code": "PCGDPR4",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCM1": {
+      "code": "PCM1",
+      "description": "Percentage change in M1, annual rate, percentage points.",
+      "short_name": "Money Supply Growth",
+      "units": "percentage points"
+    },
+    "PCM1L1A": {
+      "code": "PCM1L1A",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "PCM1L1B": {
+      "code": "PCM1L1B",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "PCN": {
+      "code": "PCN",
+      "description": "Price deflator for CN.",
+      "short_name": "Nondurables Deflator",
+      "units": ""
+    },
+    "PCPD": {
+      "code": "PCPD",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCPD4": {
+      "code": "PCPD4",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCPD8": {
+      "code": "PCPD8",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCPF": {
+      "code": "PCPF",
+      "description": "Percentage change in the non farm price deflator.",
+      "short_name": "Nonfarm inflation",
+      "units": "Percentage points, annual rate"
+    },
+    "PCPF4": {
+      "code": "PCPF4",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCS": {
+      "code": "PCS",
+      "description": "Price deflator for CS.",
+      "short_name": "Services Deflator",
+      "units": ""
+    },
+    "PCWF": {
+      "code": "PCWF",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCY": {
+      "code": "PCY",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PCY4": {
+      "code": "PCY4",
+      "description": "Percent change (from model formula)",
+      "short_name": "",
+      "units": "%"
+    },
+    "PD": {
+      "code": "PD",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PEX": {
+      "code": "PEX",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PF": {
+      "code": "PF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PFA": {
+      "code": "PFA",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PG": {
+      "code": "PG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PH": {
+      "code": "PH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIEB": {
+      "code": "PIEB",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIEF": {
+      "code": "PIEF",
+      "description": "Before-tax profits, firm sector.",
+      "short_name": "Before-tax profits",
+      "units": "Billions $"
+    },
+    "PIEFA": {
+      "code": "PIEFA",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "PIEFAMM": {
+      "code": "PIEFAMM",
+      "description": "Sum: (ABS(PIEFA-4.)+PIEFA-4.)/2, 4.",
+      "short_name": "",
+      "units": ""
+    },
+    "PIEFRET": {
+      "code": "PIEFRET",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIH": {
+      "code": "PIH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIK": {
+      "code": "PIK",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIM": {
+      "code": "PIM",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PIV": {
+      "code": "PIV",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PKH": {
+      "code": "PKH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "POP": {
+      "code": "POP",
+      "description": "Noninstitutional population 16+, millions.",
+      "short_name": "Population 16 Plus",
+      "units": "millions"
+    },
+    "POP1": {
+      "code": "POP1",
+      "description": "Noninstitutional population of men 25-54, millions.",
+      "short_name": "Prime-Age Male Population",
+      "units": "millions"
+    },
+    "POP2": {
+      "code": "POP2",
+      "description": "Noninstitutional population of women 25-54, millions.",
+      "short_name": "Prime-Age Female Population",
+      "units": "millions"
+    },
+    "POP3": {
+      "code": "POP3",
+      "description": "Noninstitutional population of all others, 16+, millions.",
+      "short_name": "Other Population 16 Plus",
+      "units": "millions"
+    },
+    "POPP": {
+      "code": "POPP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PROD": {
+      "code": "PROD",
+      "description": "Output per paid for worker hour (\"productivity\").",
+      "short_name": "Labor Productivity",
+      "units": ""
+    },
+    "PS": {
+      "code": "PS",
+      "description": "Price deflator for COS.",
+      "short_name": "State Local Goods Deflator",
+      "units": ""
+    },
+    "PSI1": {
+      "code": "PSI1",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI10": {
+      "code": "PSI10",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI11": {
+      "code": "PSI11",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI12": {
+      "code": "PSI12",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI13": {
+      "code": "PSI13",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI14": {
+      "code": "PSI14",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI15": {
+      "code": "PSI15",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI2": {
+      "code": "PSI2",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI3": {
+      "code": "PSI3",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI4": {
+      "code": "PSI4",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI5": {
+      "code": "PSI5",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI6": {
+      "code": "PSI6",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI7": {
+      "code": "PSI7",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI8": {
+      "code": "PSI8",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PSI9": {
+      "code": "PSI9",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "PUG": {
+      "code": "PUG",
+      "description": "Purchases of goods and services, g, B$.",
+      "short_name": "Federal Purchases",
+      "units": "B$"
+    },
+    "PUS": {
+      "code": "PUS",
+      "description": "Purchases of goods and services, s, B$.",
+      "short_name": "State Local Purchases",
+      "units": "B$"
+    },
+    "PX": {
+      "code": "PX",
+      "description": "Price deflator for total sales.",
+      "short_name": "Sales Deflator",
+      "units": ""
+    },
+    "Q": {
+      "code": "Q",
+      "description": "Gold and foreign exchange, g, B$.",
+      "short_name": "Federal Gold And FX",
+      "units": "B$"
+    },
+    "QQ": {
+      "code": "QQ",
+      "description": "Gold and foreign exchange, g, B2017$.",
+      "short_name": "Real Federal Gold And FX",
+      "units": "B2017$"
+    },
+    "RB": {
+      "code": "RB",
+      "description": "Bond rate, percentage points.",
+      "short_name": "Bond Rate",
+      "units": "percentage points"
+    },
+    "RB1": {
+      "code": "RB1",
+      "description": "Change in RB vs prior period",
+      "short_name": "",
+      "units": ""
+    },
+    "RBA": {
+      "code": "RBA",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RBA4": {
+      "code": "RBA4",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RBLMRSL2": {
+      "code": "RBLMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RBMRSL2": {
+      "code": "RBMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RECG": {
+      "code": "RECG",
+      "description": "Net receipts, g, B$.",
+      "short_name": "Federal Net Receipts",
+      "units": "B$"
+    },
+    "RECGZGDP": {
+      "code": "RECGZGDP",
+      "description": "Ratio: RECG / GDP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "RECS": {
+      "code": "RECS",
+      "description": "Net receipts, s, B$.",
+      "short_name": "State Local Net Receipts",
+      "units": "B$"
+    },
+    "RM": {
+      "code": "RM",
+      "description": "Mortgage rate, percentage points.",
+      "short_name": "Mortgage Rate",
+      "units": "percentage points"
+    },
+    "RMA": {
+      "code": "RMA",
+      "description": "After tax mortgage rate, percentage points.",
+      "short_name": "After-Tax Mortgage Rate",
+      "units": "percentage points"
+    },
+    "RMACDZ": {
+      "code": "RMACDZ",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RMALIHHZ": {
+      "code": "RMALIHHZ",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RMLMRSL2": {
+      "code": "RMLMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RMMRSL2": {
+      "code": "RMMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RNT": {
+      "code": "RNT",
+      "description": "Rental income, h, B$.",
+      "short_name": "Household Rental Income",
+      "units": "B$"
+    },
+    "RNTQ": {
+      "code": "RNTQ",
+      "description": "Rental income, h, B2017$.",
+      "short_name": "Real Household Rental Income",
+      "units": "B2017$"
+    },
+    "RQG": {
+      "code": "RQG",
+      "description": "Interest-rate helper used in equation 29 context (generated rate term from policy/market rate inputs).",
+      "short_name": "",
+      "units": "fraction per quarter"
+    },
+    "RS": {
+      "code": "RS",
+      "description": "Three-month Treasury bill rate, percentage points.",
+      "short_name": "3-mo T-bill rate",
+      "units": "Percentage points"
+    },
+    "RS1": {
+      "code": "RS1",
+      "description": "Change in RS vs prior period",
+      "short_name": "",
+      "units": ""
+    },
+    "RSA": {
+      "code": "RSA",
+      "description": "After tax bill rate, percentage points.",
+      "short_name": "After-Tax Bill Rate",
+      "units": "percentage points"
+    },
+    "RSB": {
+      "code": "RSB",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RSLMRSL2": {
+      "code": "RSLMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "RSMRSL2": {
+      "code": "RSMRSL2",
+      "description": "Derived helper from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "SB": {
+      "code": "SB",
+      "description": "Financial saving, b, B$.",
+      "short_name": "Bank Financial Saving",
+      "units": "B$"
+    },
+    "SF": {
+      "code": "SF",
+      "description": "Financial saving, f, B$.",
+      "short_name": "Firm Financial Saving",
+      "units": "B$"
+    },
+    "SG": {
+      "code": "SG",
+      "description": "Financial saving, g, B$.",
+      "short_name": "Federal saving",
+      "units": "Billions $"
+    },
+    "SGP": {
+      "code": "SGP",
+      "description": "NIPA surplus (+) or deficit (-), g, B$.",
+      "short_name": "Federal NIPA Surplus",
+      "units": "B$"
+    },
+    "SGPZGDP": {
+      "code": "SGPZGDP",
+      "description": "Ratio: -(SGP) / GDP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "SH": {
+      "code": "SH",
+      "description": "Saving, h, B$.",
+      "short_name": "Household Saving",
+      "units": "B$"
+    },
+    "SHRPIE": {
+      "code": "SHRPIE",
+      "description": "Ratio of after tax profits to the wage bill net of employer social security taxes.",
+      "short_name": "Profit To Wage Ratio",
+      "units": "ratio"
+    },
+    "SIFG": {
+      "code": "SIFG",
+      "description": "Employer social insurance contributions, f to g, B$.",
+      "short_name": "Employer SI To Federal",
+      "units": "B$"
+    },
+    "SIFS": {
+      "code": "SIFS",
+      "description": "Employer social insurance contributions, f to s, B$.",
+      "short_name": "Employer SI To State",
+      "units": "B$"
+    },
+    "SIG": {
+      "code": "SIG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SIGG": {
+      "code": "SIGG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SIHG": {
+      "code": "SIHG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SIHS": {
+      "code": "SIHS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SIS": {
+      "code": "SIS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SISS": {
+      "code": "SISS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SR": {
+      "code": "SR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SRZ": {
+      "code": "SRZ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "SRZGDP": {
+      "code": "SRZGDP",
+      "description": "Ratio: SR / GDP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "SS": {
+      "code": "SS",
+      "description": "Financial saving, s, B$.",
+      "short_name": "State Local Financial Saving",
+      "units": "B$"
+    },
+    "SSP": {
+      "code": "SSP",
+      "description": "NIPA surplus (+) or deficit (-), s, B$.",
+      "short_name": "State Local NIPA Surplus",
+      "units": "B$"
+    },
+    "STAT": {
+      "code": "STAT",
+      "description": "Statistical discrepancy, B$.",
+      "short_name": "Statistical Discrepancy",
+      "units": "B$"
+    },
+    "STATP": {
+      "code": "STATP",
+      "description": "Statistical discrepancy relating to the use of chain type prices in indices, B2017$.",
+      "short_name": "Chain Price Discrepancy",
+      "units": "B2017$"
+    },
+    "SUBG": {
+      "code": "SUBG",
+      "description": "Subsidies less current surplus of government enterprises, g, B$.",
+      "short_name": "Federal Subsidies Net",
+      "units": "B$"
+    },
+    "SUBS": {
+      "code": "SUBS",
+      "description": "Subsidies less current surplus of government enterprises, s, B$.",
+      "short_name": "State Local Subsidies Net",
+      "units": "B$"
+    },
+    "T": {
+      "code": "T",
+      "description": "1 in 1952.1, 2 in 1952.2, etc.",
+      "short_name": "Linear Time Trend",
+      "units": ""
+    },
+    "T1": {
+      "code": "T1",
+      "description": "Model constant (88)",
+      "short_name": "",
+      "units": ""
+    },
+    "T2": {
+      "code": "T2",
+      "description": "Model constant (172)",
+      "short_name": "",
+      "units": ""
+    },
+    "TBG": {
+      "code": "TBG",
+      "description": "Corporate profit taxes, b to g, B$.",
+      "short_name": "Bank Profit Taxes To Federal",
+      "units": "B$"
+    },
+    "TBGQ": {
+      "code": "TBGQ",
+      "description": "Corporate profit taxes, b to g, B2017$.",
+      "short_name": "Real Bank Taxes To Federal",
+      "units": "B2017$"
+    },
+    "TBL2": {
+      "code": "TBL2",
+      "description": "Time varying time trend, 1971.3\u20131989.4.",
+      "short_name": "1971-1989 Trend Shift",
+      "units": ""
+    },
+    "TBS": {
+      "code": "TBS",
+      "description": "Corporate profit taxes, b to s, B$.",
+      "short_name": "Bank Profit Taxes To State Local",
+      "units": "B$"
+    },
+    "TCG": {
+      "code": "TCG",
+      "description": "Corporate profit tax receipts, g, B$.",
+      "short_name": "Federal Corp Tax Receipts",
+      "units": "B$"
+    },
+    "TCS": {
+      "code": "TCS",
+      "description": "Corporate profit tax receipts, s, B$.",
+      "short_name": "State Local Corp Tax Receipts",
+      "units": "B$"
+    },
+    "TESTZERO": {
+      "code": "TESTZERO",
+      "description": "Identity from model expression",
+      "short_name": "",
+      "units": ""
+    },
+    "TF1": {
+      "code": "TF1",
+      "description": "Corporate profit tax payments, F1, B$.",
+      "short_name": "Nonfinancial Corp Tax Payments",
+      "units": "B$"
+    },
+    "TFG": {
+      "code": "TFG",
+      "description": "Corporate profit taxes, f to g, B$.",
+      "short_name": "Firm Profit Taxes To Federal",
+      "units": "B$"
+    },
+    "TFGS": {
+      "code": "TFGS",
+      "description": "Sum: TFG, TFS",
+      "short_name": "",
+      "units": ""
+    },
+    "TFR": {
+      "code": "TFR",
+      "description": "Taxes, f to r, B$.",
+      "short_name": "Firm Taxes To Foreign",
+      "units": "B$"
+    },
+    "TFS": {
+      "code": "TFS",
+      "description": "Corporate profit taxes, f to s, B$.",
+      "short_name": "Firm Profit Taxes To State Local",
+      "units": "B$"
+    },
+    "THETA1": {
+      "code": "THETA1",
+      "description": "Ratio of PFA to GDPD.",
+      "short_name": "Financial Asset To GDP Ratio",
+      "units": "ratio"
+    },
+    "THETA2": {
+      "code": "THETA2",
+      "description": "Ratio of CDH to PCD . CD.",
+      "short_name": "Durables Spending Ratio",
+      "units": "ratio"
+    },
+    "THETA3": {
+      "code": "THETA3",
+      "description": "Ratio of NICD to PCD . CD.",
+      "short_name": "Durables Investment Ratio",
+      "units": "ratio"
+    },
+    "THETA4": {
+      "code": "THETA4",
+      "description": "Ratio of PIEFRET to PIEF.",
+      "short_name": "Retained Profit Share",
+      "units": "ratio"
+    },
+    "THG": {
+      "code": "THG",
+      "description": "Personal income taxes, h to g, B$.",
+      "short_name": "Household Taxes To Federal",
+      "units": "B$"
+    },
+    "THS": {
+      "code": "THS",
+      "description": "Personal income taxes, h to s, B$.",
+      "short_name": "Household Taxes To State Local",
+      "units": "B$"
+    },
+    "TRFG": {
+      "code": "TRFG",
+      "description": "Transfer payments, f to g, B$.",
+      "short_name": "Firm Transfers To Federal",
+      "units": "B$"
+    },
+    "TRFH": {
+      "code": "TRFH",
+      "description": "Transfer payments, f to h, B$.",
+      "short_name": "Firm Transfers To Households",
+      "units": "B$"
+    },
+    "TRFR": {
+      "code": "TRFR",
+      "description": "Transfer payments, f to r, B$.",
+      "short_name": "Firm Transfers To Foreign",
+      "units": "B$"
+    },
+    "TRFS": {
+      "code": "TRFS",
+      "description": "Transfer payments, f to s, B$.",
+      "short_name": "Firm Transfers To State Local",
+      "units": "B$"
+    },
+    "TRGH": {
+      "code": "TRGH",
+      "description": "Transfer payments (net), g to h, B$.",
+      "short_name": "Federal Transfers To Households",
+      "units": "B$"
+    },
+    "TRGHQ": {
+      "code": "TRGHQ",
+      "description": "Transfer payments (net), g to h, B2017$.",
+      "short_name": "Real Federal Transfers To HH",
+      "units": "B2017$"
+    },
+    "TRGR": {
+      "code": "TRGR",
+      "description": "Transfer payments (net), g to r, B$.",
+      "short_name": "Federal Transfers To Foreign",
+      "units": "B$"
+    },
+    "TRGS": {
+      "code": "TRGS",
+      "description": "Transfer payments, g to s, B$.",
+      "short_name": "Federal Transfers To State Local",
+      "units": "B$"
+    },
+    "TRGSQ": {
+      "code": "TRGSQ",
+      "description": "Transfer payments, g to s, B2017$.",
+      "short_name": "Real Fed Transfers To State Local",
+      "units": "B2017$"
+    },
+    "TRGSZ": {
+      "code": "TRGSZ",
+      "description": "Ratio: (TRGH+TRSH) / (POP*PH)",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "TRHR": {
+      "code": "TRHR",
+      "description": "Transfer payments, h to r, B$.",
+      "short_name": "Household Transfers To Foreign",
+      "units": "B$"
+    },
+    "TRRG2": {
+      "code": "TRRG2",
+      "description": "Taxes, r to g, B$.",
+      "short_name": "Foreign Taxes To Federal",
+      "units": "B$"
+    },
+    "TRRS": {
+      "code": "TRRS",
+      "description": "Transfer payments, r to s, B$.",
+      "short_name": "Foreign Transfers To State Local",
+      "units": "B$"
+    },
+    "TRSH": {
+      "code": "TRSH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "TRSHQ": {
+      "code": "TRSHQ",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "TTRRF": {
+      "code": "TTRRF",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "U": {
+      "code": "U",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "UB": {
+      "code": "UB",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "UBGH": {
+      "code": "UBGH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "UBSH": {
+      "code": "UBSH",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "UMM": {
+      "code": "UMM",
+      "description": "U with lower bound 1.0",
+      "short_name": "",
+      "units": ""
+    },
+    "UR": {
+      "code": "UR",
+      "description": "Civilian unemployment rate.",
+      "short_name": "Unemployment Rate",
+      "units": "Rate"
+    },
+    "UR1": {
+      "code": "UR1",
+      "description": "Change in UR vs prior period",
+      "short_name": "",
+      "units": ""
+    },
+    "USOTHER": {
+      "code": "USOTHER",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "USROW": {
+      "code": "USROW",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "V": {
+      "code": "V",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "WA": {
+      "code": "WA",
+      "description": "After tax wage rate. (Includes supplements to wages and salaries except employer contributions for social insurance.)",
+      "short_name": "After-Tax Wage Rate",
+      "units": ""
+    },
+    "WAZPH": {
+      "code": "WAZPH",
+      "description": "Ratio: WA / PH",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "WF": {
+      "code": "WF",
+      "description": "Average hourly earnings excluding overtime of workers in f. (Includes supplements to wages and salaries except employer contributions for social insurance.)",
+      "short_name": "Firm hourly earnings",
+      "units": ""
+    },
+    "WG": {
+      "code": "WG",
+      "description": "Average hourly earnings of civilian workers in g. (Includes supplements to wages and salaries including employer contributions for social insurance.)",
+      "short_name": "Federal Hourly Earnings",
+      "units": ""
+    },
+    "WH": {
+      "code": "WH",
+      "description": "Average hourly earnings excluding overtime of all workers. (Includes supplements to wages and salaries except employer contributions for social insurance.)",
+      "short_name": "Overall Hourly Earnings",
+      "units": ""
+    },
+    "WM": {
+      "code": "WM",
+      "description": "Average hourly earnings of military workers. (Includes supplements to wages and salaries including employer contributions for social insurance.)",
+      "short_name": "Military Hourly Earnings",
+      "units": ""
+    },
+    "WR": {
+      "code": "WR",
+      "description": "Real wage rate of workers in f. (Includes supplements to wages and salaries except employer contributions for social insurance.)",
+      "short_name": "Real wage rate",
+      "units": ""
+    },
+    "WS": {
+      "code": "WS",
+      "description": "Average hourly earnings of workers in s. (Includes supplements to wages and salaries including employer contributions for social insurance.)",
+      "short_name": "State Local Hourly Earnings",
+      "units": ""
+    },
+    "X": {
+      "code": "X",
+      "description": "Total sales, B2017$.",
+      "short_name": "Real Sales",
+      "units": "B2017$"
+    },
+    "XMFAZ": {
+      "code": "XMFAZ",
+      "description": "Ratio: (X-FA) / POP",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "XX": {
+      "code": "XX",
+      "description": "Total sales, B$.",
+      "short_name": "Nominal Sales",
+      "units": "B$"
+    },
+    "Y": {
+      "code": "Y",
+      "description": "Total production, B2017$.",
+      "short_name": "Real Output",
+      "units": "B2017$"
+    },
+    "Y1": {
+      "code": "Y1",
+      "description": "Change in Y vs prior period",
+      "short_name": "",
+      "units": ""
+    },
+    "YD": {
+      "code": "YD",
+      "description": "Disposable income, h, B$.",
+      "short_name": "Household Disposable Income",
+      "units": "B$"
+    },
+    "YDZ": {
+      "code": "YDZ",
+      "description": "Ratio: YD / (POP*PH)",
+      "short_name": "",
+      "units": "ratio"
+    },
+    "YPOP": {
+      "code": "YPOP",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "YS": {
+      "code": "YS",
+      "description": "Potential output, B2017$.",
+      "short_name": "Potential Output",
+      "units": "B2017$"
+    },
+    "YT": {
+      "code": "YT",
+      "description": "Taxable income, h, B$.",
+      "short_name": "Household Taxable Income",
+      "units": "B$"
+    },
+    "ZEROD1GM": {
+      "code": "ZEROD1GM",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ZEROD1SM": {
+      "code": "ZEROD1SM",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ZEROTG": {
+      "code": "ZEROTG",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ZEROTS": {
+      "code": "ZEROTS",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ZEROUBR": {
+      "code": "ZEROUBR",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
+    "ZEROYNL": {
+      "code": "ZEROYNL",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    }
+  }
+}

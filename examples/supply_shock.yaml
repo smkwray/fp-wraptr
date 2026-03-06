@@ -1,0 +1,22 @@
+# Supply shock scenario: cost-push pressure from import prices
+#
+# Raises the import price exogenous process by a fixed absolute amount,
+# which can pull through the price level and inflation while hurting growth.
+
+name: supply_shock
+description: "Positive cost shock through higher import prices"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+overrides:
+  PIM:
+    method: CHGSAMEABS
+    value: 0.25
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - PIM

@@ -1,0 +1,22 @@
+# Fiscal expansion scenario: stronger government demand
+#
+# Increases government spending growth (via budget share variable)
+# to represent a discretionary fiscal package.
+
+name: fiscal_expansion
+description: "Fiscal expansion via higher government spending share"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+overrides:
+  TBGQ:
+    method: CHGSAMEPCT
+    value: 0.010  # +1% of potential GDP baseline path annually
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - TBG

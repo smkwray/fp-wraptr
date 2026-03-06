@@ -1,0 +1,25 @@
+# Tight monetary policy scenario: higher short-term interest rates.
+#
+# This patches the input file to make the short-term interest rate (RS)
+# exogenous and sets it higher, simulating a tighter Fed policy stance.
+# Compare against baseline.yaml to see effects on GDP, unemployment, etc.
+
+name: tight_monetary
+description: "Tighter monetary policy with higher interest rates"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+input_patches:
+  # Uncomment EXOGENOUS VARIABLE=RS in the input file
+  "@EXOGENOUS VARIABLE=RS;": "EXOGENOUS VARIABLE=RS;"
+overrides: {}
+# TODO: RS override via CHANGEVAR would need a custom exog file
+# For now this demonstrates the input_patches mechanism
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - RS    # Short-term interest rate (tracking the policy variable)

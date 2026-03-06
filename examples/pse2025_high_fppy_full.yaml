@@ -1,0 +1,26 @@
+# PSE2025 full-horizon run using fp-py (fppy) backend.
+
+name: pse2025_high_fppy
+description: "PSE2025 high (2025.4–2029.4) via fppy"
+fp_home: ../FM
+input_overlay_dir: ../projects_local/pse2025
+input_file: psehigh.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fppy
+fppy:
+  eq_flags_preset: parity
+track_variables:
+  - GDPR
+  - GDP
+  - PCPF
+  - PIEF
+  - SG
+  - RS
+  - UR
+  - E
+  - JGJ
+  - JF
+  - WF
+  - PF
+

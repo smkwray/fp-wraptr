@@ -1,0 +1,29 @@
+{
+  "presets": [
+    {
+      "id": "pse-economy",
+      "label": "PSE Economy",
+      "variables": [
+        "GDPR",
+        "GDP",
+        "PCPF",
+        "PIEF",
+        "SG",
+        "RS"
+      ]
+    },
+    {
+      "id": "pse-employment-wages",
+      "label": "PSE Employment/Wages",
+      "variables": [
+        "UR",
+        "E",
+        "JGJ",
+        "JF",
+        "WF",
+        "WR"
+      ]
+    }
+  ],
+  "schema_version": 1
+}
