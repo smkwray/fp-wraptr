@@ -38,7 +38,9 @@ def _resolve_fp_exe_source(path: Path) -> Path:
     return candidate
 
 
-def ensure_fp_exe_in_model_dir(*, model_dir: Path, fp_exe_from: Path | None = None) -> dict[str, str | bool]:
+def ensure_fp_exe_in_model_dir(
+    *, model_dir: Path, fp_exe_from: Path | None = None
+) -> dict[str, str | bool]:
     """Ensure `model_dir/fp.exe` exists, optionally copying from `fp_exe_from`."""
     target_dir = Path(model_dir)
     target = target_dir / "fp.exe"
@@ -105,7 +107,9 @@ def fetch_and_unpack_fair_bundle(
                 payload = response.read()
                 headers = response.headers
         except urllib.error.HTTPError as exc:
-            raise FairBundleError(f"HTTP {exc.code} while downloading Fair bundle from {url}") from exc
+            raise FairBundleError(
+                f"HTTP {exc.code} while downloading Fair bundle from {url}"
+            ) from exc
         except Exception as exc:
             raise FairBundleError(f"Failed to download Fair bundle from {url}: {exc}") from exc
 
@@ -122,7 +126,9 @@ def fetch_and_unpack_fair_bundle(
         with zipfile.ZipFile(target_zip_path) as archive:
             archive.extractall(target_dir)
     except zipfile.BadZipFile as exc:
-        raise FairBundleError(f"Downloaded file is not a valid zip archive: {target_zip_path}") from exc
+        raise FairBundleError(
+            f"Downloaded file is not a valid zip archive: {target_zip_path}"
+        ) from exc
 
     model_dir = target_dir / "FM"
     if not model_dir.exists():

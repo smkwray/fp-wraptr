@@ -50,7 +50,9 @@ def read_dictionary_overlay(path: Path | str | None) -> dict[str, Any]:
 def write_dictionary_overlay(path: Path | str, payload: Mapping[str, Any]) -> None:
     overlay_path = Path(path)
     overlay_path.parent.mkdir(parents=True, exist_ok=True)
-    overlay_path.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8")
+    overlay_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
+    )
 
 
 def _apply_variable_overrides(
@@ -118,7 +120,9 @@ def apply_dictionary_overlay(base: ModelDictionary, overlay: Mapping[str, Any]) 
         if isinstance(equation_overrides, Mapping)
         else dict(base.equations)
     )
-    return ModelDictionary(merged_vars, merged_eqs, raw_data=dict(base.raw_data), meta=dict(base._meta))
+    return ModelDictionary(
+        merged_vars, merged_eqs, raw_data=dict(base.raw_data), meta=dict(base._meta)
+    )
 
 
 def load_dictionary_with_overlay(

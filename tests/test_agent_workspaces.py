@@ -69,28 +69,26 @@ def _write_pack_manifest(repo: Path) -> None:
     target = repo / "projects_local" / "packs" / "pse2025" / "pack.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
-        "\n".join(
-            [
-                "pack_id: pse2025",
-                "label: PSE2025 Working Pack",
-                "family: pse2025",
-                "description: Local PSE pack",
-                "visibility: local",
-                "source_dir: projects_local/pse2025",
-                "cards_family: pse2025",
-                "catalog_entry_ids: [pse-base, pse-bundle]",
-                "recipes:",
-                "  - recipe_id: change-coefficients",
-                "    label: Change coefficients",
-                "    summary: Update constants in managed cards.",
-                "visualizations:",
-                "  - view_id: pse-main",
-                "    label: Main tracks",
-                "    chart_type: forecast_overlay",
-                "    variables: [INTGADJ, JGW]",
-                "",
-            ]
-        ),
+        "\n".join([
+            "pack_id: pse2025",
+            "label: PSE2025 Working Pack",
+            "family: pse2025",
+            "description: Local PSE pack",
+            "visibility: local",
+            "source_dir: projects_local/pse2025",
+            "cards_family: pse2025",
+            "catalog_entry_ids: [pse-base, pse-bundle]",
+            "recipes:",
+            "  - recipe_id: change-coefficients",
+            "    label: Change coefficients",
+            "    summary: Update constants in managed cards.",
+            "visualizations:",
+            "  - view_id: pse-main",
+            "    label: Main tracks",
+            "    chart_type: forecast_overlay",
+            "    variables: [INTGADJ, JGW]",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -133,7 +131,9 @@ def test_pack_manifest_and_workspace_operations(tmp_path: Path) -> None:
     )
     assert updated["recipe_history"][-1]["operation"] == "import_workspace_series"
 
-    compile_payload = compile_workspace(repo_root=repo, workspace_id=str(workspace["workspace_id"]))
+    compile_payload = compile_workspace(
+        repo_root=repo, workspace_id=str(workspace["workspace_id"])
+    )
     assert compile_payload["ok"] is True
     assert compile_payload["visualizations"][0]["view_id"] == "forecast-overlay"
 
@@ -176,7 +176,9 @@ def test_pack_manifest_and_workspace_operations(tmp_path: Path) -> None:
         input_file="pselow.txt",
         enabled=False,
     )
-    updated_variant = next(item for item in updated_bundle["variants"] if item["variant_id"] == "custom")
+    updated_variant = next(
+        item for item in updated_bundle["variants"] if item["variant_id"] == "custom"
+    )
     assert updated_variant["label"] == "Custom Variant"
     assert updated_variant["scenario_name"] == "custom_exact"
     assert updated_variant["input_file"] == "pselow.txt"
@@ -193,10 +195,14 @@ def test_pack_manifest_and_workspace_operations(tmp_path: Path) -> None:
         card_id="pse2025.jg_constants",
         constants={"JGW": 0.015, "JGCOLA": 0.0},
     )
-    recipe_variant = next(item for item in recipe_bundle["variants"] if item["variant_id"] == "recipe_variant")
+    recipe_variant = next(
+        item for item in recipe_bundle["variants"] if item["variant_id"] == "recipe_variant"
+    )
     assert recipe_variant["scenario_name"] == "recipe_variant_exact"
 
-    compile_payload = compile_workspace(repo_root=repo, workspace_id=str(bundle_workspace["workspace_id"]))
+    compile_payload = compile_workspace(
+        repo_root=repo, workspace_id=str(bundle_workspace["workspace_id"])
+    )
     assert compile_payload["ok"] is True
 
 
@@ -215,7 +221,10 @@ def test_mcp_pack_and_workspace_tools(tmp_path: Path, monkeypatch) -> None:
     workspace = json.loads(mcp_create_workspace_from_catalog("pse-base"))
     workspace_id = str(workspace["workspace_id"])
     cards = json.loads(mcp_list_workspace_cards(workspace_id))
-    assert {item["card_id"] for item in cards["cards"]} == {"pse2025.intgadj", "pse2025.jg_constants"}
+    assert {item["card_id"] for item in cards["cards"]} == {
+        "pse2025.intgadj",
+        "pse2025.jg_constants",
+    }
 
     bundle_workspace = json.loads(mcp_create_workspace_from_catalog("pse-bundle"))
     bundle_workspace_id = str(bundle_workspace["workspace_id"])
@@ -233,7 +242,9 @@ def test_mcp_pack_and_workspace_tools(tmp_path: Path, monkeypatch) -> None:
             enabled=False,
         )
     )
-    updated_variant = next(item for item in updated_bundle["variants"] if item["variant_id"] == "base")
+    updated_variant = next(
+        item for item in updated_bundle["variants"] if item["variant_id"] == "base"
+    )
     assert updated_variant["label"] == "Base Variant"
     assert updated_variant["scenario_name"] == "pse2025_base_exact"
     assert updated_variant["enabled"] is False
@@ -250,7 +261,9 @@ def test_mcp_pack_and_workspace_tools(tmp_path: Path, monkeypatch) -> None:
             constants_json=json.dumps({"JGW": 0.015}),
         )
     )
-    cloned_variant = next(item for item in cloned_bundle["variants"] if item["variant_id"] == "recipe_variant")
+    cloned_variant = next(
+        item for item in cloned_bundle["variants"] if item["variant_id"] == "recipe_variant"
+    )
     assert cloned_variant["scenario_name"] == "recipe_variant_exact"
 
     applied = json.loads(

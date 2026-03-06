@@ -329,7 +329,9 @@ def prepare_work_dir_for_fp_run(
     )
 
 
-def select_primary_loadformat_output(run_dir: Path, copied_outputs: list[Path] | None = None) -> Path | None:
+def select_primary_loadformat_output(
+    run_dir: Path, copied_outputs: list[Path] | None = None
+) -> Path | None:
     """Select the primary LOADFORMAT-style output for a run directory.
 
     Priority:

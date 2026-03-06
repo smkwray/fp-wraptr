@@ -66,20 +66,18 @@ __all__ = [
 def list_packs(*, repo_root: Path | str) -> list[dict[str, object]]:
     out: list[dict[str, object]] = []
     for manifest, path in load_pack_manifests(repo_root=repo_root):
-        out.append(
-            {
-                "pack_id": manifest.pack_id,
-                "label": manifest.label,
-                "family": manifest.family,
-                "description": manifest.description,
-                "visibility": manifest.visibility,
-                "manifest_path": str(path),
-                "cards_family": manifest.cards_scope,
-                "catalog_entry_ids": list(manifest.catalog_entry_ids),
-                "recipe_count": len(manifest.recipes),
-                "visualization_count": len(manifest.visualizations),
-            }
-        )
+        out.append({
+            "pack_id": manifest.pack_id,
+            "label": manifest.label,
+            "family": manifest.family,
+            "description": manifest.description,
+            "visibility": manifest.visibility,
+            "manifest_path": str(path),
+            "cards_family": manifest.cards_scope,
+            "catalog_entry_ids": list(manifest.catalog_entry_ids),
+            "recipe_count": len(manifest.recipes),
+            "visualization_count": len(manifest.visualizations),
+        })
     return out
 
 
@@ -186,7 +184,9 @@ def update_workspace_metadata(
     if backend.strip():
         updates["backend"] = backend.strip().lower()
     if track_variables is not None:
-        updates["track_variables"] = [str(item).strip().upper() for item in track_variables if str(item).strip()]
+        updates["track_variables"] = [
+            str(item).strip().upper() for item in track_variables if str(item).strip()
+        ]
     draft = draft.model_copy(update=updates)
     draft.recipe_history.append(
         WorkspaceOperation(
@@ -357,7 +357,9 @@ def add_bundle_variant(
         input_file=input_file.strip() or None,
     )
     if clone_from.strip():
-        source = next((item for item in draft.variants if item.variant_id == clone_from.strip()), None)
+        source = next(
+            (item for item in draft.variants if item.variant_id == clone_from.strip()), None
+        )
         if source is None:
             raise ValueError(f"Clone source variant not found: {clone_from}")
         new_variant.cards = [card.model_copy(deep=True) for card in source.cards]
@@ -390,7 +392,9 @@ def remove_bundle_variant(
     if not isinstance(draft, BundleDraft):
         raise ValueError("Bundle variants are only supported for bundle workspaces")
     before = len(draft.variants)
-    draft.variants = [item for item in draft.variants if item.variant_id != str(variant_id).strip()]
+    draft.variants = [
+        item for item in draft.variants if item.variant_id != str(variant_id).strip()
+    ]
     if len(draft.variants) == before:
         raise ValueError(f"Variant not found: {variant_id}")
     draft.recipe_history.append(
@@ -497,7 +501,9 @@ def clone_bundle_variant_recipe(
             raise ValueError("card_id is required when seeding a card patch")
         card = _find_or_create_card(new_variant.cards, card_id)
         if constants:
-            normalized = {str(key).strip().upper(): float(value) for key, value in constants.items()}
+            normalized = {
+                str(key).strip().upper(): float(value) for key, value in constants.items()
+            }
             card.constants.update(normalized)
             card.enabled = True
         if selected_target.strip():
@@ -507,7 +513,9 @@ def clone_bundle_variant_recipe(
             card.input_mode = input_mode.strip()
         seeded_patch = {
             "card_id": card_id.strip(),
-            "constants": {str(key).strip().upper(): float(value) for key, value in (constants or {}).items()},
+            "constants": {
+                str(key).strip().upper(): float(value) for key, value in (constants or {}).items()
+            },
             "selected_target": selected_target.strip() or None,
             "input_mode": input_mode.strip() or None,
         }
@@ -547,13 +555,11 @@ def compile_workspace(
         result = compile_scenario_workspace(draft, repo_root=repo_root, workspace_dir=target_dir)
     else:
         result = compile_bundle_workspace(draft, repo_root=repo_root, workspace_dir=target_dir)
-    draft.extra.update(
-        {
-            "compiled_path": str(result.compiled_path),
-            "compile_report_path": str(result.report_path),
-            "last_compiled_at": _now(),
-        }
-    )
+    draft.extra.update({
+        "compiled_path": str(result.compiled_path),
+        "compile_report_path": str(result.report_path),
+        "last_compiled_at": _now(),
+    })
     draft.recipe_history.append(
         WorkspaceOperation(
             operation="compile_workspace",
@@ -699,14 +705,12 @@ def list_visualizations(
         draft, _path = load_workspace_draft_by_id(workspace_id, repo_root=repo_root)
         variables = list(getattr(draft, "track_variables", []))
     elif manifest_payload is not None:
-        variables = list(
-            {
-                item
-                for view in manifest_payload.get("visualizations", [])
-                if isinstance(view, dict)
-                for item in view.get("variables", [])
-            }
-        )
+        variables = list({
+            item
+            for view in manifest_payload.get("visualizations", [])
+            if isinstance(view, dict)
+            for item in view.get("variables", [])
+        })
     builtins = [
         {
             "view_id": "forecast-overlay",
@@ -740,18 +744,26 @@ def build_visualization_view(
     run_dirs: list[str] | None = None,
 ) -> dict[str, object]:
     repo_root = Path(repo_root).resolve()
-    available = list_visualizations(repo_root=repo_root, workspace_id=workspace_id, pack_id=pack_id)
+    available = list_visualizations(
+        repo_root=repo_root, workspace_id=workspace_id, pack_id=pack_id
+    )
     selected = next((item for item in available if item.get("view_id") == view_id), None)
     if selected is None:
         raise ValueError(f"Visualization view not found: {view_id}")
     resolved_run_dirs = [Path(item).resolve() for item in (run_dirs or []) if str(item).strip()]
     if not resolved_run_dirs and workspace_id.strip():
         draft, _path = load_workspace_draft_by_id(workspace_id, repo_root=repo_root)
-        resolved_run_dirs = [Path(item.run_dir).resolve() for item in draft.linked_runs if item.run_kind in {"scenario", "bundle"}][:4]
+        resolved_run_dirs = [
+            Path(item.run_dir).resolve()
+            for item in draft.linked_runs
+            if item.run_kind in {"scenario", "bundle"}
+        ][:4]
     if not resolved_run_dirs:
         latest = latest_runs(scan_artifacts(repo_root / "artifacts"), limit=4, has_output=True)
         resolved_run_dirs = [item.run_dir.resolve() for item in latest]
-    variables = [str(item).strip().upper() for item in selected.get("variables", []) if str(item).strip()]
+    variables = [
+        str(item).strip().upper() for item in selected.get("variables", []) if str(item).strip()
+    ]
     run_payloads: list[dict[str, object]] = []
     for run_dir in resolved_run_dirs:
         fmout = run_dir / "fmout.txt"
@@ -771,13 +783,11 @@ def build_visualization_view(
                 "changes": list(item.changes),
                 "pct_changes": list(item.pct_changes),
             }
-        run_payloads.append(
-            {
-                "run_dir": str(run_dir),
-                "label": run_dir.name,
-                "variables": series_payload,
-            }
-        )
+        run_payloads.append({
+            "run_dir": str(run_dir),
+            "label": run_dir.name,
+            "variables": series_payload,
+        })
     return {
         "view_id": selected["view_id"],
         "label": selected["label"],
@@ -800,7 +810,10 @@ def _retitle_workspace(
     if not workspace_slug.strip() and not label.strip():
         return draft
     slug = workspace_slug.strip() or draft.slug
-    updates: dict[str, object] = {"slug": slug, "workspace_id": workspace_id_for(family=draft.family, slug=slug)}
+    updates: dict[str, object] = {
+        "slug": slug,
+        "workspace_id": workspace_id_for(family=draft.family, slug=slug),
+    }
     if label.strip():
         updates["label"] = label.strip()
     return draft.model_copy(update=updates)
@@ -812,7 +825,8 @@ def _workspace_payload(
     workspace_path: Path,
 ) -> dict[str, object]:
     return {
-        "workspace_id": draft.workspace_id or workspace_id_for(family=draft.family, slug=draft.slug),
+        "workspace_id": draft.workspace_id
+        or workspace_id_for(family=draft.family, slug=draft.slug),
         "draft_kind": draft.draft_kind,
         "family": draft.family,
         "slug": draft.slug,
@@ -851,7 +865,9 @@ def _target_cards(draft: ScenarioDraft | BundleDraft, *, variant_id: str) -> lis
         return draft.cards
     if not isinstance(draft, BundleDraft):
         raise ValueError("variant_id is only supported for bundle workspaces")
-    variant = next((item for item in draft.variants if item.variant_id == variant_id.strip()), None)
+    variant = next(
+        (item for item in draft.variants if item.variant_id == variant_id.strip()), None
+    )
     if variant is None:
         raise ValueError(f"Variant not found: {variant_id}")
     return variant.cards
@@ -869,7 +885,9 @@ def _find_or_create_card(cards: list[CardInstance], card_id: str) -> CardInstanc
     return card
 
 
-def _resolve_compare_pair(draft: ScenarioDraft | BundleDraft, *, run_a: str, run_b: str) -> tuple[Path, Path]:
+def _resolve_compare_pair(
+    draft: ScenarioDraft | BundleDraft, *, run_a: str, run_b: str
+) -> tuple[Path, Path]:
     if run_a.strip() and run_b.strip():
         return Path(run_a).resolve(), Path(run_b).resolve()
     scenario_runs = [item for item in draft.linked_runs if item.run_kind in {"scenario", "bundle"}]

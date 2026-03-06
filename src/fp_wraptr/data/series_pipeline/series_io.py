@@ -74,7 +74,7 @@ def _read_csv_long(source: CsvSource) -> SeriesFrame:
     if not points:
         raise SeriesIoError(f"No valid observations found in {source.path}")
 
-    periods = sorted(points.keys(), key=lambda p: (int(p.split('.')[0]), int(p.split('.')[1])))
+    periods = sorted(points.keys(), key=lambda p: (int(p.split(".")[0]), int(p.split(".")[1])))
     values: list[float | None] = [points[p] for p in periods]
     return SeriesFrame(periods=periods, values=values, source_periods=raw_periods)
 
@@ -118,7 +118,7 @@ def _read_csv_wide(source: CsvSource) -> SeriesFrame:
 
     if not points:
         raise SeriesIoError(f"No valid observations found in {source.path}")
-    periods = sorted(points.keys(), key=lambda p: (int(p.split('.')[0]), int(p.split('.')[1])))
+    periods = sorted(points.keys(), key=lambda p: (int(p.split(".")[0]), int(p.split(".")[1])))
     values: list[float | None] = [points[p] for p in periods]
     return SeriesFrame(periods=periods, values=values, source_periods=raw_periods)
 
@@ -153,7 +153,9 @@ def read_series_from_json(source: JsonSource) -> SeriesFrame:
     try:
         value_f = float(raw_value)  # type: ignore[arg-type]
     except Exception as exc:
-        raise SeriesIoError(f"Non-numeric JSON value at '{source.value_path}' in {source.path}") from exc
+        raise SeriesIoError(
+            f"Non-numeric JSON value at '{source.value_path}' in {source.path}"
+        ) from exc
 
     period = "0.0"
     if source.period_path:

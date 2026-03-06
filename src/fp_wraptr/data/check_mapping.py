@@ -144,9 +144,13 @@ def check_mapping_against_fmdata(
     if periods <= 0:
         raise MappingCheckError("--periods must be > 0")
 
-    enabled_sources = [str(item).strip().lower() for item in (sources or ["fred"]) if str(item).strip()]
+    enabled_sources = [
+        str(item).strip().lower() for item in (sources or ["fred"]) if str(item).strip()
+    ]
     enabled_sources = list(dict.fromkeys(enabled_sources)) or ["fred"]
-    unknown_sources = sorted({name for name in enabled_sources if name not in {"fred", "bea", "bls"}})
+    unknown_sources = sorted({
+        name for name in enabled_sources if name not in {"fred", "bea", "bls"}
+    })
     if unknown_sources:
         raise MappingCheckError(f"Unsupported source(s): {', '.join(unknown_sources)}")
 
@@ -184,7 +188,11 @@ def check_mapping_against_fmdata(
 
         source = str(entry.source).strip().lower()
         if source not in enabled_sources:
-            skipped.append({"variable": var_name, "reason": "source_not_selected", "source": source})
+            skipped.append({
+                "variable": var_name,
+                "reason": "source_not_selected",
+                "source": source,
+            })
             continue
 
         frequency = str(entry.frequency).strip().upper()
@@ -200,7 +208,11 @@ def check_mapping_against_fmdata(
         if source == "fred":
             series_id = str(entry.series_id or entry.fred_fallback).strip()
             if not series_id:
-                skipped.append({"variable": var_name, "reason": "missing_series_id", "source": source})
+                skipped.append({
+                    "variable": var_name,
+                    "reason": "missing_series_id",
+                    "source": source,
+                })
                 continue
             selected_fred[var_name] = (entry, series_id)
             continue
@@ -208,7 +220,11 @@ def check_mapping_against_fmdata(
         if source == "bls":
             series_id = str(entry.series_id).strip()
             if not series_id:
-                skipped.append({"variable": var_name, "reason": "missing_series_id", "source": source})
+                skipped.append({
+                    "variable": var_name,
+                    "reason": "missing_series_id",
+                    "source": source,
+                })
                 continue
             selected_bls[var_name] = (entry, series_id)
             continue
@@ -217,7 +233,11 @@ def check_mapping_against_fmdata(
             table = str(entry.bea_table).strip()
             line = int(getattr(entry, "bea_line", 0) or 0)
             if not table or line <= 0:
-                skipped.append({"variable": var_name, "reason": "missing_bea_locator", "source": source})
+                skipped.append({
+                    "variable": var_name,
+                    "reason": "missing_bea_locator",
+                    "source": source,
+                })
                 continue
             if not _is_bea_nipa_table(table):
                 skipped.append({
@@ -230,7 +250,11 @@ def check_mapping_against_fmdata(
             selected_bea[var_name] = (entry, table, line)
             continue
 
-    selected_variables = sorted({*selected_fred.keys(), *selected_bls.keys(), *selected_bea.keys()})
+    selected_variables = sorted({
+        *selected_fred.keys(),
+        *selected_bls.keys(),
+        *selected_bea.keys(),
+    })
     if not selected_variables:
         raise MappingCheckError(
             "No variables selected with eligible mappings "
@@ -276,9 +300,7 @@ def check_mapping_against_fmdata(
 
     raw_observations = pd.concat(raw_frames, axis=1).sort_index() if raw_frames else pd.DataFrame()
     available_variables = {
-        str(column).strip().upper()
-        for column in raw_observations.columns
-        if str(column).strip()
+        str(column).strip().upper() for column in raw_observations.columns if str(column).strip()
     }
     selected_without_observations = [
         variable for variable in selected_variables if variable not in available_variables

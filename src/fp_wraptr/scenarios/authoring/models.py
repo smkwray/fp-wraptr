@@ -189,7 +189,9 @@ class WorkspaceOperation(BaseModel):
 
     operation: str
     summary: str = ""
-    timestamp: str = Field(default_factory=lambda: datetime.now().astimezone().isoformat(timespec="seconds"))
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now().astimezone().isoformat(timespec="seconds")
+    )
     details: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -199,7 +201,9 @@ class WorkspaceRunLink(BaseModel):
     run_kind: Literal["scenario", "bundle", "comparison", "visualization"] = "scenario"
     label: str
     run_dir: str
-    timestamp: str = Field(default_factory=lambda: datetime.now().astimezone().isoformat(timespec="seconds"))
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now().astimezone().isoformat(timespec="seconds")
+    )
     details: dict[str, Any] = Field(default_factory=dict)
 
 

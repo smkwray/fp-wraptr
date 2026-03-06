@@ -79,7 +79,9 @@ class RunArtifact:
             return None
 
         add_derived_series(series)
-        start = str(getattr(config, "forecast_start", "") or "").strip() if config is not None else ""
+        start = (
+            str(getattr(config, "forecast_start", "") or "").strip() if config is not None else ""
+        )
         end = str(getattr(config, "forecast_end", "") or "").strip() if config is not None else ""
         model_title = str(getattr(config, "name", "") or "").strip() if config is not None else ""
         if not model_title:
@@ -219,7 +221,9 @@ def _derive_change_series(
     return changes, pct_changes
 
 
-def _slice_bounds(period_tokens: list[str], *, start: str | None, end: str | None) -> tuple[int, int]:
+def _slice_bounds(
+    period_tokens: list[str], *, start: str | None, end: str | None
+) -> tuple[int, int]:
     """Return inclusive slice bounds (start_idx, end_idx) for YYYY.Q tokens."""
     if not period_tokens:
         return 0, -1
@@ -314,7 +318,9 @@ def parse_run_timestamp(value: str) -> dt.datetime | None:
         return None
 
 
-def latest_runs(runs: list[RunArtifact], *, limit: int = 3, has_output: bool = False) -> list[RunArtifact]:
+def latest_runs(
+    runs: list[RunArtifact], *, limit: int = 3, has_output: bool = False
+) -> list[RunArtifact]:
     """Pick latest N runs, optionally constrained to runs with output."""
     selected = [run for run in runs if (run.has_output if has_output else True)]
     selected.sort(key=_artifact_sort_key, reverse=True)
@@ -383,7 +389,9 @@ def _scenario_overlay_aliases(run: object) -> list[str]:
     for value in (config_name, scenario_name):
         _append_alias(value)
         folded = str(value or "").strip().casefold()
-        if folded in {"baseline", "baseline_smoke", "stock_fm_baseline"} or folded.endswith("_baseline"):
+        if folded in {"baseline", "baseline_smoke", "stock_fm_baseline"} or folded.endswith(
+            "_baseline"
+        ):
             _append_alias("baseline")
     if not aliases:
         aliases.append("scenario")

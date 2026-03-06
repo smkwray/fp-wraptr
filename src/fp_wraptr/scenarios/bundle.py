@@ -142,7 +142,9 @@ class BundleConfig(BaseModel):
         for variant in self.variants:
             config_data = copy.deepcopy(self.base)
             _apply_patch(config_data, variant.patch)
-            config_data["name"] = str(variant.scenario_name or f"{base_config.name}_{variant.name}")
+            config_data["name"] = str(
+                variant.scenario_name or f"{base_config.name}_{variant.name}"
+            )
             configs.append(ScenarioConfig(**config_data))
 
         # Grid variants (cartesian product)

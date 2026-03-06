@@ -105,7 +105,9 @@ def list_workspaces(repo_root: Path | str) -> list[WorkspaceInfo]:
                     draft_path=draft_path,
                 )
             )
-    return sorted(found, key=lambda item: (item.family.lower(), item.slug.lower(), item.draft_kind))
+    return sorted(
+        found, key=lambda item: (item.family.lower(), item.slug.lower(), item.draft_kind)
+    )
 
 
 def load_workspace_draft(path: Path | str) -> ScenarioDraft | BundleDraft:
@@ -124,8 +126,10 @@ def save_workspace_draft(
     workspace: Path | str | None = None,
 ) -> Path:
     draft = _ensure_workspace_identity(draft)
-    target = Path(workspace).resolve() if workspace is not None else workspace_dir(
-        repo_root, family=draft.family, slug=draft.slug
+    target = (
+        Path(workspace).resolve()
+        if workspace is not None
+        else workspace_dir(repo_root, family=draft.family, slug=draft.slug)
     )
     paths = workspace_paths(target)
     paths["root"].mkdir(parents=True, exist_ok=True)
@@ -152,7 +156,9 @@ def resolve_catalog_entry(
     if entry is None:
         raise ValueError(f"Catalog entry not found: {source.value}")
     if entry.kind != expected_kind:
-        raise ValueError(f"Catalog entry {source.value!r} is {entry.kind}, expected {expected_kind}")
+        raise ValueError(
+            f"Catalog entry {source.value!r} is {entry.kind}, expected {expected_kind}"
+        )
     return entry
 
 

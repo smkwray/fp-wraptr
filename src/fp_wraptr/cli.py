@@ -445,7 +445,9 @@ def workspace_show(
 @workspace_app.command("cards")
 def workspace_cards(
     workspace_id: Annotated[str, typer.Argument(help="Workspace id")],
-    variant_id: Annotated[str, typer.Option("--variant-id", help="Optional bundle variant id")] = "",
+    variant_id: Annotated[
+        str, typer.Option("--variant-id", help="Optional bundle variant id")
+    ] = "",
 ) -> None:
     """List current workspace cards/defaults."""
     from fp_wraptr.scenarios.authoring import list_workspace_cards
@@ -467,7 +469,9 @@ def workspace_set_meta(
     workspace_id: Annotated[str, typer.Argument(help="Workspace id")],
     label: Annotated[str, typer.Option("--label", help="Workspace label")] = "",
     description: Annotated[str, typer.Option("--description", help="Workspace description")] = "",
-    forecast_start: Annotated[str, typer.Option("--forecast-start", help="Forecast start period")] = "",
+    forecast_start: Annotated[
+        str, typer.Option("--forecast-start", help="Forecast start period")
+    ] = "",
     forecast_end: Annotated[str, typer.Option("--forecast-end", help="Forecast end period")] = "",
     backend: Annotated[str, typer.Option("--backend", help="Execution backend")] = "",
     track_variables: Annotated[
@@ -487,7 +491,9 @@ def workspace_set_meta(
             forecast_start=forecast_start,
             forecast_end=forecast_end,
             backend=backend,
-            track_variables=[token.strip() for token in track_variables.split(",") if token.strip()]
+            track_variables=[
+                token.strip() for token in track_variables.split(",") if token.strip()
+            ]
             if track_variables.strip()
             else None,
         )
@@ -641,7 +647,9 @@ def workspace_update_variant(
     label: Annotated[str, typer.Option("--label", help="Variant label")] = "",
     scenario_name: Annotated[
         str,
-        typer.Option("--scenario-name", help="Optional exact scenario/run name for the variant output"),
+        typer.Option(
+            "--scenario-name", help="Optional exact scenario/run name for the variant output"
+        ),
     ] = "",
     input_file: Annotated[str, typer.Option("--input-file", help="Override input file")] = "",
     enabled: Annotated[
@@ -672,27 +680,37 @@ def workspace_update_variant(
 def workspace_clone_variant(
     workspace_id: Annotated[str, typer.Argument(help="Workspace id")],
     variant_id: Annotated[str, typer.Argument(help="New variant id")],
-    clone_from: Annotated[str, typer.Option("--clone-from", help="Existing variant id to clone from")],
+    clone_from: Annotated[
+        str, typer.Option("--clone-from", help="Existing variant id to clone from")
+    ],
     label: Annotated[str, typer.Option("--label", help="Variant label")] = "",
     scenario_name: Annotated[
         str,
-        typer.Option("--scenario-name", help="Optional exact scenario/run name for the variant output"),
+        typer.Option(
+            "--scenario-name", help="Optional exact scenario/run name for the variant output"
+        ),
     ] = "",
     input_file: Annotated[str, typer.Option("--input-file", help="Override input file")] = "",
     enabled: Annotated[
         bool | None,
         typer.Option("--enabled/--disabled", help="Explicit enabled state"),
     ] = None,
-    card_id: Annotated[str, typer.Option("--card-id", help="Optional card id to seed on the new variant")] = "",
+    card_id: Annotated[
+        str, typer.Option("--card-id", help="Optional card id to seed on the new variant")
+    ] = "",
     constants: Annotated[
         str,
-        typer.Option("--constants", help="Optional JSON object of constant updates for the seeded card"),
+        typer.Option(
+            "--constants", help="Optional JSON object of constant updates for the seeded card"
+        ),
     ] = "{}",
     selected_target: Annotated[
         str,
         typer.Option("--selected-target", help="Optional explicit target for the seeded card"),
     ] = "",
-    input_mode: Annotated[str, typer.Option("--input-mode", help="Optional input mode hint for the seeded card")] = "",
+    input_mode: Annotated[
+        str, typer.Option("--input-mode", help="Optional input mode hint for the seeded card")
+    ] = "",
 ) -> None:
     """Clone a bundle variant, update its metadata, and optionally seed one card patch."""
     from fp_wraptr.scenarios.authoring import clone_bundle_variant_recipe
@@ -2036,7 +2054,9 @@ def run(
         effective_gate_end = gate_pabev_end
         if effective_gate_end is None and parity_quick:
             effective_gate_end = str(config.forecast_start)
-        gate = GateConfig(pabev_end=effective_gate_end, drift=DriftConfig(enabled=bool(with_drift)))
+        gate = GateConfig(
+            pabev_end=effective_gate_end, drift=DriftConfig(enabled=bool(with_drift))
+        )
         console.print(f"[bold]Running parity (fp.exe vs fp-py):[/bold] {config.name}")
         parity = run_parity(
             config,
@@ -2656,7 +2676,9 @@ def data_update_fred(
 
     effective_model_dir = Path(model_dir)
     if from_official_bundle:
-        bundle_out_dir = Path(base_dir) if base_dir is not None else (Path(out_dir) / "_official_base")
+        bundle_out_dir = (
+            Path(base_dir) if base_dir is not None else (Path(out_dir) / "_official_base")
+        )
         try:
             bundle_payload = fetch_and_unpack_fair_bundle(
                 out_dir=bundle_out_dir,
@@ -2668,10 +2690,14 @@ def data_update_fred(
             raise typer.Exit(code=1) from None
         model_dir_token = str(bundle_payload.get("model_dir", "")).strip()
         if not model_dir_token:
-            console.print("[red]Data update failed:[/red] Official bundle fetch returned no model_dir.")
+            console.print(
+                "[red]Data update failed:[/red] Official bundle fetch returned no model_dir."
+            )
             raise typer.Exit(code=1)
         effective_model_dir = Path(model_dir_token)
-        console.print(f"[blue]Info:[/blue] using official bundle base model_dir={effective_model_dir}")
+        console.print(
+            f"[blue]Info:[/blue] using official bundle base model_dir={effective_model_dir}"
+        )
 
     selected_end = str(end).strip() if isinstance(end, str) and str(end).strip() else None
     if selected_end is None:
@@ -2971,7 +2997,9 @@ def data_check_fred_mapping(
     ]
 
     if normalized_format == "json":
-        console.print_json(json.dumps({"rows": rows, "skipped": sorted(set(skipped_names))}, indent=2))
+        console.print_json(
+            json.dumps({"rows": rows, "skipped": sorted(set(skipped_names))}, indent=2)
+        )
         return
 
     table = Table(title=f"FRED Mapping Check (last {periods} quarters)")
@@ -3044,7 +3072,9 @@ def data_check_mapping(
     ] = "table",
 ) -> None:
     """Compare fmdata history against normalized source mappings for fred/bea/bls."""
-    enabled_sources = [str(item).strip().lower() for item in (sources or ["fred"]) if str(item).strip()]
+    enabled_sources = [
+        str(item).strip().lower() for item in (sources or ["fred"]) if str(item).strip()
+    ]
     enabled_sources = list(dict.fromkeys(enabled_sources)) or ["fred"]
     if "fred" in enabled_sources and importlib.util.find_spec("fredapi") is None:
         console.print("[red]fredapi is required when --sources includes fred.[/red]")
@@ -3161,7 +3191,9 @@ def data_run_pipeline(
         raise typer.Exit(code=1)
 
     if report is None and not dry_run:
-        out_dir = Path("artifacts") / "model_updates" / f"{date.today().isoformat()}_{pipeline.stem}"
+        out_dir = (
+            Path("artifacts") / "model_updates" / f"{date.today().isoformat()}_{pipeline.stem}"
+        )
         report = out_dir / "pipeline_report.json"
 
     try:

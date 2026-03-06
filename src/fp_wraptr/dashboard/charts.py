@@ -163,8 +163,12 @@ def comparison_figure(
         scen = scenario.variables[var_name]
         baseline_has_periods = bool(baseline.periods)
         scenario_has_periods = bool(scenario.periods)
-        baseline_periods = baseline.periods if baseline_has_periods else list(range(len(base.levels)))
-        scenario_periods = scenario.periods if scenario_has_periods else list(range(len(scen.levels)))
+        baseline_periods = (
+            baseline.periods if baseline_has_periods else list(range(len(base.levels)))
+        )
+        scenario_periods = (
+            scenario.periods if scenario_has_periods else list(range(len(scen.levels)))
+        )
         point_count = min(
             len(base.levels),
             len(scen.levels),
@@ -173,8 +177,14 @@ def comparison_figure(
         )
         if point_count <= 0:
             continue
-        x_tokens = baseline_periods[:point_count] if baseline_periods else scenario_periods[:point_count]
-        x_values = [format_period_label(tok) for tok in x_tokens] if baseline_has_periods else list(x_tokens)
+        x_tokens = (
+            baseline_periods[:point_count] if baseline_periods else scenario_periods[:point_count]
+        )
+        x_values = (
+            [format_period_label(tok) for tok in x_tokens]
+            if baseline_has_periods
+            else list(x_tokens)
+        )
 
         fig.add_trace(
             go.Scatter(
@@ -322,7 +332,10 @@ def multi_run_forecast_figure(
     )
 
     stable_labels = sorted({label for label, _ in cleaned_runs})
-    color_map = {label: FP_COLOR_PALETTE[idx % len(FP_COLOR_PALETTE)] for idx, label in enumerate(stable_labels)}
+    color_map = {
+        label: FP_COLOR_PALETTE[idx % len(FP_COLOR_PALETTE)]
+        for idx, label in enumerate(stable_labels)
+    }
 
     for row_idx, var_name in enumerate(variables, start=1):
         for run_label, data in cleaned_runs:

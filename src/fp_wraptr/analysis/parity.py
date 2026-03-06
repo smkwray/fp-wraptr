@@ -393,9 +393,7 @@ def run_parity(
     )
     fppy_eq_iter_trace_targets_raw = fppy_settings.get("eq_iter_trace_targets")
     fppy_eq_iter_trace_targets = (
-        str(fppy_eq_iter_trace_targets_raw)
-        if fppy_eq_iter_trace_targets_raw is not None
-        else None
+        str(fppy_eq_iter_trace_targets_raw) if fppy_eq_iter_trace_targets_raw is not None else None
     )
     fppy_eq_iter_trace_max_events_raw = fppy_settings.get("eq_iter_trace_max_events")
     fppy_eq_iter_trace_max_events = (
@@ -439,9 +437,12 @@ def run_parity(
         fpexe_solution_errors: list[dict[str, Any]] = []
         try:
             rr_a = fpexe.run(input_file=work_fpexe / config_run.input_file, work_dir=work_fpexe)
-            if int(rr_a.return_code) != 0 and not _resolve_parity_output_path(
-                work_fpexe, expected_outputs=expected_outputs
-            ).exists():
+            if (
+                int(rr_a.return_code) != 0
+                and not _resolve_parity_output_path(
+                    work_fpexe, expected_outputs=expected_outputs
+                ).exists()
+            ):
                 # Single retry for intermittent fp.exe failures that return
                 # non-zero and fail to emit parity output.
                 fpexe_retry["attempted"] = True
@@ -453,7 +454,9 @@ def run_parity(
                 fpexe_retry["second_return_code"] = int(rr_retry.return_code)
                 rr_a = rr_retry
             fpexe_details: dict[str, Any] = {}
-            fpexe_output = _resolve_parity_output_path(work_fpexe, expected_outputs=expected_outputs)
+            fpexe_output = _resolve_parity_output_path(
+                work_fpexe, expected_outputs=expected_outputs
+            )
             fpexe_details["parity_output_file"] = fpexe_output.name
             fpexe_details["preflight_report"] = fpexe_preflight_report
             solution_errors = _scan_fpexe_solution_errors(work_fpexe)
@@ -477,7 +480,9 @@ def run_parity(
             }
         except Exception as exc:  # pragma: no cover (integration failure path)
             fpexe_details = dict(getattr(exc, "details", {}) or {})
-            fpexe_details.setdefault("parity_output_file", _parity_output_candidates(work_fpexe)[0].name)
+            fpexe_details.setdefault(
+                "parity_output_file", _parity_output_candidates(work_fpexe)[0].name
+            )
             fpexe_details.setdefault("preflight_report", fpexe_preflight_report)
             return {
                 "summary": EngineRunSummary(
@@ -663,9 +668,13 @@ def run_parity(
     if not left.exists() or not right.exists():
         missing = []
         if not left.exists():
-            missing.extend(str(path) for path in _parity_output_candidates(work_fpexe) if not path.exists())
+            missing.extend(
+                str(path) for path in _parity_output_candidates(work_fpexe) if not path.exists()
+            )
         if not right.exists():
-            missing.extend(str(path) for path in _parity_output_candidates(work_fppy) if not path.exists())
+            missing.extend(
+                str(path) for path in _parity_output_candidates(work_fppy) if not path.exists()
+            )
         result = ParityResult(
             status="missing_output",
             run_dir=str(run_dir),

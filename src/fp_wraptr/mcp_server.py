@@ -94,7 +94,9 @@ class _MissingFastMCP:
 
         return _decorator
 
-    def prompt(self, *_args: Any, **_kwargs: Any) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def prompt(
+        self, *_args: Any, **_kwargs: Any
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         def _decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             return func
 
@@ -186,7 +188,11 @@ def get_project_info() -> str:
             "mascots": [
                 {"name": "Rex", "animal": "Velociraptor", "represents": "fp.exe (FORTRAN solver)"},
                 {"name": "Raptr", "animal": "Eagle", "represents": "fp-wraptr (Python wrapper)"},
-                {"name": "Archie", "animal": "Archaeopteryx", "represents": "fppy (pure-Python solver)"},
+                {
+                    "name": "Archie",
+                    "animal": "Archaeopteryx",
+                    "represents": "fppy (pure-Python solver)",
+                },
             ],
             "backends": ["fpexe", "fppy"],
             "tool_count": 41,
@@ -389,7 +395,9 @@ def update_workspace_metadata(
         forecast_start=forecast_start,
         forecast_end=forecast_end,
         backend=backend,
-        track_variables=[item.strip() for item in track_variables.replace(",", " ").split() if item.strip()]
+        track_variables=[
+            item.strip() for item in track_variables.replace(",", " ").split() if item.strip()
+        ]
         if track_variables.strip()
         else None,
     )
@@ -401,7 +409,9 @@ def list_workspace_cards(workspace_id: str, variant_id: str = "") -> str:
     """List available cards and current values/defaults for a workspace."""
     from fp_wraptr.scenarios.authoring import list_workspace_cards as _list_workspace_cards
 
-    payload = _list_workspace_cards(repo_root=_repo_root(), workspace_id=workspace_id, variant_id=variant_id)
+    payload = _list_workspace_cards(
+        repo_root=_repo_root(), workspace_id=workspace_id, variant_id=variant_id
+    )
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
@@ -586,7 +596,9 @@ def run_workspace(workspace_id: str, output_dir: str = "artifacts/agent_runs") -
     """Compile and run a managed workspace."""
     from fp_wraptr.scenarios.authoring import run_workspace as _run_workspace
 
-    payload = _run_workspace(repo_root=_repo_root(), workspace_id=workspace_id, output_dir=output_dir)
+    payload = _run_workspace(
+        repo_root=_repo_root(), workspace_id=workspace_id, output_dir=output_dir
+    )
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
@@ -615,7 +627,9 @@ def list_visualizations(workspace_id: str = "", pack_id: str = "") -> str:
     """List saved/default visualization views for a workspace or pack."""
     from fp_wraptr.scenarios.authoring import list_visualizations as _list_visualizations
 
-    payload = _list_visualizations(repo_root=_repo_root(), workspace_id=workspace_id, pack_id=pack_id)
+    payload = _list_visualizations(
+        repo_root=_repo_root(), workspace_id=workspace_id, pack_id=pack_id
+    )
     return json.dumps({"visualizations": payload}, indent=2, sort_keys=True)
 
 
@@ -1588,7 +1602,9 @@ def get_parity_report(run_dir: str = "", artifacts_dir: str = "artifacts") -> st
     if run_dir.strip():
         report_path = Path(run_dir.strip()) / "parity_report.json"
         if not report_path.exists():
-            return _error_payload("parity_report.json not found in run directory", str(report_path))
+            return _error_payload(
+                "parity_report.json not found in run directory", str(report_path)
+            )
         return report_path.read_text(encoding="utf-8")
 
     from fp_wraptr.dashboard.artifacts import scan_artifacts

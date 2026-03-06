@@ -34,7 +34,7 @@ def page_favicon() -> object:
             return Image.open(path)
         except Exception:
             pass
-    return "\U0001F4CA"
+    return "\U0001f4ca"
 
 
 def logo_html(name: str, width: int, alt: str = "") -> str:
@@ -272,7 +272,11 @@ def discover_artifacts_roots(
                 candidates[str(child.resolve())] = child.resolve()
     if include is not None:
         extra = Path(include).expanduser()
-        resolved_extra = extra.resolve() if extra.exists() else resolve_artifacts_dir_token(extra, repo_root=root)
+        resolved_extra = (
+            extra.resolve()
+            if extra.exists()
+            else resolve_artifacts_dir_token(extra, repo_root=root)
+        )
         candidates[str(resolved_extra)] = resolved_extra
     return tuple(
         sorted(
@@ -297,9 +301,7 @@ def render_artifacts_dir_picker(
     label_to_path = {label: path for label, path in zip(known_labels, discovered, strict=True)}
 
     default_known = artifacts_dir_display(current_path, repo_root=root)
-    default_option = (
-        default_known if default_known in label_to_path else _CUSTOM_ARTIFACTS_LABEL
-    )
+    default_option = default_known if default_known in label_to_path else _CUSTOM_ARTIFACTS_LABEL
 
     selected = st.sidebar.selectbox(
         "Known artifacts roots",

@@ -154,9 +154,7 @@ def _parse_card_spec(path: Path, raw: Any) -> ScenarioCardSpec:
         raise ValueError(f"Card spec {path} is missing required field 'capability'")
 
     required_includes = tuple(
-        token.lower()
-        for token in _coerce_symbol_list(raw.get("required_includes"))
-        if token
+        token.lower() for token in _coerce_symbol_list(raw.get("required_includes")) if token
     )
     sections = _parse_sections(raw.get("sections"))
     symbols = _coerce_symbol_list(raw.get("symbols") or raw.get("constants"))
@@ -261,7 +259,10 @@ def render_scenario_cards(
                 st.markdown(f"**{card.label}**")
                 if card.description:
                     st.caption(card.description)
-                if card.capability == "deck_table" and (card.source_file or "").lower() == "ptcoef.txt":
+                if (
+                    card.capability == "deck_table"
+                    and (card.source_file or "").lower() == "ptcoef.txt"
+                ):
                     _render_ptcoef_card(config, preflight)
                 elif card.capability == "create_constants":
                     _render_create_constants_card(config, card)
@@ -402,12 +403,18 @@ def _render_create_constants_card(config: ScenarioConfig, card: ScenarioCardSpec
     st.write(f"Current source: `{source_path}` ({source_kind})")
     st.write(f"Overlay target: `{target_path}`")
     if source_kind != "overlay":
-        st.warning(f"Saving will create or replace `{target_path.name}` inside `input_overlay_dir`.")
+        st.warning(
+            f"Saving will create or replace `{target_path.name}` inside `input_overlay_dir`."
+        )
 
     updates: dict[str, float] = {}
     changed_lines: list[str] = []
 
-    sections = card.sections if card.sections else (ScenarioCardSection(title="Constants", symbols=symbols),)
+    sections = (
+        card.sections
+        if card.sections
+        else (ScenarioCardSection(title="Constants", symbols=symbols),)
+    )
     for section in sections:
         st.markdown(f"**{section.title}**")
         for symbol in section.symbols:
@@ -539,7 +546,9 @@ def _render_series_constant_card(config: ScenarioConfig, card: ScenarioCardSpec)
 
     st.write(f"Current source: `{source_path}` ({source_kind})")
     st.write(f"Overlay target: `{target_path}`")
-    st.caption(f"Variable: `{snapshot.variable}`  Method: `{method}`  SMPL: `{smpl_start}` -> `{smpl_end}`")
+    st.caption(
+        f"Variable: `{snapshot.variable}`  Method: `{method}`  SMPL: `{smpl_start}` -> `{smpl_end}`"
+    )
 
     new_value = st.number_input(
         f"{snapshot.variable} value",
@@ -549,7 +558,9 @@ def _render_series_constant_card(config: ScenarioConfig, card: ScenarioCardSpec)
     )
 
     if float(new_value) != float(snapshot.value):
-        st.write(f"Pending change: `{snapshot.variable}`: {snapshot.value:.10g} -> {new_value:.10g}")
+        st.write(
+            f"Pending change: `{snapshot.variable}`: {snapshot.value:.10g} -> {new_value:.10g}"
+        )
     else:
         st.caption("No series edits yet.")
 

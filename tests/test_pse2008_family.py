@@ -19,7 +19,11 @@ def test_pse2008_bundle_resolves_base_low_high_variants() -> None:
 
     resolved = bundle.resolve_variants()
     assert [config.name for config in resolved] == ["pse2008_base", "pse2008_low", "pse2008_high"]
-    assert [config.input_file for config in resolved] == ["psebase.txt", "pselow.txt", "psehigh.txt"]
+    assert [config.input_file for config in resolved] == [
+        "psebase.txt",
+        "pselow.txt",
+        "psehigh.txt",
+    ]
 
 
 def test_pse2008_examples_load_with_historical_forecast_window() -> None:
@@ -29,7 +33,13 @@ def test_pse2008_examples_load_with_historical_forecast_window() -> None:
     low = ScenarioConfig.from_yaml(repo_root / "examples" / "pse2008_low.yaml")
     high = ScenarioConfig.from_yaml(repo_root / "examples" / "pse2008_high.yaml")
 
-    assert [cfg.name for cfg in (base, low, high)] == ["pse2008_base", "pse2008_low", "pse2008_high"]
+    assert [cfg.name for cfg in (base, low, high)] == [
+        "pse2008_base",
+        "pse2008_low",
+        "pse2008_high",
+    ]
     assert {cfg.forecast_start for cfg in (base, low, high)} == {"2008.4"}
     assert {cfg.forecast_end for cfg in (base, low, high)} == {"2012.4"}
-    assert {cfg.input_overlay_dir for cfg in (base, low, high)} == {Path("../projects_local/pse2008")}
+    assert {cfg.input_overlay_dir for cfg in (base, low, high)} == {
+        Path("../projects_local/pse2008")
+    }

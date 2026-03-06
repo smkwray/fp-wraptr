@@ -37,7 +37,9 @@ def test_load_mini_dash_presets_seeds_defaults(tmp_path: Path) -> None:
     presets, warning = load_mini_dash_presets(artifacts_dir)
 
     assert warning is None
-    assert [item["name"] for item in presets] == [item["name"] for item in default_mini_dash_presets()]
+    assert [item["name"] for item in presets] == [
+        item["name"] for item in default_mini_dash_presets()
+    ]
 
     payload = json.loads(mini_dash_presets_path(artifacts_dir).read_text(encoding="utf-8"))
     assert payload["version"] == 1
@@ -70,7 +72,9 @@ def test_mini_dash_presets_crud_roundtrip(tmp_path: Path) -> None:
     assert edited[-1] == {"name": "Custom Growth", "variables": ["GDPR", "RS"]}
 
     pruned = delete_mini_dash_preset(edited, name="Custom Growth")
-    assert [item["name"] for item in pruned] == [item["name"] for item in default_mini_dash_presets()]
+    assert [item["name"] for item in pruned] == [
+        item["name"] for item in default_mini_dash_presets()
+    ]
 
     save_mini_dash_presets(artifacts_dir, pruned)
     reloaded, warning = load_mini_dash_presets(artifacts_dir)
@@ -254,7 +258,9 @@ def test_load_mini_dash_presets_recovers_corrupt_json(tmp_path: Path) -> None:
 
     assert warning is not None
     assert "reset to defaults" in warning
-    assert [item["name"] for item in presets] == [item["name"] for item in default_mini_dash_presets()]
+    assert [item["name"] for item in presets] == [
+        item["name"] for item in default_mini_dash_presets()
+    ]
 
 
 def test_apply_mini_chart_layout_and_hover_style() -> None:
@@ -291,7 +297,9 @@ def test_build_plotly_export_config() -> None:
         (6, (2, 3)),
     ],
 )
-def test_build_multi_panel_png_outputs_png(var_count: int, expected_shape: tuple[int, int]) -> None:
+def test_build_multi_panel_png_outputs_png(
+    var_count: int, expected_shape: tuple[int, int]
+) -> None:
     assert panel_grid_shape(var_count) == expected_shape
     periods = [f"2025.{quarter}" for quarter in (1, 2, 3, 4)]
     variables = ["GDP", "GDPR", "PCPF", "PIEF", "SG", "RS"][:var_count]
@@ -299,7 +307,10 @@ def test_build_multi_panel_png_outputs_png(var_count: int, expected_shape: tuple
     run_a = PanelExportRun(
         legend_label="baseline [fpexe]",
         periods=periods,
-        series={name: [float(idx + jdx + 1) for idx in range(len(periods))] for jdx, name in enumerate(variables)},
+        series={
+            name: [float(idx + jdx + 1) for idx in range(len(periods))]
+            for jdx, name in enumerate(variables)
+        },
     )
     run_b = PanelExportRun(
         legend_label="baseline [fppy]",

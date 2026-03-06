@@ -46,7 +46,11 @@ def add_derived_series(series: dict[str, list[float]]) -> dict[str, list[float]]
         wr: list[float] = []
         for idx in range(n):
             denom = pf[idx]
-            if not isinstance(denom, (int, float)) or not math.isfinite(float(denom)) or denom == 0:
+            if (
+                not isinstance(denom, (int, float))
+                or not math.isfinite(float(denom))
+                or denom == 0
+            ):
                 wr.append(math.nan)
                 continue
             wr.append(float(wf[idx]) / float(denom))

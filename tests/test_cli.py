@@ -202,25 +202,23 @@ def _write_local_pack_manifest(repo_root: Path) -> None:
     target = repo_root / "projects_local" / "packs" / "pse2025" / "pack.yaml"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
-        "\n".join(
-            [
-                "pack_id: pse2025",
-                "label: PSE2025 Working Pack",
-                "family: pse2025",
-                "visibility: local",
-                "cards_family: pse2025",
-                "catalog_entry_ids: [pse-base, pse-bundle]",
-                "recipes:",
-                "  - recipe_id: change-coefficients",
-                "    label: Change coefficients",
-                "visualizations:",
-                "  - view_id: pse-main",
-                "    label: Main tracks",
-                "    chart_type: forecast_overlay",
-                "    variables: [INTGADJ, JGW]",
-                "",
-            ]
-        ),
+        "\n".join([
+            "pack_id: pse2025",
+            "label: PSE2025 Working Pack",
+            "family: pse2025",
+            "visibility: local",
+            "cards_family: pse2025",
+            "catalog_entry_ids: [pse-base, pse-bundle]",
+            "recipes:",
+            "  - recipe_id: change-coefficients",
+            "    label: Change coefficients",
+            "visualizations:",
+            "  - view_id: pse-main",
+            "    label: Main tracks",
+            "    chart_type: forecast_overlay",
+            "    variables: [INTGADJ, JGW]",
+            "",
+        ]),
         encoding="utf-8",
     )
     catalog_path = repo_root / "projects_local" / "scenario_catalog.yaml"
@@ -1060,7 +1058,9 @@ def test_parity_command_warns_on_fpexe_solution_errors(tmp_path, monkeypatch):
                 "fpexe": EngineRunSummary(
                     name="fpexe",
                     ok=True,
-                    details={"solution_errors": [{"solve": "SOL1", "iters": None, "period": None}]},
+                    details={
+                        "solution_errors": [{"solve": "SOL1", "iters": None, "period": None}]
+                    },
                 )
             },
             pabev_detail={"hard_fail_cell_count": 0, "max_abs_diff": 0.0},
@@ -2535,7 +2535,9 @@ def test_cli_workspace_bundle_variant_and_public_catalog_filter(tmp_path, monkey
     )
     assert result.exit_code == 0
     updated_variant_payload = json.loads(result.stdout)
-    updated_variant = next(item for item in updated_variant_payload["variants"] if item["variant_id"] == "custom")
+    updated_variant = next(
+        item for item in updated_variant_payload["variants"] if item["variant_id"] == "custom"
+    )
     assert updated_variant["label"] == "Custom Variant"
     assert updated_variant["scenario_name"] == "custom_exact"
     assert updated_variant["input_file"] == "pselow.txt"
@@ -2564,7 +2566,11 @@ def test_cli_workspace_bundle_variant_and_public_catalog_filter(tmp_path, monkey
     )
     assert result.exit_code == 0
     cloned_variant_payload = json.loads(result.stdout)
-    cloned_variant = next(item for item in cloned_variant_payload["variants"] if item["variant_id"] == "recipe_variant")
+    cloned_variant = next(
+        item
+        for item in cloned_variant_payload["variants"]
+        if item["variant_id"] == "recipe_variant"
+    )
     assert cloned_variant["scenario_name"] == "recipe_variant_exact"
 
     result = runner.invoke(app, ["workspace", "visualizations", workspace_id])
@@ -2572,5 +2578,7 @@ def test_cli_workspace_bundle_variant_and_public_catalog_filter(tmp_path, monkey
     payload = json.loads(result.stdout)
     assert any(item["view_id"] == "pse-main" for item in payload["visualizations"])
 
-    catalog = importlib.import_module("fp_wraptr.scenarios.catalog").load_scenario_catalog(repo_root=repo)
+    catalog = importlib.import_module("fp_wraptr.scenarios.catalog").load_scenario_catalog(
+        repo_root=repo
+    )
     assert [entry.entry_id for entry in catalog.filtered(surface="home", public_only=True)] == []

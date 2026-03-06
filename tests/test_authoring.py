@@ -67,132 +67,122 @@ def _make_repo(root: Path) -> Path:
     )
     _write(
         root / "examples" / "pse2025_base.yaml",
-        "\n".join(
-            [
-                "name: pse2025_base",
-                "description: Base",
-                "fp_home: ../FM",
-                "input_overlay_dir: ../projects_local/pse2025",
-                "input_file: psebase.txt",
-                'forecast_start: "2025.4"',
-                'forecast_end: "2026.1"',
-                "track_variables: [INTGADJ, JGW]",
-                "",
-            ]
-        ),
+        "\n".join([
+            "name: pse2025_base",
+            "description: Base",
+            "fp_home: ../FM",
+            "input_overlay_dir: ../projects_local/pse2025",
+            "input_file: psebase.txt",
+            'forecast_start: "2025.4"',
+            'forecast_end: "2026.1"',
+            "track_variables: [INTGADJ, JGW]",
+            "",
+        ]),
     )
     _write(
         root / "bundles" / "pse2025.yaml",
-        "\n".join(
-            [
-                "base:",
-                "  name: pse2025",
-                "  description: PSE bundle",
-                "  fp_home: FM",
-                "  input_overlay_dir: projects_local/pse2025",
-                "  input_file: psebase.txt",
-                '  forecast_start: "2025.4"',
-                '  forecast_end: "2026.1"',
-                "  track_variables: [INTGADJ, JGW]",
-                "variants:",
-                "  - name: base",
-                "    patch:",
-                "      input_file: psebase.txt",
-                "  - name: low",
-                "    patch:",
-                "      input_file: pselow.txt",
-                "  - name: high",
-                "    patch:",
-                "      input_file: psehigh.txt",
-                "",
-            ]
-        ),
+        "\n".join([
+            "base:",
+            "  name: pse2025",
+            "  description: PSE bundle",
+            "  fp_home: FM",
+            "  input_overlay_dir: projects_local/pse2025",
+            "  input_file: psebase.txt",
+            '  forecast_start: "2025.4"',
+            '  forecast_end: "2026.1"',
+            "  track_variables: [INTGADJ, JGW]",
+            "variants:",
+            "  - name: base",
+            "    patch:",
+            "      input_file: psebase.txt",
+            "  - name: low",
+            "    patch:",
+            "      input_file: pselow.txt",
+            "  - name: high",
+            "    patch:",
+            "      input_file: psehigh.txt",
+            "",
+        ]),
     )
     _write(
         root / "projects_local" / "scenario_catalog.yaml",
-        "\n".join(
-            [
-                "entries:",
-                "  - id: pse-base",
-                "    label: PSE base",
-                "    kind: scenario",
-                "    family: pse2025",
-                "    path: examples/pse2025_base.yaml",
-                "    surfaces: [new_run]",
-                "    public: true",
-                "  - id: pse-bundle",
-                "    label: PSE bundle",
-                "    kind: bundle",
-                "    family: pse2025",
-                "    path: bundles/pse2025.yaml",
-                "    surfaces: [new_run]",
-                "    public: true",
-                "",
-            ]
-        ),
+        "\n".join([
+            "entries:",
+            "  - id: pse-base",
+            "    label: PSE base",
+            "    kind: scenario",
+            "    family: pse2025",
+            "    path: examples/pse2025_base.yaml",
+            "    surfaces: [new_run]",
+            "    public: true",
+            "  - id: pse-bundle",
+            "    label: PSE bundle",
+            "    kind: bundle",
+            "    family: pse2025",
+            "    path: bundles/pse2025.yaml",
+            "    surfaces: [new_run]",
+            "    public: true",
+            "",
+        ]),
     )
     _write(
         root / "projects_local" / "cards" / "pse2025" / "jg_constants.yaml",
-        "\n".join(
-            [
-                "card_id: pse2025.jg_constants",
-                "family: pse2025",
-                "kind: deck_constants",
-                "label: JG constants",
-                "files:",
-                "  - path: ptcoef.txt",
-                "    groups:",
-                "      - group_id: a",
-                "        label: Takeup",
-                "        fields:",
-                "          - symbol: JPTUR",
-                "            label: UR",
-                "          - symbol: JPTYD",
-                "            label: Y",
-                "  - path: pse_common.txt",
-                "    groups:",
-                "      - group_id: b",
-                "        label: Core",
-                "        fields:",
-                "          - symbol: JGW",
-                "            label: Wage",
-                "          - symbol: JGCOLA",
-                "            label: Cola",
-                "          - symbol: MINWAGE",
-                "            label: Min wage",
-                "",
-            ]
-        ),
+        "\n".join([
+            "card_id: pse2025.jg_constants",
+            "family: pse2025",
+            "kind: deck_constants",
+            "label: JG constants",
+            "files:",
+            "  - path: ptcoef.txt",
+            "    groups:",
+            "      - group_id: a",
+            "        label: Takeup",
+            "        fields:",
+            "          - symbol: JPTUR",
+            "            label: UR",
+            "          - symbol: JPTYD",
+            "            label: Y",
+            "  - path: pse_common.txt",
+            "    groups:",
+            "      - group_id: b",
+            "        label: Core",
+            "        fields:",
+            "          - symbol: JGW",
+            "            label: Wage",
+            "          - symbol: JGCOLA",
+            "            label: Cola",
+            "          - symbol: MINWAGE",
+            "            label: Min wage",
+            "",
+        ]),
     )
     _write(
         root / "projects_local" / "cards" / "pse2025" / "intgadj.yaml",
-        "\n".join(
-            [
-                "card_id: pse2025.intgadj",
-                "family: pse2025",
-                "kind: series_card",
-                "label: INTGADJ",
-                "variable: INTGADJ",
-                "input_modes: [csv, paste]",
-                "default_target: include_changevar",
-                "targets:",
-                "  - kind: include_changevar",
-                "    output_path: intgadj.txt",
-                "    fp_method: SAMEVALUE",
-                "    mode: series",
-                "    attach_rule:",
-                "      kind: overlay_file",
-                "      relative_path: intgadj.txt",
-                "  - kind: fmexog_override",
-                "    output_path: fmexog.txt",
-                "    fp_method: SAMEVALUE",
-                "    mode: series",
-                "    attach_rule:",
-                "      kind: overlay_file",
-                "      relative_path: fmexog.txt",
-                "",
-            ]
-        ),
+        "\n".join([
+            "card_id: pse2025.intgadj",
+            "family: pse2025",
+            "kind: series_card",
+            "label: INTGADJ",
+            "variable: INTGADJ",
+            "input_modes: [csv, paste]",
+            "default_target: include_changevar",
+            "targets:",
+            "  - kind: include_changevar",
+            "    output_path: intgadj.txt",
+            "    fp_method: SAMEVALUE",
+            "    mode: series",
+            "    attach_rule:",
+            "      kind: overlay_file",
+            "      relative_path: intgadj.txt",
+            "  - kind: fmexog_override",
+            "    output_path: fmexog.txt",
+            "    fp_method: SAMEVALUE",
+            "    mode: series",
+            "    attach_rule:",
+            "      kind: overlay_file",
+            "      relative_path: fmexog.txt",
+            "",
+        ]),
     )
     return root
 
@@ -283,12 +273,18 @@ def test_compile_bundle_workspace_emits_bundle_and_variant_outputs(tmp_path: Pat
     assert payload["base"]["name"] == draft.bundle_name
     assert len(payload["variants"]) == 4
     assert payload["variants"][-1]["scenario_name"] == "high_15h"
-    assert (result.workspace_dir / "compiled" / "variants" / "base" / "compiled" / "scenario.yaml").exists()
+    assert (
+        result.workspace_dir / "compiled" / "variants" / "base" / "compiled" / "scenario.yaml"
+    ).exists()
     custom_variant = next(item for item in draft.variants if item.variant_id == "high_15h")
     custom_compiled = result.workspace_dir / "compiled" / "variants" / "high_15h" / "compiled"
-    compiled_scenario = yaml.safe_load((custom_compiled / "scenario.yaml").read_text(encoding="utf-8"))
+    compiled_scenario = yaml.safe_load(
+        (custom_compiled / "scenario.yaml").read_text(encoding="utf-8")
+    )
     assert compiled_scenario["name"] == custom_variant.scenario_name
-    custom_overlay = result.workspace_dir / "compiled" / "variants" / "high_15h" / "overlay" / "pse_common.txt"
+    custom_overlay = (
+        result.workspace_dir / "compiled" / "variants" / "high_15h" / "overlay" / "pse_common.txt"
+    )
     custom_text = custom_overlay.read_text(encoding="utf-8")
     assert "CREATE MINWAGE=0.012;" in custom_text
     assert "CREATE JGW=0.015;" in custom_text
@@ -311,7 +307,9 @@ def test_apply_attach_rule_and_write_fmexog_override_support_series(tmp_path: Pa
     assert "generated.txt" in target.read_text(encoding="utf-8")
 
     base = tmp_path / "fmexog.txt"
-    base.write_text("SMPL 2025.4 2026.1;\nCHANGEVAR;\nUR SAMEVALUE\n4\n;\nRETURN;\n", encoding="utf-8")
+    base.write_text(
+        "SMPL 2025.4 2026.1;\nCHANGEVAR;\nUR SAMEVALUE\n4\n;\nRETURN;\n", encoding="utf-8"
+    )
     out = tmp_path / "fmexog_override.txt"
     write_fmexog_override(
         out_path=out,
@@ -334,14 +332,12 @@ def test_load_card_specs_skips_legacy_yaml_without_current_schema(tmp_path: Path
     legacy = repo / "projects_local" / "cards" / "pse2025" / "legacy.yaml"
     _write(
         legacy,
-        "\n".join(
-            [
-                "card_id: legacy.ptcoef",
-                "label: Legacy",
-                "capability: deck_table",
-                "",
-            ]
-        ),
+        "\n".join([
+            "card_id: legacy.ptcoef",
+            "label: Legacy",
+            "capability: deck_table",
+            "",
+        ]),
     )
 
     specs = load_card_specs(repo_root=repo, family="pse2025")
@@ -354,47 +350,43 @@ def test_compile_scenario_workspace_layers_multiple_fmexog_cards(tmp_path: Path)
     cards_dir = repo / "projects_local" / "cards" / "pse2025"
     _write(
         cards_dir / "jgswitch.yaml",
-        "\n".join(
-            [
-                "card_id: pse2025.jgswitch",
-                "family: pse2025",
-                "kind: series_card",
-                "label: JGSWITCH",
-                "variable: JGSWITCH",
-                "default_target: fmexog_override",
-                "targets:",
-                "  - kind: fmexog_override",
-                "    output_path: fmexog.txt",
-                "    fp_method: SAMEVALUE",
-                "    mode: series",
-                "    attach_rule:",
-                "      kind: overlay_file",
-                "      relative_path: fmexog.txt",
-                "",
-            ]
-        ),
+        "\n".join([
+            "card_id: pse2025.jgswitch",
+            "family: pse2025",
+            "kind: series_card",
+            "label: JGSWITCH",
+            "variable: JGSWITCH",
+            "default_target: fmexog_override",
+            "targets:",
+            "  - kind: fmexog_override",
+            "    output_path: fmexog.txt",
+            "    fp_method: SAMEVALUE",
+            "    mode: series",
+            "    attach_rule:",
+            "      kind: overlay_file",
+            "      relative_path: fmexog.txt",
+            "",
+        ]),
     )
     _write(
         cards_dir / "jgphase.yaml",
-        "\n".join(
-            [
-                "card_id: pse2025.jgphase",
-                "family: pse2025",
-                "kind: series_card",
-                "label: JGPHASE",
-                "variable: JGPHASE",
-                "default_target: fmexog_override",
-                "targets:",
-                "  - kind: fmexog_override",
-                "    output_path: fmexog.txt",
-                "    fp_method: ADDDIFABS",
-                "    mode: series",
-                "    attach_rule:",
-                "      kind: overlay_file",
-                "      relative_path: fmexog.txt",
-                "",
-            ]
-        ),
+        "\n".join([
+            "card_id: pse2025.jgphase",
+            "family: pse2025",
+            "kind: series_card",
+            "label: JGPHASE",
+            "variable: JGPHASE",
+            "default_target: fmexog_override",
+            "targets:",
+            "  - kind: fmexog_override",
+            "    output_path: fmexog.txt",
+            "    fp_method: ADDDIFABS",
+            "    mode: series",
+            "    attach_rule:",
+            "      kind: overlay_file",
+            "      relative_path: fmexog.txt",
+            "",
+        ]),
     )
 
     draft = create_scenario_draft_from_source(

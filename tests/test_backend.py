@@ -199,21 +199,19 @@ def test_fairpy_identity_overlay_keeps_multiline_statements(tmp_path):
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "@ base deck",
-                "SMPL 2025.1 2025.4;",
-                "IDENT PIEF = LOG(",
-                "    PCX",
-                "    / PCD",
-                ") ;",
-                "",
-                "GENR KEEP_ME = 1;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "IDENT AFTER_SOLVE = 0;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ base deck",
+            "SMPL 2025.1 2025.4;",
+            "IDENT PIEF = LOG(",
+            "    PCX",
+            "    / PCD",
+            ") ;",
+            "",
+            "GENR KEEP_ME = 1;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "IDENT AFTER_SOLVE = 0;",
+            "",
+        ]),
         encoding="utf-8",
     )
     backend = FairPyBackend(fp_home=fp_home, eq_flags_preset="parity")
@@ -233,23 +231,21 @@ def test_fairpy_identity_overlay_keeps_multiline_ident_and_genr_until_semicolon(
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "@ base deck",
-                "SMPL 2025.1 2025.4;",
-                "IDENT PIEF = LOG(",
-                "    PCX",
-                "    / PCD",
-                ");",
-                "GENR RATIO = (",
-                "    PIEF",
-                "    + PCX",
-                ");",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "GENR AFTER_SOLVE = 0;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ base deck",
+            "SMPL 2025.1 2025.4;",
+            "IDENT PIEF = LOG(",
+            "    PCX",
+            "    / PCD",
+            ");",
+            "GENR RATIO = (",
+            "    PIEF",
+            "    + PCX",
+            ");",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "GENR AFTER_SOLVE = 0;",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -270,18 +266,16 @@ def test_fairpy_identity_overlay_allows_semicolon_terminator_on_own_line(tmp_pat
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "@ base deck",
-                "SMPL 2025.1 2025.4;",
-                "IDENT PIEF=XX+PIV*IVF+SUBS+SUBG+USOTHER",
-                "-WF*JF*(HN+1.5*HO)-RNT-INTZ-INTF",
-                ";",
-                "GENR KEEP_ME = 1;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ base deck",
+            "SMPL 2025.1 2025.4;",
+            "IDENT PIEF=XX+PIV*IVF+SUBS+SUBG+USOTHER",
+            "-WF*JF*(HN+1.5*HO)-RNT-INTZ-INTF",
+            ";",
+            "GENR KEEP_ME = 1;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "",
+        ]),
         encoding="utf-8",
     )
     backend = FairPyBackend(fp_home=fp_home, eq_flags_preset="parity")
@@ -299,17 +293,15 @@ def test_fairpy_identity_overlay_keeps_prerequisites_not_just_targets(tmp_path):
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "CREATE LYDZ;",
-                "GENR LYDZ = EXP(PCX);",
-                "IDENT PIEF = LYDZ + PCD;",
-                "LHS JGJ = JGJ + 1;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "GENR AFTER_SOLVE = 0;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "CREATE LYDZ;",
+            "GENR LYDZ = EXP(PCX);",
+            "IDENT PIEF = LYDZ + PCD;",
+            "LHS JGJ = JGJ + 1;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "GENR AFTER_SOLVE = 0;",
+            "",
+        ]),
         encoding="utf-8",
     )
     backend = FairPyBackend(fp_home=fp_home, eq_flags_preset="parity")
@@ -330,19 +322,17 @@ def test_fairpy_identity_overlay_preserves_smpl_context(tmp_path):
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "@ base deck",
-                "SMPL 1952.1 2025.3;",
-                "CREATE D2=0;",
-                "SMPL 1972.1 1989.4;",
-                "CREATE D2=1;",
-                "SMPL 1952.1 2025.3;",
-                "CREATE CNST2L2=D2+1;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ base deck",
+            "SMPL 1952.1 2025.3;",
+            "CREATE D2=0;",
+            "SMPL 1972.1 1989.4;",
+            "CREATE D2=1;",
+            "SMPL 1952.1 2025.3;",
+            "CREATE CNST2L2=D2+1;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "",
+        ]),
         encoding="utf-8",
     )
     backend = FairPyBackend(fp_home=fp_home, eq_flags_preset="parity")
@@ -360,16 +350,14 @@ def test_fairpy_identity_overlay_skips_symbols_defined_in_scenario_tree(tmp_path
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     (fp_home / "fminput.txt").write_text(
-        "\n".join(
-            [
-                "SMPL 1952.1 2025.3;",
-                "IDENT GDP=1;",
-                "IDENT GDPR=2;",
-                "GENR KEEP_ME=3;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "SMPL 1952.1 2025.3;",
+            "IDENT GDP=1;",
+            "IDENT GDPR=2;",
+            "GENR KEEP_ME=3;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "",
+        ]),
         encoding="utf-8",
     )
     backend = FairPyBackend(fp_home=fp_home, eq_flags_preset="parity")
@@ -378,14 +366,12 @@ def test_fairpy_identity_overlay_skips_symbols_defined_in_scenario_tree(tmp_path
     work_dir.mkdir()
     entry_input = work_dir / "scenario.txt"
     entry_input.write_text(
-        "\n".join(
-            [
-                "INPUT FILE=child.txt;",
-                "IDENT GDP=9;",
-                "IDENT GDPR=9;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "INPUT FILE=child.txt;",
+            "IDENT GDP=9;",
+            "IDENT GDPR=9;",
+            "",
+        ]),
         encoding="utf-8",
     )
     (work_dir / "child.txt").write_text("GENR CHILD=1;\n", encoding="utf-8")
@@ -418,27 +404,23 @@ def test_fairpy_wrapper_restores_smpl_after_identity_overlay(tmp_path):
     identity_overlay = tmp_path / "identity_overlay.txt"
 
     base_input.write_text(
-        "\n".join(
-            [
-                "@ base",
-                "SMPL 2025.4 2025.4;",
-                "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
-                "QUIT;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ base",
+            "SMPL 2025.4 2025.4;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "QUIT;",
+            "",
+        ]),
         encoding="utf-8",
     )
     eq_overlay.write_text("EQ 1 ;\n", encoding="utf-8")
     identity_overlay.write_text(
-        "\n".join(
-            [
-                "@ overlay mutates SMPL",
-                "SMPL 1952.1 2025.3;",
-                "CREATE D2=1;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "@ overlay mutates SMPL",
+            "SMPL 1952.1 2025.3;",
+            "CREATE D2=1;",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -455,7 +437,9 @@ def test_fairpy_wrapper_restores_smpl_after_identity_overlay(tmp_path):
     assert "CREATE D2=1;" in text
     # SMPL should be restored to the base deck's SMPL before SOLVE executes.
     assert "SMPL 2025.4 2025.4;" in text
-    assert text.index("CREATE D2=1;") < text.index("SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;")
+    assert text.index("CREATE D2=1;") < text.index(
+        "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;"
+    )
     # The last SMPL before SOLVE should be the base SMPL, not the overlay SMPL.
     last_smpl_before_solve = text.rsplit("SMPL", 1)[-1]
     assert "2025.4 2025.4" in last_smpl_before_solve

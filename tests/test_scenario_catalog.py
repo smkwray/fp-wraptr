@@ -20,33 +20,31 @@ def test_scenario_catalog_filters_surface_and_applies_order(tmp_path: Path) -> N
     bundle_path.write_text("base: {}\n", encoding="utf-8")
 
     catalog_path.write_text(
-        "\n".join(
-            [
-                "entries:",
-                "  - id: baseline",
-                "    label: Baseline",
-                "    kind: scenario",
-                "    path: examples/baseline.yaml",
-                "    family: stock",
-                "    surfaces: [home, new_run]",
-                "    order: 20",
-                "  - id: pse_bundle",
-                "    label: PSE Bundle",
-                "    kind: bundle",
-                "    path: bundles/pse2025.yaml",
-                "    family: pse2025",
-                "    surfaces: [home]",
-                "    order: 10",
-                "  - id: hidden-new-run",
-                "    label: Hidden",
-                "    kind: scenario",
-                "    path: examples/baseline.yaml",
-                "    family: stock",
-                "    surfaces: [new_run]",
-                "    order: 5",
-                "    new_run_visible: false",
-            ]
-        )
+        "\n".join([
+            "entries:",
+            "  - id: baseline",
+            "    label: Baseline",
+            "    kind: scenario",
+            "    path: examples/baseline.yaml",
+            "    family: stock",
+            "    surfaces: [home, new_run]",
+            "    order: 20",
+            "  - id: pse_bundle",
+            "    label: PSE Bundle",
+            "    kind: bundle",
+            "    path: bundles/pse2025.yaml",
+            "    family: pse2025",
+            "    surfaces: [home]",
+            "    order: 10",
+            "  - id: hidden-new-run",
+            "    label: Hidden",
+            "    kind: scenario",
+            "    path: examples/baseline.yaml",
+            "    family: stock",
+            "    surfaces: [new_run]",
+            "    order: 5",
+            "    new_run_visible: false",
+        ])
         + "\n",
         encoding="utf-8",
     )

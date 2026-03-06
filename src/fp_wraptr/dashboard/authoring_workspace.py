@@ -129,7 +129,9 @@ def create_workspace_from_bundle_yaml(
     )
 
 
-def _normalize_workspace_paths(*, workspace: AuthoringWorkspace, repo_root: Path) -> AuthoringWorkspace:
+def _normalize_workspace_paths(
+    *, workspace: AuthoringWorkspace, repo_root: Path
+) -> AuthoringWorkspace:
     if workspace.kind != "scenario":
         return workspace
     scenario = dict(workspace.scenario)
