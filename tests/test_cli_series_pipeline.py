@@ -75,4 +75,3 @@ steps:
     result = runner.invoke(app, ["data", "run", str(pipe_path), "--dry-run"])
     assert result.exit_code == 0, result.output
     assert not out_path.exists()
-

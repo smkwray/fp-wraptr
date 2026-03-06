@@ -243,6 +243,7 @@ def _expected_query_snapshot() -> dict:
     }
     ur_payload = {
         "name": "UR",
+        "short_name": "",
         "description": "Construction note: Def., Eq. 87",
         "units": "",
         "sector": "",
@@ -306,6 +307,7 @@ def _expected_explain_snapshot() -> dict:
         "variables": [
             {
                 "name": "GDP",
+                "short_name": "",
                 "description": "Gross domestic product.",
                 "units": "B$",
                 "sector": "",
@@ -321,6 +323,7 @@ def _expected_explain_snapshot() -> dict:
             },
             {
                 "name": "HG",
+                "short_name": "",
                 "description": "Hours worked in government.",
                 "units": "",
                 "sector": "",
@@ -336,6 +339,7 @@ def _expected_explain_snapshot() -> dict:
             },
             {
                 "name": "UR",
+                "short_name": "",
                 "description": "Construction note: Def., Eq. 87",
                 "units": "",
                 "sector": "",

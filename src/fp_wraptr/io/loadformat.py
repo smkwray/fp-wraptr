@@ -15,8 +15,8 @@ from pathlib import Path
 from fppy.pabev_parity import parse_pabev
 
 __all__ = [
-    "read_loadformat",
     "add_derived_series",
+    "read_loadformat",
 ]
 
 
@@ -52,4 +52,3 @@ def add_derived_series(series: dict[str, list[float]]) -> dict[str, list[float]]
             wr.append(float(wf[idx]) / float(denom))
         series["WR"] = wr
     return series
-

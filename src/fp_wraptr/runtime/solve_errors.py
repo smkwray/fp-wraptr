@@ -89,4 +89,3 @@ def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
             if len(raw_matches) >= 10:
                 break
     return raw_matches
-

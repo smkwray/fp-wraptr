@@ -88,17 +88,21 @@ def main() -> None:
 
     top_n = st.sidebar.slider("Top N deltas", min_value=5, max_value=50, value=15)
 
-    common = sorted(set(baseline_data.variables).intersection(scenario_data.variables))
+    common_variables = sorted(set(baseline_data.variables).intersection(scenario_data.variables))
     selected = st.sidebar.multiselect(
         "Variables",
-        options=common,
-        default=common[: min(5, len(common))],
+        options=common_variables,
+        default=common_variables[: min(5, len(common_variables))],
     )
-    if not common:
+    if not common_variables:
         st.info("No common variables to compare across the selected runs.")
         return
 
-    full_diff_result = diff_outputs(baseline_data, scenario_data, top_n=max(len(common), 1))
+    full_diff_result = diff_outputs(
+        baseline_data,
+        scenario_data,
+        top_n=max(len(common_variables), 1),
+    )
     full_deltas = full_diff_result.get("deltas", {})
     if not full_deltas:
         st.info("No common variables to compare.")
@@ -122,7 +126,7 @@ def main() -> None:
 
     st.markdown(
         f"Comparing {baseline.scenario_name} vs {scenario.scenario_name} | "
-        f"{len(common)} common variables | Largest mover: "
+        f"{len(common_variables)} common variables | Largest mover: "
         f"{biggest_name} ({biggest_pct_text})"
     )
     render_agent_handoff(

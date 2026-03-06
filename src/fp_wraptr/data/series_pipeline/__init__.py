@@ -9,4 +9,3 @@ from fp_wraptr.data.series_pipeline.runner import PipelineRunError, PipelineRunR
 from fp_wraptr.data.series_pipeline.spec import SeriesPipelineConfig
 
 __all__ = ["PipelineRunError", "PipelineRunResult", "SeriesPipelineConfig", "run_pipeline"]
-

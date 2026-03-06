@@ -19,7 +19,7 @@ from fp_wraptr.data.series_pipeline.fp_targets import (
     write_fmexog_override,
     write_include_changevar,
 )
-from fp_wraptr.data.series_pipeline.periods import normalize_period_token
+from fp_wraptr.data.series_pipeline.periods import PeriodError, normalize_period_token
 from fp_wraptr.data.series_pipeline.series_io import (
     SeriesIoError,
     read_series_from_constant,
@@ -140,7 +140,6 @@ def run_pipeline(
     written_paths: list[Path] = []
 
     for step in config.steps:
-        step_ctx = {**ctx}
         step_record: dict[str, Any] = {"id": step.id}
         try:
             periods, values, source_meta = _read_source(step.id, step.source)

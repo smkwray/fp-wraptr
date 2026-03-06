@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 
 import pandas as pd
 
@@ -170,4 +169,3 @@ def read_series_from_json(source: JsonSource) -> SeriesFrame:
 def read_series_from_constant(source: ConstantSource) -> SeriesFrame:
     period = str(source.period).strip() if source.period else "0.0"
     return SeriesFrame(periods=[period], values=[float(source.value)], source_periods=[period])
-

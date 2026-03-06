@@ -13,9 +13,10 @@ from __future__ import annotations
 
 import re
 import shutil
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from fp_wraptr.io.input_parser import parse_fp_input_text
 

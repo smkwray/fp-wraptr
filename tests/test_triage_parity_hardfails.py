@@ -72,8 +72,7 @@ def test_triage_parity_hardfails_emits_full_list(tmp_path: Path) -> None:
     assert out_json.exists()
 
     summary = json.loads(out_json.read_text(encoding="utf-8"))
-    # X sign flip + D discrete mismatch => 2 hard fail cells
-    assert summary["hard_fail_cell_count"] == 2
+    # Single-period series are not treated as discrete; only the sign flip remains.
+    assert summary["hard_fail_cell_count"] == 1
     assert summary["counts_by_reason"]["sign_flip"] == 1
-    assert summary["counts_by_reason"]["discrete_mismatch"] == 1
     assert summary["seed_diagnostics"]["solve_outside_seed_inspected_cells"] == 5

@@ -16,4 +16,3 @@ def test_format_period_label_non_quarter_tokens() -> None:
 def test_format_period_label_passthrough() -> None:
     assert format_period_label("foo") == "foo"
     assert format_period_label("  foo  ") == "foo"
-

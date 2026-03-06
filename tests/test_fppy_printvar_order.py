@@ -30,4 +30,3 @@ def test_infer_printvar_order_appends_non_fmout_columns(tmp_path) -> None:
 
     assert order[:2] == ("A", "B")
     assert "EXTRA" in order
-

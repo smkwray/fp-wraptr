@@ -74,4 +74,3 @@ def periods_between(start: str, end: str) -> list[str]:
     if end_ord < start_ord:
         raise PeriodError(f"Invalid window '{start}..{end}' (end must be >= start).")
     return [ordinal_to_period(i) for i in range(start_ord, end_ord + 1)]
-

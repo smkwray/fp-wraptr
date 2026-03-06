@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from contextlib import suppress
 from pathlib import Path
 from typing import Final
 from urllib.parse import urlencode
@@ -296,10 +297,9 @@ def render_artifacts_dir_picker(
     label_to_path = {label: path for label, path in zip(known_labels, discovered, strict=True)}
 
     default_known = artifacts_dir_display(current_path, repo_root=root)
-    if default_known in label_to_path:
-        default_option = default_known
-    else:
-        default_option = _CUSTOM_ARTIFACTS_LABEL
+    default_option = (
+        default_known if default_known in label_to_path else _CUSTOM_ARTIFACTS_LABEL
+    )
 
     selected = st.sidebar.selectbox(
         "Known artifacts roots",
@@ -317,10 +317,8 @@ def render_artifacts_dir_picker(
         effective = resolve_artifacts_dir_token(typed_value, repo_root=root)
 
     st.session_state[state_key] = str(effective)
-    try:
+    with suppress(Exception):
         st.query_params[query_key] = str(effective)
-    except Exception:
-        pass
     return effective
 
 

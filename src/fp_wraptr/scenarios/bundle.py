@@ -35,8 +35,8 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, Field
 
-from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.hygiene import find_project_root
+from fp_wraptr.scenarios.config import ScenarioConfig
 
 __all__ = ["BundleConfig", "BundleResult", "run_bundle"]
 

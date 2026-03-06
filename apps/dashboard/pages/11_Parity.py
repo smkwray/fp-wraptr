@@ -196,6 +196,25 @@ def _compute_diff_slices(
     return left, right, abs_diff, pct_diff
 
 
+def _compute_abs_diff(
+    left_df: pd.DataFrame,
+    right_df: pd.DataFrame,
+    *,
+    start_period: str,
+    end_period: str | None,
+    missing_sentinels: frozenset[float],
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Backward-compatible helper retained for tests and older imports."""
+    left, right, abs_diff, _pct_diff = _compute_diff_slices(
+        left_df,
+        right_df,
+        start_period=start_period,
+        end_period=end_period,
+        missing_sentinels=missing_sentinels,
+    )
+    return left, right, abs_diff
+
+
 @st.cache_data(ttl=60)
 def _load_diff_slices(
     left_path_str: str,

@@ -15,11 +15,12 @@ import pandas as pd
 import yaml
 from pydantic import ValidationError
 
-from fp_wraptr.data.series_pipeline.fp_targets import write_fmexog_override, write_include_changevar
+from fp_wraptr.data.series_pipeline.fp_targets import (
+    write_fmexog_override,
+    write_include_changevar,
+)
 from fp_wraptr.data.series_pipeline.periods import normalize_period_token
-from fp_wraptr.hygiene import find_project_root
 from fp_wraptr.scenarios.bundle import BundleConfig, VariantSpec
-from fp_wraptr.scenarios.catalog import load_scenario_catalog
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.input_tree import scan_input_tree_symbols
 from fp_wraptr.scenarios.runner import load_scenario_config
@@ -29,12 +30,11 @@ from .models import (
     BundleDraft,
     CardInstance,
     CardSpec,
-    ConstantFieldSpec,
     DeckConstantsCardSpec,
     DraftSourceRef,
+    ScenarioDraft,
     SeriesCardSpec,
     SeriesTargetSpec,
-    ScenarioDraft,
 )
 from .workspace import resolve_source_path, workspace_paths
 

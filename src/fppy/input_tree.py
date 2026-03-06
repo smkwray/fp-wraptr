@@ -141,4 +141,3 @@ def parse_fminput_tree_file(
         stack=tuple(),
     )
     return _renumber(expanded)
-

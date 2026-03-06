@@ -8,13 +8,10 @@ from fp_wraptr.mcp_server import (
     apply_workspace_card as mcp_apply_workspace_card,
 )
 from fp_wraptr.mcp_server import (
-    clone_bundle_variant_recipe as mcp_clone_bundle_variant_recipe,
-)
-from fp_wraptr.mcp_server import (
-    update_bundle_variant as mcp_update_bundle_variant,
-)
-from fp_wraptr.mcp_server import (
     build_visualization_view as mcp_build_visualization_view,
+)
+from fp_wraptr.mcp_server import (
+    clone_bundle_variant_recipe as mcp_clone_bundle_variant_recipe,
 )
 from fp_wraptr.mcp_server import (
     create_workspace_from_catalog as mcp_create_workspace_from_catalog,
@@ -33,6 +30,9 @@ from fp_wraptr.mcp_server import (
 )
 from fp_wraptr.mcp_server import (
     mcp,
+)
+from fp_wraptr.mcp_server import (
+    update_bundle_variant as mcp_update_bundle_variant,
 )
 from fp_wraptr.scenarios.authoring import (
     add_bundle_variant,
