@@ -1,0 +1,23 @@
+# Demand shock scenario: stronger government demand impulse.
+#
+# Uses an exogenous override on TBGQ (government spending share proxy)
+# to model a demand-led expansion relative to baseline.
+
+name: demand_shock
+description: "Demand-side expansion via higher government spending path"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fpexe
+overrides:
+  TBGQ:
+    method: CHGSAMEPCT
+    value: 0.010
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - TBG

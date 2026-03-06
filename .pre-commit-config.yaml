@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.0
+    hooks:
+      - id: ruff
+        args:
+          - --target-version
+          - py311
+          - --line-length
+          - "99"
+      - id: ruff-format
+        args:
+          - --line-length
+          - "99"

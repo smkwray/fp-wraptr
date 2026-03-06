@@ -1,0 +1,25 @@
+# Rate path shock scenario: tighter short-rate policy path.
+#
+# Makes RS exogenous in the input deck and applies a positive absolute
+# change so the policy-rate path runs above baseline.
+
+name: rate_path_shock
+description: "Higher short-rate path via RS exogenous override"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+backend: fpexe
+input_patches:
+  "@EXOGENOUS VARIABLE=RS;": "EXOGENOUS VARIABLE=RS;"
+overrides:
+  RS:
+    method: CHGSAMEABS
+    value: 0.75
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR
+  - RS

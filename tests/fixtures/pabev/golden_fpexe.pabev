@@ -1,0 +1,10 @@
+SMPL 2025.4 2026.1;
+LOAD A;
+1.0 1.0
+'END'
+LOAD B;
+2.0 2.0
+'END'
+LOAD HF;
+0.5 0.4
+'END'

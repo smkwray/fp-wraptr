@@ -1,0 +1,22 @@
+# Recession scenario: weaker near-term potential growth
+#
+# Applies a persistent negative growth trend shock to potential GDP.
+# This should push output and related macro variables toward softer
+# trajectories relative to baseline.
+
+name: recession
+description: "Recessionary outlook with persistent potential growth drag"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+overrides:
+  YS:
+    method: CHGSAMEPCT
+    value: -0.004  # roughly -1.6% annualized annual growth
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR

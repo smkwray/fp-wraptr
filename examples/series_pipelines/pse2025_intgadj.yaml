@@ -1,0 +1,32 @@
+name: pse2025_intgadj
+description: "Build INTGADJ include from a quarterly proxy series and extrapolate to forecast window."
+
+context:
+  forecast_start: "2025.4"
+  forecast_end: "2029.4"
+  periodicity: quarterly
+
+steps:
+  - id: intgadj_share
+    source:
+      kind: csv
+      path: projects_local/pse2025/data/intgadj_from_fred.csv
+      period_col: period
+      value_col: intgadj_share
+      format: long
+    transform:
+      bounds: [0.0, 1.0]
+    extrapolation:
+      method: rolling_mean
+      window: 8
+      fallback: flat
+    target:
+      kind: include_changevar
+      variable: INTGADJ
+      fp_method: SAMEVALUE
+      smpl_start: "${context.forecast_start}"
+      smpl_end: "${context.forecast_end}"
+      mode: constant
+    write_to:
+      - projects_local/pse2025/generated/intgadj.txt
+

@@ -1,0 +1,38 @@
+# FP variable name -> FRED series ID mapping
+#
+# Used by the FRED overlay feature to fetch actual economic data
+# and plot alongside model forecasts.
+#
+# Quarterly series are preferred. Quarterly alignment uses source-map metadata
+# when available (for example annual-rate de-annualization rules) and otherwise
+# falls back to simple quarterly means.
+
+# Real GDP (billions of chained 2017 dollars, SAAR)
+GDPR: GDPC1
+
+# Unemployment rate (percent)
+UR: UNRATE
+
+# CPI (index, all urban consumers)
+PCY: CPIAUCSL
+
+# 10-Year Treasury rate (percent)
+RS: DGS10
+
+# M1 money stock (billions)
+M1: M1SL
+
+# Federal funds rate (percent)
+RFF: FEDFUNDS
+
+# Personal consumption expenditures (billions, SAAR)
+CS: PCE
+
+# Government spending (billions, SAAR)
+COG: FGCE
+
+# Imports (billions, SAAR)
+IM: IMPGS
+
+# Exports (billions, SAAR)
+EX: EXPGS

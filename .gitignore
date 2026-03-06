@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+uv.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# FP runtime assets (local only -- do NOT commit)
+FM/
+fm/
+
+# Local project overlays (local only by default; curated family assets below are tracked)
+projects_local/
+!projects_local/README.md
+!projects_local/pse2008/
+!projects_local/pse2008/**
+
+# Fortran source (keep in repo but be mindful of size)
+# fortran_sc/  # uncomment if you want to exclude
+
+# Run artifacts
+artifacts/
+runs/
+*.log
+
+# Local caches/runtime state (must not be stored in project tree)
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+.wine*/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment
+.env
+.env.local
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# MkDocs build
+site/
+
+# Prompts / memory (project-specific, keep in repo)
+# prompts/  # these ARE tracked
+
+# Logo source files (optional)
+# logo/  # keep if you want branding in repo

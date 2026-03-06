@@ -1,0 +1,17 @@
+# Baseline scenario: default FP model run with no overrides.
+#
+# This runs the model as-is using the standard fminput.txt and fmexog.txt
+# configuration. Use this as the reference point for comparing scenario variants.
+
+name: baseline
+description: "Default FP model run with standard assumptions"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+track_variables:
+  - PCY     # Real GDP growth rate (annualized %)
+  - PCPF    # GDP deflator inflation rate (annualized %)
+  - UR      # Unemployment rate
+  - PIEF    # Before-tax corporate profits
+  - GDPR    # Real GDP (billions, 2012 dollars)

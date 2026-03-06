@@ -1,0 +1,53 @@
+site_name: fp-wraptr
+site_description: Python utilities for the Fair-Parke macroeconomic model
+repo_url: https://github.com/shanewray/fp-wraptr
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.expand
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+
+nav:
+  - Home: index.md
+  - AI Memory: ai-memory.md
+  - Quickstart: quickstart.md
+  - Architecture: architecture.md
+  - Agent Workflows: agent-workflows.md
+  - Pack Authoring: packs.md
+  - Scenarios: scenarios.md
+  - Data Update: data-update.md
+  - Model Runs Export: model-runs.md
+  - Scenario DSL: dsl.md
+  - Scenario YAML Schema: scenario-schema.md
+  - CLI Reference: cli.md
+  - Parity: parity.md
+  - MCP Server: mcp.md
+  - MCP Tools: mcp-tools.md
+  - API Reference: api.md
+  - fp.exe Commands: fp_exe_run_commands.md
+  - Dashboard: dashboard.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true

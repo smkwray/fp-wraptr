@@ -1,0 +1,55 @@
+# Job Guarantee Baseline — 15M jobs at $15/hr
+#
+# Based on Levy Economics Institute PSE methodology:
+# - Phase-in: 20% per quarter to full strength
+# - Benefits: 20% of wage bill
+# - Admin: 5% of wage bill
+# - Offset savings: UI (-25%), Medicaid (-6%), EITC (-6%)
+# - Wage pass-through: 20% of JG-avg wage gap to model wage proxy
+#
+# Reference: Levy PSE Report (rpr_4_18.pdf)
+# Reference: Fullwiler, "Simulating an Employer of Last Resort" (SSRN 2194960)
+#
+# To use: fp run examples/jg/jg_baseline.yaml --baseline examples/baseline.yaml
+
+name: jg_15m_15hr
+description: "Federal JG: 15M jobs at $15/hr (Levy PSE defaults)"
+extends: examples/baseline.yaml
+
+policies:
+  - type: job_guarantee
+    jobs: 15000000
+    wage: 15.0
+    benefits_rate: 0.20
+    admin_rate: 0.05
+    wage_pass_through: 0.20
+    phase_in:
+      start: "2025.4"
+      step_per_quarter: 0.20
+    offsets:
+      unemployment_benefits: -0.25
+      medicaid_fed: -0.05
+      medicaid_state: -0.01
+      eitc_fed: -0.05
+      eitc_state: -0.01
+
+alerts:
+  UR:
+    max: 6.0
+  PCY:
+    min: -2.0
+
+track_variables:
+  - GDPR
+  - UR
+  - PCY
+  - PIEF
+  - RS
+  - YS
+  - CS
+  - TRGHQ
+  - SGP
+
+metrics:
+  - macro_core_scoreboard
+  - jg_metrics_pack

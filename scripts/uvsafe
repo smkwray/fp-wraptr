@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# uvsafe: run uv commands without allowing repo-local `.venv/` creation.
+#
+# Usage:
+#   scripts/uvsafe --offline --no-sync --no-build python -B -m pytest -q
+#   scripts/uvsafe --offline --no-sync --no-build fp parity examples/baseline.yaml
+
+root_dir() {
+  local d
+  d="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  while [[ "$d" != "/" ]]; do
+    if [[ -f "$d/pyproject.toml" ]]; then
+      echo "$d"
+      return 0
+    fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+
+ROOT="$(root_dir)"
+source "$ROOT/scripts/project_env_lib.sh"
+project_env_load_files "$ROOT"
+
+if [[ -d "$ROOT/.venv" ]]; then
+  echo "ERROR: forbidden repo-local .venv exists: $ROOT/.venv" >&2
+  echo "Delete it and use the project-configured external venv + uv run --active." >&2
+  exit 2
+fi
+
+VENV_ROOT="$(project_env_resolve_venv_root "$ROOT" || true)"
+if [[ -z "$VENV_ROOT" ]]; then
+  echo "ERROR: no external project virtualenv configured." >&2
+  echo "Set PROJECT_VENV_ROOT or UV_PROJECT_ENVIRONMENT in the shell or in $ROOT/.env" >&2
+  exit 2
+fi
+project_env_assert_outside_repo "$ROOT" "$VENV_ROOT" "PROJECT_VENV_ROOT" || exit 2
+project_env_activate_exports "$ROOT" "$VENV_ROOT"
+
+export PYTEST_ADDOPTS="${PYTEST_ADDOPTS:--p no:cacheprovider}"
+
+for guard_var in VIRTUAL_ENV UV_PROJECT_ENVIRONMENT UV_CACHE_DIR RUFF_CACHE_DIR PYTHONPYCACHEPREFIX WINEPREFIX; do
+  guard_val="$(eval "printf '%s' \"\${$guard_var}\"")"
+  case "$guard_val" in
+    "$ROOT"/*)
+      echo "ERROR: $guard_var points inside repo tree: $guard_val" >&2
+      echo "Set $guard_var to a path outside $ROOT." >&2
+      exit 2
+      ;;
+  esac
+done
+
+exec uv run --active "$@"

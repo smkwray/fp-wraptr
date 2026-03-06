@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --extra dev
+      - run: uv run ruff check src/ tests/
+      - run: uv run ruff format --check src/ tests/
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --all-extras
+      - run: uv run pytest --cov=fp_wraptr --cov-report=term-missing
+
+  fp-integration:
+    # Optional: enable only when FP assets provisioning inputs are configured.
+    if: ${{ vars.FP_INTEGRATION_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.11"
+      - name: Provision FP assets
+        env:
+          FP_ASSETS_SOURCE_DIR: ${{ vars.FP_ASSETS_SOURCE_DIR }}
+          FP_ASSETS_ARCHIVE_URL: ${{ secrets.FP_ASSETS_ARCHIVE_URL }}
+          FP_ASSETS_BEARER_TOKEN: ${{ secrets.FP_ASSETS_BEARER_TOKEN }}
+          FP_ASSETS_ARCHIVE_SHA256: ${{ vars.FP_ASSETS_ARCHIVE_SHA256 }}
+          FP_ASSETS_ARCHIVE_TYPE: ${{ vars.FP_ASSETS_ARCHIVE_TYPE }}
+        run: bash scripts/ci/provision_fp_assets.sh
+      - name: Install Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wine64
+      - run: uv sync --all-extras
+      - name: Verify FP assets
+        run: |
+          test -f "${GITHUB_WORKSPACE}/FM/fp.exe"
+          test -f "${GITHUB_WORKSPACE}/FM/fminput.txt"
+          test -f "${GITHUB_WORKSPACE}/FM/fmdata.txt"
+          test -f "${GITHUB_WORKSPACE}/FM/fmage.txt"
+          test -f "${GITHUB_WORKSPACE}/FM/fmexog.txt"
+      - name: Run fp.exe integration tests
+        env:
+          FP_HOME: ${{ github.workspace }}/FM
+          WINEPREFIX: /tmp/wine-fp-wraptr
+        run: uv run pytest -m requires_fp tests/test_fp_integration.py -q

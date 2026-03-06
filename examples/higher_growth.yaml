@@ -1,0 +1,22 @@
+# Higher growth scenario: potential GDP grows faster than baseline.
+#
+# This overrides the YS (potential GDP) exogenous variable to grow
+# at a higher rate, simulating a more optimistic supply-side outlook.
+# Compare against baseline.yaml to see impacts on inflation, unemployment, etc.
+
+name: higher_growth
+description: "Higher potential GDP growth scenario"
+fp_home: ../FM
+input_file: fminput.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+overrides:
+  YS:
+    method: CHGSAMEPCT
+    value: 0.008    # ~3.2% annualized vs baseline ~2.1%
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR

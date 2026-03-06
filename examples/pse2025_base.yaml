@@ -1,0 +1,20 @@
+name: pse2025_base
+description: "PSE2025 base scenario."
+fp_home: ../FM
+input_overlay_dir: ../projects_local/pse2025
+input_file: psebase.txt
+forecast_start: "2025.4"
+forecast_end: "2029.4"
+track_variables:
+  - GDPR
+  - GDP
+  - PCPF
+  - PIEF
+  - SG
+  - RS
+  - UR
+  - E
+  - JGJ
+  - JF
+  - WF
+  - PF
