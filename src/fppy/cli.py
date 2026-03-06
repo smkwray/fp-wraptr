@@ -25,8 +25,8 @@ from fppy.eq_solver import (
 from fppy.equation_search import DictionaryStore, search_explain
 from fppy.executor import SampleWindow, build_execution_plan, parse_smpl_statement
 from fppy.expressions import EvalContext, parse_assignment
-from fppy.input_tree import parse_fminput_tree_file
 from fppy.input_sources import load_named_sources
+from fppy.input_tree import parse_fminput_tree_file
 from fppy.io.input_bundle import load_execution_input_bundle
 from fppy.io.legacy_data import parse_fmage_file, parse_fmdata_file, parse_fmexog_file
 from fppy.io.template_loader import summarize_fminput

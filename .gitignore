@@ -43,6 +43,7 @@ projects_local/
 # Run artifacts
 artifacts/
 /runs/
+/do/
 *.log
 
 # Local caches/runtime state (must not be stored in project tree)

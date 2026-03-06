@@ -65,7 +65,7 @@ class ScenarioCatalog:
         *,
         project_root: Path | None = None,
         repo_root: Path | None = None,
-    ) -> "ScenarioCatalog":
+    ) -> ScenarioCatalog:
         """Back-compat constructor retained for older call sites."""
         root = repo_root if repo_root is not None else project_root
         return load_scenario_catalog(path, repo_root=root)

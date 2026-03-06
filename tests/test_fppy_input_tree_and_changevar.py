@@ -76,4 +76,3 @@ def test_parse_fminput_tree_expands_deck_includes(tmp_path) -> None:
 
     assert any(record.command == FPCommand.CREATE and "X=2" in record.statement for record in records)
     assert not any(record.command == FPCommand.INPUT and "inc.txt" in record.statement for record in records)
-

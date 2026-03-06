@@ -32,4 +32,4 @@ def test_pse2008_examples_load_with_historical_forecast_window() -> None:
     assert [cfg.name for cfg in (base, low, high)] == ["pse2008_base", "pse2008_low", "pse2008_high"]
     assert {cfg.forecast_start for cfg in (base, low, high)} == {"2008.4"}
     assert {cfg.forecast_end for cfg in (base, low, high)} == {"2012.4"}
-    assert {cfg.input_overlay_dir for cfg in (base, low, high)} == {Path("projects_local/pse2008")}
+    assert {cfg.input_overlay_dir for cfg in (base, low, high)} == {Path("../projects_local/pse2008")}

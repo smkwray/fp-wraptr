@@ -7,6 +7,8 @@ from pathlib import Path
 
 from fp_wraptr.dashboard.ptcoef_editor import (
     parse_ptcoef_text as parse_ptcoef_document,
+)
+from fp_wraptr.dashboard.ptcoef_editor import (
     resolve_ptcoef_overlay_path,
     rewrite_ptcoef_text,
     write_ptcoef_overlay_text,

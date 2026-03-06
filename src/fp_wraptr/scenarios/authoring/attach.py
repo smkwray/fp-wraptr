@@ -47,4 +47,3 @@ def _join_lines(lines: list[str], *, source: str) -> str:
     if source.endswith("\n"):
         return "\n".join(lines) + "\n"
     return "\n".join(lines)
-

@@ -545,7 +545,9 @@ def clone_bundle_variant_recipe(
     input_mode: str = "",
 ) -> str:
     """Clone a bundle variant, update its metadata, and optionally seed one card patch."""
-    from fp_wraptr.scenarios.authoring import clone_bundle_variant_recipe as _clone_bundle_variant_recipe
+    from fp_wraptr.scenarios.authoring import (
+        clone_bundle_variant_recipe as _clone_bundle_variant_recipe,
+    )
 
     try:
         constants_payload = json.loads(constants_json) if constants_json.strip() else {}

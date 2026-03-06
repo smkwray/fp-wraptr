@@ -28,7 +28,7 @@ class CsvSource(BaseModel):
     missing_values: list[str] = Field(default_factory=lambda: ["", "NA", "N/A", "nan", "NaN", "."])
 
     @model_validator(mode="after")
-    def _validate_layout(self) -> "CsvSource":
+    def _validate_layout(self) -> CsvSource:
         if self.format is None:
             # Infer: value_col implies long format.
             self.format = "long" if self.value_col else "wide"
@@ -62,7 +62,7 @@ class TransformSpec(BaseModel):
     post: Literal["exp", "inv_logit"] | None = None
 
     @model_validator(mode="after")
-    def _validate_transform(self) -> "TransformSpec":
+    def _validate_transform(self) -> TransformSpec:
         if self.pre and not self.post:
             raise ValueError("transform.pre requires transform.post")
         if self.post and not self.pre:
@@ -144,7 +144,7 @@ class PipelineStep(BaseModel):
         return text
 
     @model_validator(mode="after")
-    def _validate_write_targets(self) -> "PipelineStep":
+    def _validate_write_targets(self) -> PipelineStep:
         if isinstance(self.target, IncludeChangevarTarget) and not self.write_to:
             raise ValueError("include_changevar requires write_to paths (at least one)")
         if isinstance(self.target, FmexogOverrideTarget) and len(self.write_to) < 1:

@@ -20,6 +20,7 @@ from fp_wraptr.runtime.fairpy import FairPyBackend
 from fp_wraptr.runtime.fp_exe import FPExecutable
 from fp_wraptr.runtime.solve_errors import scan_solution_errors
 from fp_wraptr.scenarios.config import ScenarioConfig
+from fp_wraptr.scenarios.input_tree import InputTreeManifest
 
 
 def _utc_stamp() -> str:

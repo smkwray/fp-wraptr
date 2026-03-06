@@ -15,7 +15,6 @@ theme:
 
 nav:
   - Home: index.md
-  - AI Memory: ai-memory.md
   - Quickstart: quickstart.md
   - Architecture: architecture.md
   - Agent Workflows: agent-workflows.md
@@ -32,6 +31,9 @@ nav:
   - API Reference: api.md
   - fp.exe Commands: fp_exe_run_commands.md
   - Dashboard: dashboard.md
+
+exclude_docs: |
+  ai-memory.md
 
 plugins:
   - search

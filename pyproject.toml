@@ -85,7 +85,7 @@ known-first-party = ["fp_wraptr"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--assert=plain -p pytest_hygiene -p no:cacheprovider -v --tb=short --cov=fp_wraptr --cov-report=term-missing:skip-covered"
+addopts = "--assert=plain -p no:cacheprovider -v --tb=short --cov=fp_wraptr --cov-report=term-missing:skip-covered"
 markers = [
     "requires_fp: tests that require fp.exe to be available",
 ]

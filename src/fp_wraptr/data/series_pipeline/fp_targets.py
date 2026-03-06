@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from fp_wraptr.data.series_pipeline.periods import periods_between
 from fp_wraptr.io.fmdata_writer import write_fmdata
 from fp_wraptr.io.input_parser import parse_fm_data
 from fp_wraptr.io.writer import write_exogenous_file, write_exogenous_override_file
-from fp_wraptr.data.series_pipeline.periods import periods_between
 
 
 class TargetError(RuntimeError):

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from fp_wraptr.data.series_pipeline.periods import PeriodError, periods_between, period_to_ordinal
+from fp_wraptr.data.series_pipeline.periods import PeriodError, period_to_ordinal, periods_between
 
 
 class ExtrapolationError(RuntimeError):
@@ -91,7 +91,7 @@ def _clean_history(periods: list[str], values: list[float | None]) -> tuple[list
     for o, v in points:
         dedup[o] = v
     ords = sorted(dedup.keys())
-    cleaned_periods = [f"{o//4}.{(o%4)+1}" for o in ords]
+    cleaned_periods = [f"{o // 4}.{(o % 4) + 1}" for o in ords]
     cleaned_values = np.array([dedup[o] for o in ords], dtype=float)
     return cleaned_periods, cleaned_values
 
@@ -121,7 +121,9 @@ def _linear_trend_forecast(history: np.ndarray, n: int, tail: int) -> np.ndarray
 
 def _ets_forecast(history: np.ndarray, n: int, seasonal_periods: int = 4) -> np.ndarray:
     try:
-        from statsmodels.tsa.holtwinters import ExponentialSmoothing  # type: ignore[import-not-found]
+        from statsmodels.tsa.holtwinters import (
+            ExponentialSmoothing,  # type: ignore[import-not-found]
+        )
     except Exception as exc:
         raise ExtrapolationError(
             "statsmodels is required for ets extrapolation (install: fp-wraptr[forecast])"

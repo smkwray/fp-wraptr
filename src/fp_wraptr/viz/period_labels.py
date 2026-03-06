@@ -31,4 +31,3 @@ def format_period_label(token: str) -> str:
     if sub in {"1", "2", "3", "4"}:
         return f"{year}Q{sub}"
     return f"{year}P{sub}"
-

@@ -4,7 +4,11 @@ from pathlib import Path
 
 import pytest
 
-from fp_wraptr.dashboard.ptcoef_tools import load_ptcoef_deck, parse_ptcoef_text, write_ptcoef_overlay
+from fp_wraptr.dashboard.ptcoef_tools import (
+    load_ptcoef_deck,
+    parse_ptcoef_text,
+    write_ptcoef_overlay,
+)
 
 
 def test_parse_ptcoef_text_extracts_sections_and_entries() -> None:
