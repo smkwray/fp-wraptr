@@ -91,7 +91,7 @@ fp parity examples/baseline.yaml --with-drift
 fp run examples/baseline.yaml --backend both
 ```
 
-Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics.
+Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails and a max relative gap under 0.04% on economically meaningful variables.
 
 For the full parity operator playbook: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
 
@@ -275,30 +275,6 @@ Provisioning options for `FM/` assets on runner:
 
 The CI provisioning script is:
 - `scripts/ci/provision_fp_assets.sh`
-
-## Roadmap
-
-### v0.1 -- Foundation
-- Scaffold + CLI + basic IO parsing
-- Scenario runner (subprocess wrapper)
-- One vertical slice: config -> run -> parse -> chart -> diff
-
-### v0.2 -- Depth (current)
-- Full FP input/output parsers
-- Equation dependency graph (networkx)
-- Batch runner with regression baselines
-- Streamlit dashboard (12-page run explorer + comparison)
-- FRED/BEA/BLS data ingestion modules
-- Pure-Python solver (fppy) with parity validation
-- MCP server (41 tools)
-
-### v1.0 -- Production
-- Human-readable equation/config DSL
-- Comprehensive test suite with Windows CI
-- Published docs on GitHub Pages
-- PyPI release
-- Mascot-driven dashboard with interactive hover animations
-- Public download/onboarding flow for fp.exe
 
 ## License
 
