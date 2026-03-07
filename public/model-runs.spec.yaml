@@ -5,10 +5,9 @@ runs:
   - run_id: stock_fm_baseline
     label: Stock FM Baseline
     scenario_name: stock_fm_baseline
-    summary: Stock FM baseline with no PSE2025 Job Guarantee layer.
+    summary: ""
     details:
       - Forecast 2025.4 to 2029.4 using the stock FM input deck.
-      - No PSE2025 JG overlay, INTGADJ override, or ptcoef take-up extension.
   - run_id: low_15h
     label: PSE2025 $15/h Low
     scenario_name: low_15h
@@ -89,7 +88,7 @@ default_run_ids:
   - pse2025_low
 presets:
   - id: pse-economy
-    label: PSE Economy
+    label: Economy
     variables:
       - GDPR
       - GDP
@@ -98,7 +97,7 @@ presets:
       - SG
       - RS
   - id: pse-employment-wages
-    label: PSE Employment/Wages
+    label: PSE Employment
     variables:
       - UR
       - E
@@ -106,5 +105,14 @@ presets:
       - JF
       - WF
       - WR
+  - id: households-demand
+    label: Households & Demand
+    variables:
+      - YD
+      - C
+      - CN
+      - CS
+      - CD
+      - AH
 default_preset_ids:
   - pse-economy

@@ -83,4 +83,4 @@ Default selected runs:
 
 Default preset:
 
-- `PSE Economy`
+- `Economy`

@@ -399,8 +399,7 @@ function renderRunInfo() {
     <p class="run-info-title">${run.label}</p>
     <p class="run-info-text">Scenario: ${run.scenario_name || "Unknown"}</p>
     <p class="run-info-text">Forecast: ${run.forecast_start || "?"} to ${run.forecast_end || "?"}</p>
-    <p class="run-info-text">Artifact: ${run.timestamp || "Unknown timestamp"}</p>
-    <p class="run-info-text">${run.summary || "No summary available."}</p>
+    ${run.summary ? `<p class="run-info-text">${run.summary}</p>` : ""}
     ${detailList}
   `;
   dom.runInfo.appendChild(card);

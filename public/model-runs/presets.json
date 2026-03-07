@@ -2,7 +2,7 @@
   "presets": [
     {
       "id": "pse-economy",
-      "label": "PSE Economy",
+      "label": "Economy",
       "variables": [
         "GDPR",
         "GDP",
@@ -14,7 +14,7 @@
     },
     {
       "id": "pse-employment-wages",
-      "label": "PSE Employment/Wages",
+      "label": "PSE Employment",
       "variables": [
         "UR",
         "E",
@@ -22,6 +22,18 @@
         "JF",
         "WF",
         "WR"
+      ]
+    },
+    {
+      "id": "households-demand",
+      "label": "Households & Demand",
+      "variables": [
+        "YD",
+        "C",
+        "CN",
+        "CS",
+        "CD",
+        "AH"
       ]
     }
   ],
