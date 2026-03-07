@@ -73,6 +73,9 @@ fp.exe
 # Fair-Parke reference documents (not distributable)
 sources/
 
+# Internal AI memory (not public)
+docs/ai-memory.md
+
 # Run artifacts
 artifacts/
 artifacts-*/
