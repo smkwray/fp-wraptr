@@ -2,7 +2,7 @@
 
 Source of truth: `src/fp_wraptr/mcp_server.py`.
 
-## Tools (41)
+## Tools (44)
 
 ## Capability matrix
 

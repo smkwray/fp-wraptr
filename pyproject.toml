@@ -54,14 +54,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fp_wraptr", "src/fppy", "src/fp_py"]
+packages = ["src/fp_wraptr", "src/fppy"]
 include = ["src/fp_wraptr/py.typed"]
 
 [tool.hatch.build.targets.sdist]
 include = [
     "/src/fp_wraptr",
     "/src/fppy",
-    "/src/fp_py",
     "/scripts/assets/install_fp_exe.py",
     "/README.md",
     "/LICENSE",

@@ -5,29 +5,75 @@
 ## Project overview
 fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python tooling for scenario management, IO parsing, result comparison, visualization, and LLM-assisted exploration.
 
+## Dual engines
+- **fpexe** -- Original Fair-Parke Windows PE32 binary (FORTRAN). Runs via Wine on macOS/Linux.
+- **fppy** -- Pure-Python re-implementation of the FP solver core. No Wine required.
+- Parity mode runs both engines head-to-head and compares PABEV.TXT outputs.
+
 ## Key entry points
-- `src/fp_wraptr/cli.py` -- Typer CLI app. Subcommands: `run`, `validate`, `batch`, `report`, `graph`, `history`, `dashboard`, `diff`, `version`, `info`, `io parse-output`, `io parse-input`, `viz plot`.
+- `src/fp_wraptr/cli.py` -- Typer CLI app (`fp` command). Subcommands: `run`, `parity`, `validate`, `batch`, `diff`, `report`, `graph`, `history`, `dashboard`, `export`, `dsl compile`, `describe`, `dictionary`, `fred`, `io parse-output`, `io parse-input`, `viz plot`, `version`, `info`.
 - `src/fp_wraptr/runtime/fp_exe.py` -- Subprocess wrapper for fp.exe.
+- `src/fp_wraptr/runtime/fairpy.py` -- Subprocess wrapper for fppy (pure-Python backend).
 - `src/fp_wraptr/io/parser.py` -- FP output file parser (forecast tables -> pandas DataFrames).
-- `src/fp_wraptr/io/input_parser.py` -- FP input file parser.
+- `src/fp_wraptr/io/input_parser.py` -- FP input file parser (canonical snake_case keys).
 - `src/fp_wraptr/io/writer.py` -- Write FP-format files from Python objects.
 - `src/fp_wraptr/scenarios/config.py` -- Pydantic models for scenario YAML configs.
-- `src/fp_wraptr/scenarios/runner.py` -- Scenario execution pipeline.
+- `src/fp_wraptr/scenarios/runner.py` -- Scenario execution pipeline (backend selection: fpexe/fppy/both).
 - `src/fp_wraptr/scenarios/batch.py` -- Batch scenario execution and comparison.
+- `src/fp_wraptr/scenarios/bundle.py` -- Bundle management for multi-variant runs.
+- `src/fp_wraptr/scenarios/packs.py` -- Pack discovery (local/public manifests).
+- `src/fp_wraptr/scenarios/dsl.py` -- Scenario DSL compiler.
+- `src/fp_wraptr/scenarios/authoring/` -- Managed workspace authoring (cards, recipes, compile/run).
 - `src/fp_wraptr/analysis/diff.py` -- Compare two FP runs, produce summary deltas.
+- `src/fp_wraptr/analysis/parity.py` -- Dual-engine PABEV-based parity validation.
 - `src/fp_wraptr/analysis/report.py` -- Build markdown reports from run output.
 - `src/fp_wraptr/analysis/graph.py` -- Build variable dependency graphs from input file.
+- `src/fp_wraptr/analysis/sensitivity.py` -- Sensitivity analysis with fan charts.
+- `src/fp_wraptr/data/dictionary.py` -- Variable dictionary with source coverage.
+- `src/fp_wraptr/data/source_map.py` -- Data source tracking (FRED/BEA/BLS mappings).
+- `src/fp_wraptr/data/update_fred.py` -- FRED data integration pipeline.
 - `src/fp_wraptr/viz/plots.py` -- Matplotlib charts for forecast series.
 - `src/fp_wraptr/dashboard/artifacts.py` -- Discover and parse run artifacts.
 - `src/fp_wraptr/dashboard/charts.py` -- Plotly chart helpers.
-- `src/fp_wraptr/mcp_server.py` (+ `mcp/server.py` compatibility shim) -- FastMCP server exposing 22 tools
-  (scenario run/bundle execution, scenario create/update/validate, parse/diff, dictionary/source-map, data update)
-  and resources `fp://output/variables`, `fp://output/equations` (if resource API is available).
+- `src/fp_wraptr/pages_export.py` -- Static GitHub Pages export.
+- `src/fp_wraptr/mcp_server.py` -- FastMCP server exposing 44 tools, 9 resources, and 6 prompts.
   Canonical tool docs: `docs/mcp-tools.md`.
-- Dashboard entry points:
-  - Streamlit dashboard launcher: `fp dashboard`
-  - Home: `apps/dashboard/app.py`
-  - Pages: `0_Run_Panels`, `2_Compare_Runs`, `3_New_Run`, `4_Equation_Graph`
+- Dashboard: `apps/dashboard/Run_Manager.py` (home) + 11 pages in `apps/dashboard/pages/`.
+
+## MCP server
+
+### Tools (44)
+run_fp_scenario, run_bundle, run_pse2025, parse_fp_output, diff_runs,
+list_output_variables, list_output_equations, describe_variable, search_dictionary,
+explain_equation, describe_variable_sources, source_map_coverage, source_map_quality,
+source_map_report, source_map_window_check, update_model_from_fred,
+run_batch_scenarios, create_scenario, update_scenario, list_packs, describe_pack,
+list_workspaces, create_workspace_from_catalog, create_workspace_from_bundle,
+get_workspace, update_workspace_metadata, list_workspace_cards, apply_workspace_card,
+import_workspace_series, add_bundle_variant, update_bundle_variant,
+clone_bundle_variant_recipe, remove_bundle_variant, compile_workspace,
+run_workspace, compare_workspace_runs, list_visualizations,
+build_visualization_view, validate_scenario, list_scenarios, get_run_history,
+get_project_info, get_latest_run, get_parity_report
+
+### Resources (9)
+- fp://output/variables -- parsed model variable catalog
+- fp://output/equations -- parsed model equation catalog
+- fp://packs -- discovered pack manifests
+- fp://pack/{pack_id}/cards -- cards surfaced by one pack
+- fp://pack/{pack_id}/recipes -- named recipes surfaced by one pack
+- fp://workspace/{workspace_id} -- workspace state
+- fp://workspace/{workspace_id}/compile-report -- latest compile report
+- fp://runs/latest -- recent run history
+- fp://runs/{run_id}/summary -- compact parsed summary for one run
+
+### Prompts (6)
+- Create a variant from base/high/low
+- Change coefficients safely
+- Attach a new series override
+- Build a bundle of policy variants
+- Compare latest family runs
+- Prepare dashboard visualization set
 
 ## Data files (not in repo, gitignored)
 - `FM/fp.exe` -- Fair-Parke Windows executable.
@@ -46,22 +92,38 @@ fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python toolin
 
 ## Architecture
 - Package: `src/fp_wraptr/` (installed as `fp_wraptr`).
+- Pure-Python solver: `src/fppy/` (vendored minimal execution/parity core).
 - CLI: Typer with `fp` entry point.
-- Config: Pydantic models, YAML scenarios.
+- Config: Pydantic v2 models, YAML scenarios.
 - Build: hatchling, managed by uv.
 - Lint/format: ruff.
-- Tests: pytest (tests/ directory).
+- Tests: pytest (tests/ directory, 81 test files, 500+ tests).
+- Dashboard: Streamlit (12 pages including home).
 - Docs: MkDocs Material + mkdocstrings.
 - MCP: FastMCP (optional extra).
+- Data: FRED, BEA, BLS pipelines with source-map tracking.
 
 ## Conventions
 - Python 3.11+, ruff for style.
 - Tests skip automatically when FM/ files are missing.
 - Scenario configs are YAML files in examples/.
 - Run artifacts go to artifacts/ (gitignored).
+- Parity contract is always PABEV.TXT with hard-fail invariants.
 
 ## Documentation
+- Site: https://smkwray.github.io/fp-wraptr/
 - `docs/index.md` -- Home page.
 - `docs/quickstart.md` -- Getting started guide.
 - `docs/architecture.md` -- Design decisions.
+- `docs/scenarios.md` -- YAML configuration reference.
+- `docs/cli.md` -- CLI command reference (70+ commands).
+- `docs/dashboard.md` -- 12-page Streamlit dashboard guide.
+- `docs/parity.md` -- Parity operator playbook.
+- `docs/agent-workflows.md` -- MCP workspace authoring flow.
+- `docs/packs.md` -- Pack manifests for scenario families.
+- `docs/mcp.md` -- MCP server setup.
+- `docs/mcp-tools.md` -- Full tool/resource/prompt reference.
+- `docs/data-update.md` -- FRED/BEA/BLS refresh workflows.
+- `docs/model-runs.md` -- Static GitHub Pages export.
 - `docs/api.md` -- Auto-generated API reference.
+- `docs/changelog.md` -- Release history.

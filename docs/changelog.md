@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Pure-Python solver backend (`fppy`) with dual-engine parity validation
-- MCP server expanded to 41 tools with 9 resources and structured prompts
+- MCP server expanded to 44 tools with 9 resources and 6 structured prompts
 - Agent-first workspace authoring: packs, cards, recipes, managed workspaces
 - FRED, BEA, and BLS data ingestion pipelines with safe-lane update workflow
 - Official Fair bundle fetch and verification (`fp data fetch-fair-bundle`)
@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - Sensitivity analysis with fan charts and response tables
 - Historical fit comparison page in dashboard
 - GitHub Pages static model-runs export (`fp export pages`)
-- 500+ tests across 82 test files
+- 500+ tests across 81 test files
 
 ### Changed
 - Dashboard expanded to 12 pages (from initial 3)
