@@ -139,7 +139,7 @@ presets:
     label: Households & Demand
     variables:
       - YD
-      - C
+      - SH
       - CN
       - CS
       - CD
