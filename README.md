@@ -115,15 +115,17 @@ Pages include: Run Panels, Compare Runs, New Run, Equation Graph, Equations, Twe
 
 See the [Dashboard guide](https://smkwray.github.io/fp-wraptr/dashboard/) for the full walkthrough.
 
-## GitHub Pages Run Explorer
+## Model Runs Explorer
 
-fp-wraptr can also export a separate read-only bundle for GitHub Pages:
+fp-wraptr can export completed runs as a static site you can share with your team -- no server, no Python, just a browser.
+
+Browse forecasts, compare scenarios side-by-side, and inspect variable-level results from any device. Useful for sharing results with collaborators who don't have the model installed.
 
 ```bash
 fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
 ```
 
-That workflow builds a static browser app plus portable JSON payloads under `public/model-runs/`, intended to be published beside the docs site at `/model-runs/`.
+**[Live example →](https://smkwray.github.io/fp-wraptr/model-runs/)**
 
 ## Parser contract (FP input parsing)
 
