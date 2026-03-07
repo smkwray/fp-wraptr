@@ -1,5 +1,5 @@
 version: 1
-title: FP Model Runs Explorer
+title: FP-Wraptr Runs Explorer
 site_subpath: model-runs
 runs:
   - run_id: stock_fm_baseline
