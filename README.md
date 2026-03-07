@@ -26,7 +26,7 @@
 
 ---
 
-fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on top of decades of economic modeling work -- all from Python.
+fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on top of decades of economic modeling work — all from Python.
 
 The current direction is agent-first authoring: use MCP-managed workspaces and local pack manifests for scenario design, then use the dashboard to inspect runs, compare variants, and visualize results.
 
@@ -34,9 +34,9 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 
 | Mascot | Represents |
 |--------|-----------|
-| **Rex** the Velociraptor | `fp.exe` -- the original FORTRAN model |
-| **Archie** the Archaeopteryx | `fppy` -- the pure-Python solver |
-| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring |
+| **Rex** the Velociraptor | `fp.exe` — the original FORTRAN model |
+| **Archie** the Archaeopteryx | `fppy` — the pure-Python solver |
+| **Raptr** the Eagle | Agentic features — MCP server, packs, and workspace authoring |
 
 <p align="center">
   <img src="logo/fp-py-logo.png" alt="Archie the archaeopteryx — fppy mascot" width="180">
@@ -44,17 +44,17 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 
 ## Features
 
-- **YAML scenario configs** -- human-readable definitions instead of raw `fminput.txt`
-- **Structured I/O** -- parse FP inputs and outputs into Python objects and DataFrames
-- **Dual engines** -- run the original FORTRAN binary or the pure-Python solver (fppy), or both for parity validation
-- **Batch runner** -- execute multiple scenarios with diff and regression testing
-- **Dependency graph** -- trace "why did variable X change?" through 130+ equations
-- **Dashboard** -- 12-page Streamlit app with Plotly charts for run exploration and comparison
-- **Data pipelines** -- FRED, BEA, and BLS ingestion with safe-lane update workflows
-- **Scenario DSL** -- human-readable DSL compiler for compact scenario definitions
-- **Dictionary** -- variable and equation lookup with source coverage and quality reports
-- **MCP server** -- 41 tools for LLM-assisted exploration and scenario authoring
-- **Managed workspaces** -- local packs, cards, and recipes for agent-first workflows
+- **YAML scenario configs** — human-readable definitions instead of raw `fminput.txt`
+- **Structured I/O** — parse FP inputs and outputs into Python objects and DataFrames
+- **Dual engines** — run the original FORTRAN binary or the pure-Python solver (fppy), or both for parity validation
+- **Batch runner** — execute multiple scenarios with diff and regression testing
+- **Dependency graph** — trace "why did variable X change?" through 130+ equations
+- **Dashboard** — 12-page Streamlit app with Plotly charts for run exploration and comparison
+- **Data pipelines** — FRED, BEA, and BLS ingestion with safe-lane update workflows
+- **Scenario DSL** — human-readable DSL compiler for compact scenario definitions
+- **Dictionary** — variable and equation lookup with source coverage and quality reports
+- **MCP server** — 41 tools for LLM-assisted exploration and scenario authoring
+- **Managed workspaces** — local packs, cards, and recipes for agent-first workflows
 
 ## Quick start
 
@@ -82,8 +82,8 @@ uv run fp parity examples/baseline.yaml --with-drift
 
 fp-wraptr supports two solver backends:
 
-- **`fpexe`** -- the original Fair-Parke Windows binary (`fp.exe`). Battle-hardened FORTRAN. Runs via Wine on macOS/Linux.
-- **`fppy`** -- a pure-Python re-implementation of the FP solver core. No Wine, no binary blobs. Archie is learning to fly.
+- **`fpexe`** — the original Fair-Parke Windows binary (`fp.exe`). Battle-hardened FORTRAN. Runs via Wine on macOS/Linux.
+- **`fppy`** — a pure-Python re-implementation of the FP solver core. No Wine, no binary blobs. Archie is learning to fly.
 
 Run them head-to-head with **parity mode**:
 
@@ -121,7 +121,7 @@ See the [Dashboard guide](https://smkwray.github.io/fp-wraptr/dashboard/) for th
 
 ## Model Runs Explorer
 
-fp-wraptr can export completed runs as a static site you can share with your team -- no server, no Python, just a browser.
+fp-wraptr can export completed runs as a static site you can share with your team — no server, no Python, just a browser.
 
 Browse forecasts, compare scenarios side-by-side, and inspect variable-level results from any device. Useful for sharing results with collaborators who don't have the model installed.
 
@@ -152,7 +152,7 @@ Migration note: if any downstream consumer expects legacy alias keys, map them e
 ## Prerequisites
 
 - **Python 3.11+**
-- **FM/ folder**: Model data files (`fmdata.txt`, `fmage.txt`, `fmexog.txt`, `fminput.txt`). Not included in this repo -- obtain from [fairmodel.econ.yale.edu](https://fairmodel.econ.yale.edu/fp/fp.htm).
+- **FM/ folder**: Model data files (`fmdata.txt`, `fmage.txt`, `fmexog.txt`, `fminput.txt`). Not included in this repo — obtain from [fairmodel.econ.yale.edu](https://fairmodel.econ.yale.edu/fp/fp.htm).
 - **fp.exe** *(optional)*: The original Fair-Parke FORTRAN binary. fp-wraptr includes `fppy`, a pure-Python solver, so `fp.exe` is not required. If you want to run the original engine or use parity mode, [download from Yale](https://fairmodel.econ.yale.edu/fp/fp.htm) and place in `FM/`, or set `FP_HOME`. (Windows binary; use Wine on macOS/Linux.)
 
 ## Project structure
