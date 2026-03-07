@@ -127,3 +127,41 @@ def test_run_scenario_fppy_plumbs_num_threads(tmp_path, monkeypatch) -> None:
     result = run_scenario(config, output_dir=tmp_path / "artifacts")
     assert result.run_result is not None
     assert result.run_result.return_code == 0
+
+
+def test_run_scenario_fppy_plumbs_structural_read_cache(tmp_path, monkeypatch) -> None:
+    fp_home = tmp_path / "FM"
+    _write_minimal_fp_home(fp_home)
+    config = ScenarioConfig(
+        name="structural_cache_plumbed",
+        fp_home=fp_home,
+        backend="fppy",
+        fppy={"eq_structural_read_cache": "numpy_columns"},
+    )
+
+    def fake_check_available(self) -> bool:
+        return True
+
+    def fake_run(self, input_file=None, work_dir=None, extra_env=None):
+        assert self.eq_structural_read_cache == "numpy_columns"
+        assert work_dir is not None
+        work_dir = Path(work_dir)
+        _write_minimal_pabev(work_dir / "PABEV.TXT")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
+            output_file=work_dir / "PABEV.TXT",
+            duration_seconds=0.0,
+        )
+
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.FairPyBackend.check_available", fake_check_available
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.FairPyBackend.run", fake_run)
+
+    result = run_scenario(config, output_dir=tmp_path / "artifacts")
+    assert result.run_result is not None
+    assert result.run_result.return_code == 0

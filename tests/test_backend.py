@@ -115,6 +115,25 @@ def test_fairpy_backend_trace_flags_emit_cli_args() -> None:
     ]
 
 
+def test_fairpy_backend_structural_read_cache_disabled_by_default() -> None:
+    backend = FairPyBackend()
+    assert backend._eq_structural_read_cache_args() == []
+
+
+def test_fairpy_backend_structural_read_cache_emits_cli_args() -> None:
+    backend = FairPyBackend(eq_structural_read_cache="numpy_columns")
+    assert backend._eq_structural_read_cache_args() == [
+        "--eq-structural-read-cache",
+        "numpy_columns",
+    ]
+
+
+def test_fairpy_backend_structural_read_cache_rejects_unknown_mode() -> None:
+    backend = FairPyBackend(eq_structural_read_cache="bogus")
+    with pytest.raises(FairPyBackendError):
+        backend._eq_structural_read_cache_args()
+
+
 def test_fairpy_backend_thread_env_overrides_disabled_by_default() -> None:
     backend = FairPyBackend()
     assert backend._thread_env_overrides() == {}

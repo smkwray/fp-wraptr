@@ -1541,7 +1541,7 @@ def _sort_focus_events(events: list[dict[str, object]]) -> list[dict[str, object
     )
 
 
-def _compute_fixed_point_residual(
+def _compute_fixed_point_probe(
     records: list,
     frame: pd.DataFrame,
     specs: dict[str, object],
@@ -1551,12 +1551,6 @@ def _compute_fixed_point_residual(
     strict_missing_assignments: bool,
     dampall: float,
     damp_overrides: dict[str, float] | None,
-    targets: tuple[str, ...],
-    windows: tuple[tuple[str, str], ...],
-    default_tol: float,
-    default_relative_mode: bool,
-    tolerance_overrides: dict[str, float] | None = None,
-    absolute_mode_overrides: set[str] | None = None,
     period_sequential: bool = False,
     period_sequential_fp_pass_order: bool = True,
     period_sequential_all_assignments: bool = False,
@@ -1564,6 +1558,7 @@ def _compute_fixed_point_residual(
     period_sequential_context_replay_command_time_smpl: bool = False,
     period_sequential_context_retain_overlap_only: bool = False,
     period_sequential_assignment_targets: frozenset[str] = frozenset(),
+    period_sequential_eq_structural_read_cache: str = "off",
     windows_override: tuple[SampleWindow, ...] | None = None,
     rho_aware: bool = False,
     rho_resid_ar1: bool = False,
@@ -1588,12 +1583,14 @@ def _compute_fixed_point_residual(
     rho_resid_trace_event_limit: int = 200,
     rho_resid_fpe_trap: bool = False,
     eval_context: object | None = None,
-) -> tuple[float, float, int, int, bool, bool, bool]:
+    profiling: dict[str, float | int] | None = None,
+) -> tuple[pd.DataFrame, int, int]:
     backfill_kwargs: dict[str, object] = {"on_error": on_error}
     if not strict_missing_inputs:
         backfill_kwargs["strict_missing_inputs"] = False
     if not strict_missing_assignments:
         backfill_kwargs["strict_missing_assignments"] = False
+    probe_started = time.monotonic()
     probe_result = apply_eq_backfill(
         records,
         frame.copy(deep=True),
@@ -1609,6 +1606,7 @@ def _compute_fixed_point_residual(
             period_sequential_context_retain_overlap_only
         ),
         period_sequential_assignment_targets=period_sequential_assignment_targets,
+        period_sequential_eq_structural_read_cache=period_sequential_eq_structural_read_cache,
         windows_override=windows_override,
         rho_aware=rho_aware,
         rho_resid_ar1=rho_resid_ar1,
@@ -1635,6 +1633,17 @@ def _compute_fixed_point_residual(
         eval_context=eval_context,
         **backfill_kwargs,
     )
+    if profiling is not None:
+        profiling["runtime_seconds"] = float(profiling.get("runtime_seconds", 0.0)) + (
+            time.monotonic() - probe_started
+        )
+        profiling["structural_scalar_reads_cached"] = int(
+            profiling.get("structural_scalar_reads_cached", 0)
+        ) + _coerce_backfill_int(probe_result, "structural_scalar_reads_cached")
+        profiling["structural_scalar_reads_frame"] = int(
+            profiling.get("structural_scalar_reads_frame", 0)
+        ) + _coerce_backfill_int(probe_result, "structural_scalar_reads_frame")
+        profiling["calls"] = int(profiling.get("calls", 0)) + 1
     probe_frame = _coerce_backfill_frame(probe_result, frame)
     probe_frame = _apply_damping(
         frame,
@@ -1642,7 +1651,7 @@ def _compute_fixed_point_residual(
         dampall,
         overrides=damp_overrides,
     )
-    probe_failed = _coerce_backfill_int(probe_result, "failed", "failed_steps")
+    probe_failed = int(_coerce_backfill_int(probe_result, "failed", "failed_steps"))
     probe_issue_count = len(
         _coerce_backfill_issues(
             probe_result.issues
@@ -1652,6 +1661,20 @@ def _compute_fixed_point_residual(
             else []
         )
     )
+    return probe_frame, probe_failed, probe_issue_count
+
+
+def _compute_fixed_point_residual_metrics(
+    frame: pd.DataFrame,
+    probe_frame: pd.DataFrame,
+    *,
+    targets: tuple[str, ...],
+    windows: tuple[tuple[str, str], ...],
+    default_tol: float,
+    default_relative_mode: bool,
+    tolerance_overrides: dict[str, float] | None = None,
+    absolute_mode_overrides: set[str] | None = None,
+) -> tuple[float, float, bool, bool, bool]:
     residual_abs_delta, residual_mode_delta, residual_ratio = _compute_convergence_metrics(
         frame,
         probe_frame,
@@ -1670,12 +1693,148 @@ def _compute_fixed_point_residual(
     return (
         residual_abs_delta,
         residual_ratio,
-        int(probe_failed),
-        int(probe_issue_count),
         residual_has_nonfinite_delta,
         residual_has_nonfinite_ratio,
         residual_has_nonfinite,
     )
+
+
+def _compute_fixed_point_residual(
+    records: list,
+    frame: pd.DataFrame,
+    specs: dict[str, object],
+    *,
+    on_error: str,
+    strict_missing_inputs: bool,
+    strict_missing_assignments: bool,
+    dampall: float,
+    damp_overrides: dict[str, float] | None,
+    targets: tuple[str, ...],
+    windows: tuple[tuple[str, str], ...],
+    default_tol: float,
+    default_relative_mode: bool,
+    tolerance_overrides: dict[str, float] | None = None,
+    absolute_mode_overrides: set[str] | None = None,
+    period_sequential: bool = False,
+    period_sequential_fp_pass_order: bool = True,
+    period_sequential_all_assignments: bool = False,
+    period_sequential_defer_create: bool = False,
+    period_sequential_context_replay_command_time_smpl: bool = False,
+    period_sequential_context_retain_overlap_only: bool = False,
+    period_sequential_assignment_targets: frozenset[str] = frozenset(),
+    period_sequential_eq_structural_read_cache: str = "off",
+    windows_override: tuple[SampleWindow, ...] | None = None,
+    rho_aware: bool = False,
+    rho_resid_ar1: bool = False,
+    rho_resid_iteration_seed: dict[object, object] | None = None,
+    rho_resid_iteration_seed_lag: int = 1,
+    rho_resid_iteration_seed_mode: str = "legacy",
+    rho_resid_boundary_reset: str = "off",
+    rho_resid_carry_lag: int = 0,
+    rho_resid_carry_damp: float = 1.0,
+    rho_resid_carry_damp_mode: str = "term",
+    rho_resid_carry_multipass: bool = False,
+    rho_resid_lag_gating: str = "off",
+    rho_resid_update_source: str = "structural",
+    rho_resid_la257_update_rule: str = "legacy",
+    rho_resid_la257_fortran_cycle_carry_style: str = "legacy",
+    rho_resid_la257_u_phase_max_gain: float | None = None,
+    rho_resid_la257_u_phase_max_gain_mode: str = "relative",
+    rho_resid_la257_staged_lifecycle: bool = False,
+    rho_resid_commit_after_check: bool = False,
+    rho_resid_la257_u_phase_lines: tuple[_La257Selector, ...] = tuple(),
+    rho_resid_trace_lines: tuple[_La257Selector, ...] = tuple(),
+    rho_resid_trace_event_limit: int = 200,
+    rho_resid_fpe_trap: bool = False,
+    eval_context: object | None = None,
+    profiling: dict[str, float | int] | None = None,
+) -> tuple[float, float, int, int, bool, bool, bool]:
+    probe_frame, probe_failed, probe_issue_count = _compute_fixed_point_probe(
+        records,
+        frame,
+        specs,
+        on_error=on_error,
+        strict_missing_inputs=strict_missing_inputs,
+        strict_missing_assignments=strict_missing_assignments,
+        dampall=dampall,
+        damp_overrides=damp_overrides,
+        period_sequential=period_sequential,
+        period_sequential_fp_pass_order=period_sequential_fp_pass_order,
+        period_sequential_all_assignments=period_sequential_all_assignments,
+        period_sequential_defer_create=period_sequential_defer_create,
+        period_sequential_context_replay_command_time_smpl=(
+            period_sequential_context_replay_command_time_smpl
+        ),
+        period_sequential_context_retain_overlap_only=(
+            period_sequential_context_retain_overlap_only
+        ),
+        period_sequential_assignment_targets=period_sequential_assignment_targets,
+        period_sequential_eq_structural_read_cache=period_sequential_eq_structural_read_cache,
+        windows_override=windows_override,
+        rho_aware=rho_aware,
+        rho_resid_ar1=rho_resid_ar1,
+        rho_resid_iteration_seed=rho_resid_iteration_seed,
+        rho_resid_iteration_seed_lag=rho_resid_iteration_seed_lag,
+        rho_resid_iteration_seed_mode=rho_resid_iteration_seed_mode,
+        rho_resid_boundary_reset=rho_resid_boundary_reset,
+        rho_resid_carry_lag=rho_resid_carry_lag,
+        rho_resid_carry_damp=rho_resid_carry_damp,
+        rho_resid_carry_damp_mode=rho_resid_carry_damp_mode,
+        rho_resid_carry_multipass=rho_resid_carry_multipass,
+        rho_resid_lag_gating=rho_resid_lag_gating,
+        rho_resid_update_source=rho_resid_update_source,
+        rho_resid_la257_update_rule=rho_resid_la257_update_rule,
+        rho_resid_la257_fortran_cycle_carry_style=rho_resid_la257_fortran_cycle_carry_style,
+        rho_resid_la257_u_phase_max_gain=rho_resid_la257_u_phase_max_gain,
+        rho_resid_la257_u_phase_max_gain_mode=rho_resid_la257_u_phase_max_gain_mode,
+        rho_resid_la257_staged_lifecycle=rho_resid_la257_staged_lifecycle,
+        rho_resid_commit_after_check=rho_resid_commit_after_check,
+        rho_resid_la257_u_phase_lines=rho_resid_la257_u_phase_lines,
+        rho_resid_trace_lines=rho_resid_trace_lines,
+        rho_resid_trace_event_limit=rho_resid_trace_event_limit,
+        rho_resid_fpe_trap=rho_resid_fpe_trap,
+        eval_context=eval_context,
+        profiling=profiling,
+    )
+    (
+        residual_abs_delta,
+        residual_ratio,
+        residual_has_nonfinite_delta,
+        residual_has_nonfinite_ratio,
+        residual_has_nonfinite,
+    ) = _compute_fixed_point_residual_metrics(
+        frame,
+        probe_frame,
+        targets=targets,
+        windows=windows,
+        default_tol=default_tol,
+        default_relative_mode=default_relative_mode,
+        tolerance_overrides=tolerance_overrides,
+        absolute_mode_overrides=absolute_mode_overrides,
+    )
+    return (
+        residual_abs_delta,
+        residual_ratio,
+        probe_failed,
+        probe_issue_count,
+        residual_has_nonfinite_delta,
+        residual_has_nonfinite_ratio,
+        residual_has_nonfinite,
+    )
+
+
+def _should_compute_residual_probe(
+    *,
+    iteration: int,
+    max_iters: int,
+    min_iters: int,
+    convergence_ratio: float,
+) -> bool:
+    if int(iteration) >= int(max_iters):
+        return True
+    if int(iteration) < int(min_iters):
+        return False
+    return float(convergence_ratio) <= 1.0
 
 
 def _tokenize_override_line(raw_line: str) -> list[str]:
@@ -3841,6 +4000,7 @@ def _cmd_mini_run(
     eq_eval_precision: str = "float64",
     eq_term_order: str = "as_parsed",
     eq_eq_read_mode: str = "live",
+    eq_structural_read_cache: str = "off",
     eq_math_backend: str = "numpy",
     eq_quantize_eq_commit: str = "off",
     eq_filter_use_full_context: bool = False,
@@ -3908,6 +4068,9 @@ def _cmd_mini_run(
         return 1
     if str(eq_eq_read_mode).strip().lower() not in {"live", "frozen"}:
         print("Mini-run option error: eq_eq_read_mode must be one of live, frozen")
+        return 1
+    if str(eq_structural_read_cache).strip().lower() not in {"off", "numpy_columns"}:
+        print("Mini-run option error: eq_structural_read_cache must be one of off, numpy_columns")
         return 1
     if str(eq_math_backend).strip().lower() not in {"numpy", "math"}:
         print("Mini-run option error: eq_math_backend must be one of numpy, math")
@@ -4659,8 +4822,15 @@ def _cmd_mini_run(
     eq_backfill_runtime_window_prep_seconds = 0.0
     eq_backfill_runtime_iteration_seconds = 0.0
     eq_backfill_runtime_iteration_apply_seconds = 0.0
+    eq_backfill_runtime_iteration_main_apply_seconds = 0.0
+    eq_backfill_runtime_iteration_deep_copy_seconds = 0.0
+    eq_backfill_runtime_iteration_convergence_seconds = 0.0
+    eq_backfill_runtime_iteration_residual_checked_seconds = 0.0
+    eq_backfill_runtime_iteration_residual_all_targets_seconds = 0.0
     eq_backfill_runtime_post_solve_replay_seconds = 0.0
     eq_backfill_runtime_iteration_apply_calls = 0
+    eq_backfill_runtime_iteration_residual_checked_calls = 0
+    eq_backfill_runtime_iteration_residual_all_targets_calls = 0
     setupsolve_summary: dict[str, object] | None = None
     eq_backfill_converged_checked_only = False
     eq_backfill_period_sequential = bool(eq_period_sequential)
@@ -4695,6 +4865,10 @@ def _cmd_mini_run(
     )
     eq_backfill_quantize_store = str(eq_quantize_store).strip().lower()
     eq_backfill_quantize_store_cells = 0
+    eq_backfill_structural_read_cache = str(eq_structural_read_cache).strip().lower()
+    eq_backfill_structural_read_cache_column_count = 0
+    eq_backfill_structural_scalar_reads_cached = 0
+    eq_backfill_structural_scalar_reads_frame = 0
     eq_backfill_top_target_deltas = int(eq_top_target_deltas_effective)
     eq_backfill_specs_has_rho_terms = False
     eq_backfill_rho_aware = bool(eq_rho_aware)
@@ -5372,6 +5546,20 @@ def _cmd_mini_run(
                 eq_backfill_last_abs_delta = 0.0
                 eq_backfill_delta_ratio = 0.0
                 eq_backfill_diverged = False
+            eq_backfill_residual_abs_delta = 0.0
+            eq_backfill_residual_ratio = 0.0
+            eq_backfill_residual_failed = 0
+            eq_backfill_residual_issue_count = 0
+            eq_backfill_residual_probe_has_nonfinite_delta = False
+            eq_backfill_residual_probe_has_nonfinite_ratio = False
+            eq_backfill_residual_probe_has_nonfinite = False
+            eq_backfill_residual_abs_delta_all_targets = 0.0
+            eq_backfill_residual_ratio_all_targets = 0.0
+            eq_backfill_residual_failed_all_targets = 0
+            eq_backfill_residual_issue_count_all_targets = 0
+            eq_backfill_residual_probe_has_nonfinite_delta_all_targets = False
+            eq_backfill_residual_probe_has_nonfinite_ratio_all_targets = False
+            eq_backfill_residual_probe_has_nonfinite_all_targets = False
             scope_max_iters = eq_backfill_max_iters
             # In period-scoped mode, MAXITERS (default 100) is the iteration
             # cap per period.  MINITERS is a minimum: convergence is only
@@ -5397,7 +5585,11 @@ def _cmd_mini_run(
                 0 if eq_backfill_keyboard_targets_missing else scope_max_iters
             ):
                 iteration = iteration_index + 1
+                deep_copy_started = time.monotonic()
                 before = working.copy(deep=True)
+                eq_backfill_runtime_iteration_deep_copy_seconds += (
+                    time.monotonic() - deep_copy_started
+                )
                 probe_before_values: dict[str, float | None] | None = None
                 if (
                     eq_backfill_keyboard_stub_lag_probe_period is not None
@@ -5479,6 +5671,9 @@ def _cmd_mini_run(
                 )
                 backfill_kwargs["period_sequential_eq_read_mode"] = (
                     str(eq_eq_read_mode).strip().lower()
+                )
+                backfill_kwargs["period_sequential_eq_structural_read_cache"] = (
+                    eq_backfill_structural_read_cache
                 )
                 backfill_kwargs["period_sequential_assignment_math_backend"] = (
                     str(eq_math_backend).strip().lower()
@@ -5577,8 +5772,22 @@ def _cmd_mini_run(
                     eval_context=eval_context,
                     **backfill_kwargs,
                 )
-                eq_backfill_runtime_iteration_apply_seconds += time.monotonic() - eq_apply_started
+                eq_apply_elapsed = time.monotonic() - eq_apply_started
+                eq_backfill_runtime_iteration_apply_seconds += eq_apply_elapsed
+                eq_backfill_runtime_iteration_main_apply_seconds += eq_apply_elapsed
                 eq_backfill_runtime_iteration_apply_calls += 1
+                eq_backfill_structural_read_cache_column_count = max(
+                    eq_backfill_structural_read_cache_column_count,
+                    _coerce_backfill_int(eq_backfill_result, "structural_read_cache_column_count"),
+                )
+                eq_backfill_structural_scalar_reads_cached += _coerce_backfill_int(
+                    eq_backfill_result,
+                    "structural_scalar_reads_cached",
+                )
+                eq_backfill_structural_scalar_reads_frame += _coerce_backfill_int(
+                    eq_backfill_result,
+                    "structural_scalar_reads_frame",
+                )
                 iteration_seed_candidate: dict[object, object] | None = None
                 if eq_backfill_rho_resid_ar1_carry_iterations:
                     if eq_backfill_rho_resid_ar1_seed_mode == "positioned":
@@ -5798,6 +6007,9 @@ def _cmd_mini_run(
                             specs,
                             period_sequential=eq_backfill_period_sequential,
                             period_sequential_fp_pass_order=False,
+                            period_sequential_eq_structural_read_cache=(
+                                eq_backfill_structural_read_cache
+                            ),
                             windows_override=iteration_windows_override,
                             on_error=on_error,
                             strict_missing_inputs=strict_missing_inputs,
@@ -6003,6 +6215,7 @@ def _cmd_mini_run(
                         trace_events=trace_events,
                     )
                 eq_backfill_iterations += 1
+                convergence_started = time.monotonic()
                 (
                     iter_delta,
                     eq_backfill_convergence_delta,
@@ -6223,117 +6436,96 @@ def _cmd_mini_run(
                                     "nonfinite_value": None,
                                     "snapshot": {},
                                 }
-                (
-                    eq_backfill_residual_abs_delta,
-                    eq_backfill_residual_ratio,
-                    eq_backfill_residual_failed,
-                    eq_backfill_residual_issue_count,
-                    eq_backfill_residual_probe_has_nonfinite_delta,
-                    eq_backfill_residual_probe_has_nonfinite_ratio,
-                    eq_backfill_residual_probe_has_nonfinite,
-                ) = _compute_fixed_point_residual(
-                    iteration_eq_records,
-                    working,
-                    specs,
-                    on_error=on_error,
-                    strict_missing_inputs=strict_missing_inputs,
-                    strict_missing_assignments=strict_missing_assignments,
-                    dampall=eq_backfill_dampall,
-                    damp_overrides=eq_backfill_damp_overrides,
-                    targets=eq_metric_targets,
-                    windows=iteration_metric_windows,
-                    default_tol=eq_backfill_tol,
-                    default_relative_mode=(
-                        eq_backfill_tol_mode == "relative_with_zero_absolute_fallback"
-                    ),
-                    tolerance_overrides=eq_backfill_tol_overrides,
-                    absolute_mode_overrides=eq_backfill_tolabs_overrides,
-                    period_sequential=eq_backfill_period_sequential,
-                    period_sequential_fp_pass_order=bool(eq_period_sequential_fp_pass_order),
-                    period_sequential_all_assignments=(
-                        eq_backfill_period_sequential_all_assignments
-                    ),
-                    period_sequential_defer_create=(eq_backfill_period_sequential_defer_create),
-                    period_sequential_context_replay_command_time_smpl=(
-                        eq_backfill_period_sequential_context_replay_command_time_smpl
-                    ),
-                    period_sequential_context_retain_overlap_only=(
-                        eq_backfill_period_sequential_context_retain_overlap_only
-                    ),
-                    period_sequential_assignment_targets=iteration_assignment_targets,
-                    windows_override=eq_backfill_windows_override,
-                    rho_aware=eq_backfill_rho_aware,
-                    rho_resid_ar1=effective_rho_resid_ar1,
-                    rho_resid_iteration_seed=residual_probe_seed,
-                    rho_resid_iteration_seed_lag=eq_backfill_rho_resid_ar1_seed_lag,
-                    rho_resid_iteration_seed_mode=eq_backfill_rho_resid_ar1_seed_mode,
-                    rho_resid_boundary_reset=eq_backfill_rho_resid_ar1_boundary_reset,
-                    rho_resid_carry_lag=eq_backfill_rho_resid_ar1_carry_lag,
-                    rho_resid_carry_damp=eq_backfill_rho_resid_ar1_carry_damp,
-                    rho_resid_carry_damp_mode=eq_backfill_rho_resid_ar1_carry_damp_mode,
-                    rho_resid_carry_multipass=eq_backfill_rho_resid_ar1_carry_multipass,
-                    rho_resid_lag_gating=eq_backfill_rho_resid_ar1_lag_gating,
-                    rho_resid_update_source=eq_backfill_rho_resid_ar1_update_source,
-                    rho_resid_la257_update_rule=effective_la257_update_rule,
-                    rho_resid_la257_fortran_cycle_carry_style=(
-                        eq_backfill_rho_resid_ar1_la257_fortran_cycle_carry_style
-                    ),
-                    rho_resid_la257_u_phase_max_gain=(
-                        eq_backfill_rho_resid_ar1_la257_u_phase_max_gain
-                    ),
-                    rho_resid_la257_u_phase_max_gain_mode=(
-                        eq_backfill_rho_resid_ar1_la257_u_phase_max_gain_mode
-                    ),
-                    rho_resid_la257_staged_lifecycle=(
-                        eq_backfill_rho_resid_ar1_la257_lifecycle_staging
-                    ),
-                    rho_resid_commit_after_check=(eq_backfill_rho_resid_ar1_commit_after_check),
-                    rho_resid_la257_u_phase_lines=(eq_backfill_rho_resid_ar1_la257_u_phase_lines),
-                    rho_resid_trace_lines=eq_backfill_rho_resid_ar1_trace_lines,
-                    rho_resid_trace_event_limit=eq_backfill_rho_resid_ar1_trace_event_limit,
-                    rho_resid_fpe_trap=eq_backfill_rho_resid_ar1_fpe_trap,
-                    eval_context=eval_context,
+                eq_backfill_runtime_iteration_convergence_seconds += (
+                    time.monotonic() - convergence_started
                 )
-                if eq_backfill_all_targets == eq_metric_targets:
-                    (
-                        eq_backfill_residual_abs_delta_all_targets,
-                        eq_backfill_residual_ratio_all_targets,
-                        eq_backfill_residual_failed_all_targets,
-                        eq_backfill_residual_issue_count_all_targets,
-                    ) = (
-                        eq_backfill_residual_abs_delta,
-                        eq_backfill_residual_ratio,
-                        eq_backfill_residual_failed,
-                        eq_backfill_residual_issue_count,
+                should_compute_residual = _should_compute_residual_probe(
+                    iteration=int(iteration),
+                    max_iters=int(scope_max_iters),
+                    min_iters=int(eq_backfill_min_iters),
+                    convergence_ratio=float(eq_backfill_convergence_ratio),
+                )
+                if should_compute_residual:
+                    checked_residual_profile: dict[str, float | int] = {}
+                    residual_probe_frame, residual_probe_failed, residual_probe_issue_count = (
+                        _compute_fixed_point_probe(
+                            iteration_eq_records,
+                            working,
+                            specs,
+                            on_error=on_error,
+                            strict_missing_inputs=strict_missing_inputs,
+                            strict_missing_assignments=strict_missing_assignments,
+                            dampall=eq_backfill_dampall,
+                            damp_overrides=eq_backfill_damp_overrides,
+                            period_sequential=eq_backfill_period_sequential,
+                            period_sequential_fp_pass_order=bool(
+                                eq_period_sequential_fp_pass_order
+                            ),
+                            period_sequential_all_assignments=(
+                                eq_backfill_period_sequential_all_assignments
+                            ),
+                            period_sequential_defer_create=(
+                                eq_backfill_period_sequential_defer_create
+                            ),
+                            period_sequential_context_replay_command_time_smpl=(
+                                eq_backfill_period_sequential_context_replay_command_time_smpl
+                            ),
+                            period_sequential_context_retain_overlap_only=(
+                                eq_backfill_period_sequential_context_retain_overlap_only
+                            ),
+                            period_sequential_assignment_targets=iteration_assignment_targets,
+                            period_sequential_eq_structural_read_cache=(
+                                eq_backfill_structural_read_cache
+                            ),
+                            windows_override=eq_backfill_windows_override,
+                            rho_aware=eq_backfill_rho_aware,
+                            rho_resid_ar1=effective_rho_resid_ar1,
+                            rho_resid_iteration_seed=residual_probe_seed,
+                            rho_resid_iteration_seed_lag=eq_backfill_rho_resid_ar1_seed_lag,
+                            rho_resid_iteration_seed_mode=eq_backfill_rho_resid_ar1_seed_mode,
+                            rho_resid_boundary_reset=eq_backfill_rho_resid_ar1_boundary_reset,
+                            rho_resid_carry_lag=eq_backfill_rho_resid_ar1_carry_lag,
+                            rho_resid_carry_damp=eq_backfill_rho_resid_ar1_carry_damp,
+                            rho_resid_carry_damp_mode=eq_backfill_rho_resid_ar1_carry_damp_mode,
+                            rho_resid_carry_multipass=eq_backfill_rho_resid_ar1_carry_multipass,
+                            rho_resid_lag_gating=eq_backfill_rho_resid_ar1_lag_gating,
+                            rho_resid_update_source=eq_backfill_rho_resid_ar1_update_source,
+                            rho_resid_la257_update_rule=effective_la257_update_rule,
+                            rho_resid_la257_fortran_cycle_carry_style=(
+                                eq_backfill_rho_resid_ar1_la257_fortran_cycle_carry_style
+                            ),
+                            rho_resid_la257_u_phase_max_gain=(
+                                eq_backfill_rho_resid_ar1_la257_u_phase_max_gain
+                            ),
+                            rho_resid_la257_u_phase_max_gain_mode=(
+                                eq_backfill_rho_resid_ar1_la257_u_phase_max_gain_mode
+                            ),
+                            rho_resid_la257_staged_lifecycle=(
+                                eq_backfill_rho_resid_ar1_la257_lifecycle_staging
+                            ),
+                            rho_resid_commit_after_check=(
+                                eq_backfill_rho_resid_ar1_commit_after_check
+                            ),
+                            rho_resid_la257_u_phase_lines=(
+                                eq_backfill_rho_resid_ar1_la257_u_phase_lines
+                            ),
+                            rho_resid_trace_lines=eq_backfill_rho_resid_ar1_trace_lines,
+                            rho_resid_trace_event_limit=eq_backfill_rho_resid_ar1_trace_event_limit,
+                            rho_resid_fpe_trap=eq_backfill_rho_resid_ar1_fpe_trap,
+                            eval_context=eval_context,
+                            profiling=checked_residual_profile,
+                        )
                     )
                     (
-                        eq_backfill_residual_probe_has_nonfinite_delta_all_targets,
-                        eq_backfill_residual_probe_has_nonfinite_ratio_all_targets,
-                        eq_backfill_residual_probe_has_nonfinite_all_targets,
-                    ) = (
+                        eq_backfill_residual_abs_delta,
+                        eq_backfill_residual_ratio,
                         eq_backfill_residual_probe_has_nonfinite_delta,
                         eq_backfill_residual_probe_has_nonfinite_ratio,
                         eq_backfill_residual_probe_has_nonfinite,
-                    )
-                else:
-                    (
-                        eq_backfill_residual_abs_delta_all_targets,
-                        eq_backfill_residual_ratio_all_targets,
-                        eq_backfill_residual_failed_all_targets,
-                        eq_backfill_residual_issue_count_all_targets,
-                        eq_backfill_residual_probe_has_nonfinite_delta_all_targets,
-                        eq_backfill_residual_probe_has_nonfinite_ratio_all_targets,
-                        eq_backfill_residual_probe_has_nonfinite_all_targets,
-                    ) = _compute_fixed_point_residual(
-                        iteration_eq_records,
+                    ) = _compute_fixed_point_residual_metrics(
                         working,
-                        specs,
-                        on_error=on_error,
-                        strict_missing_inputs=strict_missing_inputs,
-                        strict_missing_assignments=strict_missing_assignments,
-                        dampall=eq_backfill_dampall,
-                        damp_overrides=eq_backfill_damp_overrides,
-                        targets=eq_backfill_all_targets,
+                        residual_probe_frame,
+                        targets=eq_metric_targets,
                         windows=iteration_metric_windows,
                         default_tol=eq_backfill_tol,
                         default_relative_mode=(
@@ -6341,58 +6533,70 @@ def _cmd_mini_run(
                         ),
                         tolerance_overrides=eq_backfill_tol_overrides,
                         absolute_mode_overrides=eq_backfill_tolabs_overrides,
-                        period_sequential=eq_backfill_period_sequential,
-                        period_sequential_fp_pass_order=bool(eq_period_sequential_fp_pass_order),
-                        period_sequential_all_assignments=(
-                            eq_backfill_period_sequential_all_assignments
-                        ),
-                        period_sequential_defer_create=(
-                            eq_backfill_period_sequential_defer_create
-                        ),
-                        period_sequential_context_replay_command_time_smpl=(
-                            eq_backfill_period_sequential_context_replay_command_time_smpl
-                        ),
-                        period_sequential_context_retain_overlap_only=(
-                            eq_backfill_period_sequential_context_retain_overlap_only
-                        ),
-                        period_sequential_assignment_targets=iteration_assignment_targets,
-                        windows_override=eq_backfill_windows_override,
-                        rho_aware=eq_backfill_rho_aware,
-                        rho_resid_ar1=effective_rho_resid_ar1,
-                        rho_resid_iteration_seed=residual_probe_seed,
-                        rho_resid_iteration_seed_lag=eq_backfill_rho_resid_ar1_seed_lag,
-                        rho_resid_iteration_seed_mode=eq_backfill_rho_resid_ar1_seed_mode,
-                        rho_resid_boundary_reset=eq_backfill_rho_resid_ar1_boundary_reset,
-                        rho_resid_carry_lag=eq_backfill_rho_resid_ar1_carry_lag,
-                        rho_resid_carry_damp=eq_backfill_rho_resid_ar1_carry_damp,
-                        rho_resid_carry_damp_mode=eq_backfill_rho_resid_ar1_carry_damp_mode,
-                        rho_resid_carry_multipass=eq_backfill_rho_resid_ar1_carry_multipass,
-                        rho_resid_lag_gating=eq_backfill_rho_resid_ar1_lag_gating,
-                        rho_resid_update_source=eq_backfill_rho_resid_ar1_update_source,
-                        rho_resid_la257_update_rule=effective_la257_update_rule,
-                        rho_resid_la257_fortran_cycle_carry_style=(
-                            eq_backfill_rho_resid_ar1_la257_fortran_cycle_carry_style
-                        ),
-                        rho_resid_la257_u_phase_max_gain=(
-                            eq_backfill_rho_resid_ar1_la257_u_phase_max_gain
-                        ),
-                        rho_resid_la257_u_phase_max_gain_mode=(
-                            eq_backfill_rho_resid_ar1_la257_u_phase_max_gain_mode
-                        ),
-                        rho_resid_la257_staged_lifecycle=(
-                            eq_backfill_rho_resid_ar1_la257_lifecycle_staging
-                        ),
-                        rho_resid_commit_after_check=(
-                            eq_backfill_rho_resid_ar1_commit_after_check
-                        ),
-                        rho_resid_la257_u_phase_lines=(
-                            eq_backfill_rho_resid_ar1_la257_u_phase_lines
-                        ),
-                        rho_resid_trace_lines=eq_backfill_rho_resid_ar1_trace_lines,
-                        rho_resid_trace_event_limit=(eq_backfill_rho_resid_ar1_trace_event_limit),
-                        rho_resid_fpe_trap=eq_backfill_rho_resid_ar1_fpe_trap,
-                        eval_context=eval_context,
                     )
+                    eq_backfill_residual_failed = int(residual_probe_failed)
+                    eq_backfill_residual_issue_count = int(residual_probe_issue_count)
+                    eq_backfill_runtime_iteration_residual_checked_seconds += float(
+                        checked_residual_profile.get("runtime_seconds", 0.0)
+                    )
+                    eq_backfill_runtime_iteration_residual_checked_calls += int(
+                        checked_residual_profile.get("calls", 0)
+                    )
+                    eq_backfill_structural_scalar_reads_cached += int(
+                        checked_residual_profile.get("structural_scalar_reads_cached", 0)
+                    )
+                    eq_backfill_structural_scalar_reads_frame += int(
+                        checked_residual_profile.get("structural_scalar_reads_frame", 0)
+                    )
+                    if eq_backfill_all_targets == eq_metric_targets:
+                        (
+                            eq_backfill_residual_abs_delta_all_targets,
+                            eq_backfill_residual_ratio_all_targets,
+                            eq_backfill_residual_failed_all_targets,
+                            eq_backfill_residual_issue_count_all_targets,
+                        ) = (
+                            eq_backfill_residual_abs_delta,
+                            eq_backfill_residual_ratio,
+                            eq_backfill_residual_failed,
+                            eq_backfill_residual_issue_count,
+                        )
+                        (
+                            eq_backfill_residual_probe_has_nonfinite_delta_all_targets,
+                            eq_backfill_residual_probe_has_nonfinite_ratio_all_targets,
+                            eq_backfill_residual_probe_has_nonfinite_all_targets,
+                        ) = (
+                            eq_backfill_residual_probe_has_nonfinite_delta,
+                            eq_backfill_residual_probe_has_nonfinite_ratio,
+                            eq_backfill_residual_probe_has_nonfinite,
+                        )
+                    else:
+                        all_targets_residual_started = time.monotonic()
+                        (
+                            eq_backfill_residual_abs_delta_all_targets,
+                            eq_backfill_residual_ratio_all_targets,
+                            eq_backfill_residual_probe_has_nonfinite_delta_all_targets,
+                            eq_backfill_residual_probe_has_nonfinite_ratio_all_targets,
+                            eq_backfill_residual_probe_has_nonfinite_all_targets,
+                        ) = _compute_fixed_point_residual_metrics(
+                            working,
+                            residual_probe_frame,
+                            targets=eq_backfill_all_targets,
+                            windows=iteration_metric_windows,
+                            default_tol=eq_backfill_tol,
+                            default_relative_mode=(
+                                eq_backfill_tol_mode == "relative_with_zero_absolute_fallback"
+                            ),
+                            tolerance_overrides=eq_backfill_tol_overrides,
+                            absolute_mode_overrides=eq_backfill_tolabs_overrides,
+                        )
+                        eq_backfill_residual_failed_all_targets = int(residual_probe_failed)
+                        eq_backfill_residual_issue_count_all_targets = int(
+                            residual_probe_issue_count
+                        )
+                        eq_backfill_runtime_iteration_residual_all_targets_seconds += (
+                            time.monotonic() - all_targets_residual_started
+                        )
+                        eq_backfill_runtime_iteration_residual_all_targets_calls += 1
                 if solver_trace_enabled:
                     _append_solver_trace_event(
                         "convergence_check",
@@ -7606,11 +7810,32 @@ def _cmd_mini_run(
                 "eq_backfill_runtime_iteration_apply_seconds": (
                     eq_backfill_runtime_iteration_apply_seconds
                 ),
+                "eq_backfill_runtime_iteration_main_apply_seconds": (
+                    eq_backfill_runtime_iteration_main_apply_seconds
+                ),
+                "eq_backfill_runtime_iteration_deep_copy_seconds": (
+                    eq_backfill_runtime_iteration_deep_copy_seconds
+                ),
+                "eq_backfill_runtime_iteration_convergence_seconds": (
+                    eq_backfill_runtime_iteration_convergence_seconds
+                ),
+                "eq_backfill_runtime_iteration_residual_checked_seconds": (
+                    eq_backfill_runtime_iteration_residual_checked_seconds
+                ),
+                "eq_backfill_runtime_iteration_residual_all_targets_seconds": (
+                    eq_backfill_runtime_iteration_residual_all_targets_seconds
+                ),
                 "eq_backfill_runtime_post_solve_replay_seconds": (
                     eq_backfill_runtime_post_solve_replay_seconds
                 ),
                 "eq_backfill_runtime_iteration_apply_calls": (
                     eq_backfill_runtime_iteration_apply_calls
+                ),
+                "eq_backfill_runtime_iteration_residual_checked_calls": (
+                    eq_backfill_runtime_iteration_residual_checked_calls
+                ),
+                "eq_backfill_runtime_iteration_residual_all_targets_calls": (
+                    eq_backfill_runtime_iteration_residual_all_targets_calls
                 ),
                 "eq_backfill_record_count": eq_backfill_record_count,
                 "eq_backfill_attempted_records": eq_backfill_attempted_records,
@@ -7725,6 +7950,16 @@ def _cmd_mini_run(
                 ),
                 "eq_backfill_quantize_store": eq_backfill_quantize_store,
                 "eq_backfill_quantize_store_cells": eq_backfill_quantize_store_cells,
+                "eq_backfill_structural_read_cache": eq_backfill_structural_read_cache,
+                "eq_backfill_structural_read_cache_column_count": (
+                    eq_backfill_structural_read_cache_column_count
+                ),
+                "eq_backfill_structural_scalar_reads_cached": (
+                    eq_backfill_structural_scalar_reads_cached
+                ),
+                "eq_backfill_structural_scalar_reads_frame": (
+                    eq_backfill_structural_scalar_reads_frame
+                ),
                 "eq_backfill_context_replay_trace_events_count": (
                     eq_backfill_context_replay_trace_events_count
                 ),
@@ -7944,6 +8179,9 @@ def _cmd_mini_run(
                 "eq_state_seed_variables_matched": state_seed_report.get("variables_matched"),
                 "eq_state_seed_cells_written": state_seed_report.get("cells_written"),
                 "eq_eval_precision": str(eq_eval_precision).strip().lower(),
+                "eq_term_order": str(eq_term_order).strip().lower(),
+                "eq_eq_read_mode": str(eq_eq_read_mode).strip().lower(),
+                "eq_structural_read_cache": str(eq_structural_read_cache).strip().lower(),
                 "eq_quantize_eq_commit": str(eq_quantize_eq_commit).strip().lower(),
                 "parity_enabled": parity_report.get("enabled"),
                 "parity_status": parity_report.get("status"),
@@ -8941,6 +9179,15 @@ def main() -> int:
         ),
     )
     mini_run_parser.add_argument(
+        "--eq-structural-read-cache",
+        choices=("off", "numpy_columns"),
+        default="off",
+        help=(
+            "experimental EQ structural scalar read path: off (default) or "
+            "numpy_columns (column-array cache for scalar term reads)"
+        ),
+    )
+    mini_run_parser.add_argument(
         "--eq-math-backend",
         choices=("numpy", "math"),
         default="numpy",
@@ -9352,6 +9599,7 @@ def main() -> int:
             eq_eval_precision=args.eq_eval_precision,
             eq_term_order=args.eq_term_order,
             eq_eq_read_mode=args.eq_eq_read_mode,
+            eq_structural_read_cache=args.eq_structural_read_cache,
             eq_math_backend=args.eq_math_backend,
             eq_quantize_eq_commit=args.eq_quantize_eq_commit,
             eq_filter_use_full_context=args.eq_filter_use_full_context,

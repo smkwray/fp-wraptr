@@ -39,6 +39,7 @@ nav:
     - Scenarios: scenarios.md
     - Data Update: data-update.md
     - Parity: parity.md
+    - Stock FM Fast Mode: stock-fm-fast-mode.md
     - Dashboard: dashboard.md
     - Model Runs Export: model-runs.md
   - Agent & MCP:

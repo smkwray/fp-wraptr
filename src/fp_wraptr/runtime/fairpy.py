@@ -43,6 +43,7 @@ class FairPyBackend:
     eq_iter_trace_period: str | None = None
     eq_iter_trace_targets: str | None = None
     eq_iter_trace_max_events: int | None = None
+    eq_structural_read_cache: str = "off"
     num_threads: int | None = None
 
     def check_available(self) -> bool:
@@ -130,6 +131,16 @@ class FairPyBackend:
         if self.eq_iter_trace_max_events is not None:
             args.extend(["--eq-iter-trace-max-events", str(int(self.eq_iter_trace_max_events))])
         return args
+
+    def _eq_structural_read_cache_args(self) -> list[str]:
+        mode = str(self.eq_structural_read_cache or "off").strip().lower()
+        if mode in {"", "off", "none"}:
+            return []
+        if mode not in {"numpy_columns"}:
+            raise FairPyBackendError(
+                f"Unknown eq_structural_read_cache: {self.eq_structural_read_cache!r}"
+            )
+        return ["--eq-structural-read-cache", mode]
 
     def _thread_env_overrides(self) -> dict[str, str]:
         raw = self.num_threads
@@ -512,6 +523,7 @@ class FairPyBackend:
             "--on-error",
             "continue",
             *self._eq_args(fmout_coefs=fmout_coefs),
+            *self._eq_structural_read_cache_args(),
             *self._eq_iter_trace_args(),
             "--report-json",
             str(work_dir / "fppy_report.json"),

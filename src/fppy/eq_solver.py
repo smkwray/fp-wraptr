@@ -88,6 +88,10 @@ class EqBackfillResult:
     rho_resid_ar1_focus_trace_event_counts_by_stage: tuple[tuple[str, int], ...] = ()
     context_replay_trace_events: tuple[dict[str, object], ...] = ()
     context_replay_trace_events_truncated: bool = False
+    structural_read_cache_mode: str = "off"
+    structural_read_cache_column_count: int = 0
+    structural_scalar_reads_cached: int = 0
+    structural_scalar_reads_frame: int = 0
 
 
 _RHO_RESID_TRACE_FOCUS_STAGE_ORDER: dict[str, int] = {
@@ -121,6 +125,12 @@ class _DeferredStep:
     target: str
     eq_spec: EqSpec | None = None
     assignment: Assignment | None = None
+
+
+@dataclass
+class _StructuralReadStats:
+    scalar_reads_cached: int = 0
+    scalar_reads_frame: int = 0
 
 
 @dataclass
@@ -353,6 +363,34 @@ def build_coef_table(specs: dict[str, EqSpec]) -> dict[tuple[int, int], float]:
     return coef_values
 
 
+def _build_structural_read_arrays(frame: pd.DataFrame) -> dict[str, np.ndarray]:
+    arrays: dict[str, np.ndarray] = {}
+    for column in frame.columns:
+        key = str(column)
+        if not key:
+            continue
+        arrays[key] = frame[key].to_numpy(copy=False)
+    return arrays
+
+
+def _update_structural_read_array_value(
+    arrays: dict[str, np.ndarray] | None,
+    *,
+    target: str,
+    period_position: int,
+    value: object,
+) -> None:
+    if not arrays:
+        return
+    array = arrays.get(str(target))
+    if array is None:
+        return
+    if pd.isna(value):
+        array[period_position] = np.nan
+        return
+    array[period_position] = value
+
+
 def apply_eq_backfill(
     records: Sequence[FPCommandRecord],
     data: pd.DataFrame,
@@ -376,6 +414,7 @@ def apply_eq_backfill(
     period_sequential_eq_eval_precision: str = "float64",
     period_sequential_eq_term_order: str = "as_parsed",
     period_sequential_eq_read_mode: str = "live",
+    period_sequential_eq_structural_read_cache: str = "off",
     period_sequential_assignment_math_backend: str = "numpy",
     period_sequential_eq_commit_quantize: str = "off",
     windows_override: tuple[SampleWindow, ...] | None = None,
@@ -425,6 +464,13 @@ def apply_eq_backfill(
     resolved_eq_read_mode = str(period_sequential_eq_read_mode).strip().lower()
     if resolved_eq_read_mode not in {"live", "frozen"}:
         raise ValueError("period_sequential_eq_read_mode must be 'live' or 'frozen'")
+    resolved_eq_structural_read_cache = (
+        str(period_sequential_eq_structural_read_cache).strip().lower()
+    )
+    if resolved_eq_structural_read_cache not in {"off", "numpy_columns"}:
+        raise ValueError(
+            "period_sequential_eq_structural_read_cache must be 'off' or 'numpy_columns'"
+        )
     resolved_assignment_math_backend = (
         str(period_sequential_assignment_math_backend).strip().lower()
     )
@@ -1320,6 +1366,8 @@ def apply_eq_backfill(
         deferred_steps = tuple(deferred_steps)
 
     step_seed_keys: dict[int, tuple[int, int]] = {}
+    structural_read_stats = _StructuralReadStats()
+    output_structural_read_arrays: dict[str, np.ndarray] | None = None
     if period_sequential and deferred_steps:
         eq_source_cache: dict[tuple[str, str], str | None] = {}
         exogenous_masks_by_target: dict[str, np.ndarray] = {}
@@ -1442,11 +1490,18 @@ def apply_eq_backfill(
         else:
             rho_resid_states_staged = rho_resid_states_active
         rho_resid_result_states = rho_resid_states_staged
+        structural_read_stats = _StructuralReadStats()
+        output_structural_read_arrays: dict[str, np.ndarray] | None = None
+        if resolved_eq_structural_read_cache == "numpy_columns":
+            output_structural_read_arrays = _build_structural_read_arrays(output)
         eq_read_frame = output
+        eq_read_structural_read_arrays = output_structural_read_arrays
         if resolved_eq_read_mode == "frozen":
             # Jacobi-style probe: evaluate equations against the iteration-start state
             # so intra-pass writes are not visible to subsequent equation evaluations.
             eq_read_frame = output.copy(deep=True)
+            if resolved_eq_structural_read_cache == "numpy_columns":
+                eq_read_structural_read_arrays = _build_structural_read_arrays(eq_read_frame)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", PerformanceWarning)
             hf_line182_write_counts: dict[int, int] = {}
@@ -1576,6 +1631,8 @@ def apply_eq_backfill(
                                 term_order=resolved_term_order,
                                 strict_missing_inputs=strict_missing_inputs,
                                 source_cache=eq_source_cache,
+                                structural_read_arrays=eq_read_structural_read_arrays,
+                                structural_read_stats=structural_read_stats,
                                 rho_aware=rho_aware,
                                 rho_resid_ar1=rho_resid_ar1,
                                 rho_resid_carry_lag=rho_resid_carry_lag,
@@ -1998,6 +2055,20 @@ def apply_eq_backfill(
                             output.at[period, target] = _quantize_float32(value_numeric)
                         else:
                             output.at[period, target] = value
+                        _update_structural_read_array_value(
+                            output_structural_read_arrays,
+                            target=target,
+                            period_position=period_position,
+                            value=(
+                                _quantize_float32(value_numeric)
+                                if (
+                                    step.kind == "eq"
+                                    and period_sequential_eq_commit_quantize == "float32"
+                                    and value_numeric is not None
+                                )
+                                else value
+                            ),
+                        )
                         if period_sequential_context_replay_trace and step.kind == "assignment":
                             context_replay_mutation_positions.setdefault(step_idx, set()).add(
                                 int(period_position)
@@ -2149,6 +2220,8 @@ def apply_eq_backfill(
                             period_position=period_position,
                             strict_missing_inputs=strict_missing_inputs,
                             source_cache=eq_source_cache,
+                            structural_read_arrays=output_structural_read_arrays,
+                            structural_read_stats=structural_read_stats,
                             rho_resid_lag_gating=rho_resid_lag_gating,
                             rho_resid_fpe_trap=rho_resid_fpe_trap,
                         )
@@ -2418,6 +2491,12 @@ def apply_eq_backfill(
         rho_resid_ar1_focus_trace_event_counts_by_stage=focus_trace_stage_counts_payload,
         context_replay_trace_events=context_replay_trace_events_payload,
         context_replay_trace_events_truncated=context_replay_trace_events_truncated_payload,
+        structural_read_cache_mode=resolved_eq_structural_read_cache,
+        structural_read_cache_column_count=(
+            len(output_structural_read_arrays) if output_structural_read_arrays is not None else 0
+        ),
+        structural_scalar_reads_cached=int(structural_read_stats.scalar_reads_cached),
+        structural_scalar_reads_frame=int(structural_read_stats.scalar_reads_frame),
     )
 
 
@@ -2706,6 +2785,8 @@ def _evaluate_eq_spec_at_period(
     term_order: str = "as_parsed",
     strict_missing_inputs: bool = True,
     source_cache: dict[tuple[str, str], str | None] | None = None,
+    structural_read_arrays: dict[str, np.ndarray] | None = None,
+    structural_read_stats: _StructuralReadStats | None = None,
     rho_aware: bool = False,
     rho_resid_ar1: bool = False,
     rho_resid_carry_lag: int = 0,
@@ -2734,6 +2815,8 @@ def _evaluate_eq_spec_at_period(
         term_order=term_order,
         strict_missing_inputs=strict_missing_inputs,
         source_cache=source_cache,
+        structural_read_arrays=structural_read_arrays,
+        structural_read_stats=structural_read_stats,
         rho_resid_lag_gating=(rho_resid_lag_gating if rho_resid_ar1 else "off"),
         rho_resid_fpe_trap=rho_resid_fpe_trap,
     )
@@ -2784,6 +2867,8 @@ def _evaluate_eq_spec_at_period(
                 term_order=term_order,
                 strict_missing_inputs=strict_missing_inputs,
                 source_cache=source_cache,
+                structural_read_arrays=structural_read_arrays,
+                structural_read_stats=structural_read_stats,
                 rho_resid_fpe_trap=rho_resid_fpe_trap,
             )
         result = result + coefficient * lagged_lhs_value
@@ -2859,6 +2944,8 @@ def _evaluate_eq_structural_value_at_period(
     term_order: str = "as_parsed",
     strict_missing_inputs: bool = True,
     source_cache: dict[tuple[str, str], str | None] | None = None,
+    structural_read_arrays: dict[str, np.ndarray] | None = None,
+    structural_read_stats: _StructuralReadStats | None = None,
     rho_resid_lag_gating: str = "off",
     rho_resid_fpe_trap: bool = False,
 ) -> float:
@@ -2943,7 +3030,14 @@ def _evaluate_eq_structural_value_at_period(
         if shifted_position < 0 or shifted_position >= len(data.index):
             value = float("nan")
         else:
-            value = float(data[source].iat[shifted_position])
+            if structural_read_arrays is not None and source in structural_read_arrays:
+                value = float(structural_read_arrays[source][shifted_position])
+                if structural_read_stats is not None:
+                    structural_read_stats.scalar_reads_cached += 1
+            else:
+                value = float(data[source].iat[shifted_position])
+                if structural_read_stats is not None:
+                    structural_read_stats.scalar_reads_frame += 1
         if rho_resid_fpe_trap:
             try:
                 with np.errstate(divide="raise", invalid="raise", over="raise", under="ignore"):
