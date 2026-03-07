@@ -28,31 +28,29 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 
 ## Meet the mascots
 
-| Mascot | Represents | Personality |
-|--------|-----------|-------------|
-| **Rex** the Velociraptor | `fp.exe` -- the original FORTRAN model | Battle-tested. Fast. Has been crunching macro equations since the Cretaceous. |
-| **Archie** the Archaeopteryx | `fppy` -- the pure-Python solver | Half-dinosaur, half-bird. The evolutionary bridge. Proves you don't need FORTRAN to fly. |
-| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring | The name's in the name. |
+| Mascot | Represents |
+|--------|-----------|
+| **Rex** the Velociraptor | `fp.exe` -- the original FORTRAN model |
+| **Archie** the Archaeopteryx | `fppy` -- the pure-Python solver |
+| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring |
 
 <p align="center">
   <img src="logo/fp-py-logo.png" alt="Archie the archaeopteryx — fppy mascot" width="180">
 </p>
 
-## What it does
+## Features
 
-| Goal | Status |
-|------|--------|
-| Human-readable scenario configs (YAML) instead of raw `fminput.txt` | alpha |
-| Parse FP inputs/outputs into structured Python objects | alpha |
-| Batch scenario runner with diff & regression testing | alpha |
-| "Why did variable X change?" dependency graph | alpha |
-| Quick charts & lightweight Streamlit dashboard | alpha |
-| Optional FRED/BEA/BLS data ingestion | alpha |
-| Human-readable scenario DSL compiler | alpha |
-| Dictionary + equation lookup/explainer | alpha |
-| MCP server for LLM-assisted exploration | alpha |
-| Managed workspaces + local packs for agent workflows | alpha |
-| **Pure-Python solver (fppy)** with parity validation against fp.exe | alpha |
+- **YAML scenario configs** -- human-readable definitions instead of raw `fminput.txt`
+- **Structured I/O** -- parse FP inputs and outputs into Python objects and DataFrames
+- **Dual engines** -- run the original FORTRAN binary or the pure-Python solver (fppy), or both for parity validation
+- **Batch runner** -- execute multiple scenarios with diff and regression testing
+- **Dependency graph** -- trace "why did variable X change?" through 130+ equations
+- **Dashboard** -- 12-page Streamlit app with Plotly charts for run exploration and comparison
+- **Data pipelines** -- FRED, BEA, and BLS ingestion with safe-lane update workflows
+- **Scenario DSL** -- human-readable DSL compiler for compact scenario definitions
+- **Dictionary** -- variable and equation lookup with source coverage and quality reports
+- **MCP server** -- 41 tools for LLM-assisted exploration and scenario authoring
+- **Managed workspaces** -- local packs, cards, and recipes for agent-first workflows
 
 ## Quick start
 
