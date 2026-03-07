@@ -1,0 +1,252 @@
+card_id: pse2025.jg_constants
+family: pse2025
+kind: deck_constants
+label: JG Constants
+description: Curated Job Guarantee coefficients and policy knobs spanning take-up regressions and core JG CREATE parameters.
+order: 10
+files:
+  - path: ptcoef.txt
+    label: Take-up Coefficients
+    order: 10
+    groups:
+      - group_id: takeup_jgpt
+        label: JGPTJ1 Update
+        description: Coefficients for the JGPTJ1 state update.
+        order: 10
+        fields:
+          - symbol: JPTUR
+            label: UR coefficient
+            help_text: Sensitivity of JGPTJ1 to unemployment-rate changes.
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JPTYD
+            label: YPOP coefficient
+            help_text: Sensitivity of JGPTJ1 to YPOP changes.
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JPTJD
+            label: JHPOP coefficient
+            help_text: Sensitivity of JGPTJ1 to JHPOP changes.
+            number_format: "%.6f"
+            step: 0.0001
+      - group_id: takeup_child
+        label: JGCHLDU1 Update
+        description: Coefficients for the JGCHLDU1 state update.
+        order: 20
+        fields:
+          - symbol: JCHC0
+            label: Constant term
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JCHUR
+            label: UR lag coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JCHJH
+            label: JHPOP lag coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JCHYP
+            label: YPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+      - group_id: takeup_hi
+        label: Want-A-Job High
+        description: High take-up share regression levels.
+        order: 30
+        fields:
+          - symbol: JHIA0
+            label: Constant term
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JHILF
+            label: LFPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JHIYP
+            label: YPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JHIJH
+            label: JHPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+      - group_id: takeup_lo
+        label: Want-A-Job Low
+        description: Low take-up share regression levels.
+        order: 40
+        fields:
+          - symbol: JLOA0
+            label: Constant term
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JLOLF
+            label: LFPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JLOYP
+            label: YPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JLOJH
+            label: JHPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+      - group_id: takeup_unemployment
+        label: Unemployment Share Updates
+        description: State update coefficients for unemployment-share dynamics.
+        order: 50
+        fields:
+          - symbol: JULUR
+            label: JGULLL1 UR coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JULJH
+            label: JGULLL1 JHPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JUWUR
+            label: JGUUWKL1 UR coefficient
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: JUWJH
+            label: JGUUWKL1 JHPOP coefficient
+            number_format: "%.6f"
+            step: 0.0001
+  - path: pse_common.txt
+    label: Core JG Parameters
+    order: 20
+    groups:
+      - group_id: jg_program_controls
+        label: Program Controls
+        description: Primary policy switches and headline parameters.
+        order: 10
+        fields:
+          - symbol: JGSWITCH
+            label: JG switch
+            help_text: Turns the JG layer on or off when used directly in a scenario input.
+            number_format: "%.6f"
+            step: 1.0
+            min_value: 0.0
+            max_value: 1.0
+          - symbol: JGPHASE
+            label: Phase-in
+            number_format: "%.6f"
+            step: 0.05
+          - symbol: JGHILO
+            label: High/low toggle
+            number_format: "%.6f"
+            step: 1.0
+            min_value: 0.0
+            max_value: 1.0
+          - symbol: JGW
+            label: JG hourly wage
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: JGCOLA
+            label: Cost-of-living adjustment
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: UBGH
+            label: UI generosity factor
+            number_format: "%.6f"
+            step: 0.05
+      - group_id: jg_benefits
+        label: Benefits And Pass-Through
+        description: Program design coefficients for benefits and incidence.
+        order: 20
+        fields:
+          - symbol: JGBEN
+            label: Benefits share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGNLC
+            label: Non-labor cost share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGUB
+            label: UI benchmark share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGWFPASS
+            label: Wage pass-through
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGTAX
+            label: Tax offset
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGSUPER
+            label: Supervision factor
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGVAC
+            label: Vacancy factor
+            number_format: "%.6f"
+            step: 0.01
+      - group_id: jg_costs
+        label: Program Costs
+        description: Healthcare, tax credit, minimum wage, and productivity assumptions.
+        order: 30
+        fields:
+          - symbol: JGMEDICG
+            label: Medicare government share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGMEDICS
+            label: Medicare state share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGEITCG
+            label: EITC government share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGEITCS
+            label: EITC state share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: MINWAGE
+            label: Minimum wage baseline
+            number_format: "%.6f"
+            step: 0.0001
+          - symbol: MWBEN
+            label: Minimum wage benefits share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: MWBCOST
+            label: Minimum wage benefit cost share
+            number_format: "%.6f"
+            step: 0.01
+          - symbol: JGPROD
+            label: Productivity parameter
+            number_format: "%.6f"
+            step: 0.05
+      - group_id: jg_initial_state
+        label: Initial State And Hours
+        description: Initial conditions and support variables used when the JG layer turns on.
+        order: 40
+        fields:
+          - symbol: JGPTJ1
+            label: Initial JGPTJ1
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: JGCHLDU1
+            label: Initial JGCHLDU1
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: JGULLL1
+            label: Initial JGULLL1
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: JGUUWKL1
+            label: Initial JGUUWKL1
+            number_format: "%.6f"
+            step: 0.001
+          - symbol: JGPARTH
+            label: Part-time hours
+            number_format: "%.6f"
+            step: 1.0
+          - symbol: JGFULLH
+            label: Full-time hours
+            number_format: "%.6f"
+            step: 1.0

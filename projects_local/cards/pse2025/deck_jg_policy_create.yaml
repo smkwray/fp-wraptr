@@ -1,0 +1,21 @@
+card_id: deck.jg_policy_create
+label: JG Policy Defaults
+capability: create_constants
+description: >-
+  Curated `CREATE` defaults from `pse_common.txt` for job-guarantee policy
+  tuning. Edits are written to an overlay copy of `pse_common.txt`.
+order: 20
+required_includes:
+  - pse_common.txt
+source_file: pse_common.txt
+sections:
+  - title: Program Controls
+    symbols: [JGSWITCH, JGPHASE, JGHILO, JGWFPASS]
+  - title: Wage and Compensation
+    symbols: [JGW, JGCOLA, JGBEN, JGNLC, JGUB, JGTAX]
+  - title: Program Cost Shares
+    symbols: [JGSUPER, JGVAC, JGMEDICG, JGMEDICS, JGEITCG, JGEITCS]
+  - title: Wage Floor Anchors
+    symbols: [MINWAGE, MWBEN, MWBCOST]
+  - title: Other JG Parameters
+    symbols: [UBGH, JGPARTH, JGFULLH, JGPROD]

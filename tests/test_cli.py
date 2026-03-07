@@ -1648,10 +1648,14 @@ def test_viz_plot_missing_output_file():
 def test_batch_command_runs_multiple_scenarios(tmp_path, monkeypatch):
     from fp_wraptr.runtime.fp_exe import FPRunResult
 
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text("PRINTVAR FILEOUT=OUT.DAT GDP;\n", encoding="utf-8")
+
     run_a = tmp_path / "scenario_a.yaml"
     run_b = tmp_path / "scenario_b.yaml"
-    run_a.write_text("name: scenario_a\n", encoding="utf-8")
-    run_b.write_text("name: scenario_b\n", encoding="utf-8")
+    run_a.write_text(f"name: scenario_a\nfp_home: {fp_home}\n", encoding="utf-8")
+    run_b.write_text(f"name: scenario_b\nfp_home: {fp_home}\n", encoding="utf-8")
 
     def fake_run(self, input_file, work_dir, extra_env=None):
         output_path = work_dir / "fmout.txt"

@@ -1,0 +1,21 @@
+card_id: pse2025.jgswitch
+family: pse2025
+kind: series_card
+label: JGSWITCH Path
+description: Quarterly JGSWITCH override path layered onto the bundle variant fmexog overlay.
+order: 30
+variable: JGSWITCH
+input_modes:
+  - csv
+  - paste
+default_target: fmexog_override
+targets:
+  - kind: fmexog_override
+    label: FMEXOG override
+    output_path: fmexog.txt
+    fp_method: SAMEVALUE
+    mode: series
+    layer_on_base: true
+    attach_rule:
+      kind: overlay_file
+      relative_path: fmexog.txt

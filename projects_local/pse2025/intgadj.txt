@@ -1,0 +1,12 @@
+@ INTGADJ forecast path (FRED proxy; carry-forward beyond latest observed quarter)
+@ Built: 2026-03-03
+@ Source: $FAIR_ROOT/source/pse2025/intgadj_latest.json
+@ Formula: INTGADJ = 1 - FYGFDPUN/GFDEBTN
+@ Latest observed period: 2025.3  INTGADJ_last=0.194998622785
+@ Carry-forward method: rolling mean carry-forward (last 8 quarters)  INTGADJ_forecast=0.20225158129
+
+SMPL 2025.4 2029.4;
+CHANGEVAR;
+INTGADJ SAMEVALUE
+0.20225158129
+;

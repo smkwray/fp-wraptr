@@ -1,0 +1,29 @@
+card_id: pse2025.intgadj
+family: pse2025
+kind: series_card
+label: INTGADJ Quarterly Path
+description: Import or paste a quarterly INTGADJ path and compile it either as a dedicated CHANGEVAR include or as an fmexog override layer.
+order: 20
+variable: INTGADJ
+input_modes:
+  - csv
+  - paste
+default_target: include_changevar
+targets:
+  - kind: include_changevar
+    label: CHANGEVAR include
+    output_path: intgadj.txt
+    fp_method: SAMEVALUE
+    mode: series
+    attach_rule:
+      kind: overlay_file
+      relative_path: intgadj.txt
+  - kind: fmexog_override
+    label: FMEXOG override
+    output_path: fmexog.txt
+    fp_method: SAMEVALUE
+    mode: series
+    layer_on_base: true
+    attach_rule:
+      kind: overlay_file
+      relative_path: fmexog.txt
