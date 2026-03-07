@@ -1,0 +1,21 @@
+card_id: pse2025.jghilo
+family: pse2025
+kind: series_card
+label: JGHILO Path
+description: Quarterly JGHILO toggle path layered onto the bundle variant fmexog overlay.
+order: 40
+variable: JGHILO
+input_modes:
+  - csv
+  - paste
+default_target: fmexog_override
+targets:
+  - kind: fmexog_override
+    label: FMEXOG override
+    output_path: fmexog.txt
+    fp_method: SAMEVALUE
+    mode: series
+    layer_on_base: true
+    attach_rule:
+      kind: overlay_file
+      relative_path: fmexog.txt

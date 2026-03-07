@@ -1,0 +1,17 @@
+card_id: series.intgadj
+label: INTGADJ Quarterly Series
+capability: series_constant
+description: >-
+  Forecast-window `CHANGEVAR` include for `INTGADJ` used by
+  `JGINTG=INTG-INTGADJ*INTG`. Writes/updates `intgadj.txt` in the scenario overlay.
+order: 30
+required_includes:
+  - intgadj.txt
+source_file: intgadj.txt
+target_file: intgadj.txt
+series:
+  variable: INTGADJ
+  fp_method: SAMEVALUE
+  mode: constant
+  smpl_start: ${forecast_start}
+  smpl_end: ${forecast_end}

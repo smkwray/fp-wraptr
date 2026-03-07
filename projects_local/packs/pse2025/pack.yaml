@@ -1,0 +1,52 @@
+pack_id: pse2025
+label: PSE2025 Working Pack
+family: pse2025
+description: Personal/local PSE2025 scenario family for coefficient tweaks, bundle variants, and dashboard visualizations.
+visibility: local
+source_dir: projects_local/pse2025
+cards_family: pse2025
+catalog_entry_ids:
+  - pse2025-base
+  - pse2025-low
+  - pse2025-high
+  - pse2025-bundle
+recipes:
+  - recipe_id: change-coefficients
+    label: Change coefficients safely
+    summary: Adjust shared or variant-local PSE CREATE values through managed workspace cards.
+    steps:
+      - Create or open a workspace from the relevant PSE2025 catalog entry.
+      - Use the shared `pse2025.jg_constants` card for maintained family defaults such as `MINWAGE`.
+      - Use `workspace cards --variant-id <name>` plus variant-local card updates for per-variant overrides such as `JGW` or `JGCOLA`.
+      - Compile before running and inspect the compile report.
+  - recipe_id: clone-policy-variant
+    label: Clone a policy variant
+    summary: Start from base/high/low, clone a new bundle variant, keep exact run naming in workspace metadata, and optionally seed a starter card patch in one step.
+    steps:
+      - Create or open the PSE2025 bundle workspace.
+      - Use `workspace clone-variant` or `clone_bundle_variant_recipe` to clone from base, low, or high and set the exact scenario/run name when needed.
+      - Optionally seed a first card patch during clone, then apply follow-on coefficient or series changes to the new variant only.
+      - Compile and verify the generated bundle reports the intended variant ids and scenario names.
+  - recipe_id: import-series
+    label: Attach a quarterly series override
+    summary: Import or paste forecast-window quarterly values for cards such as INTGADJ.
+    steps:
+      - Open the workspace and locate the relevant series card.
+      - Import the series as JSON, CSV, or pasted text.
+      - Compile and run before comparing outcomes in the dashboard.
+visualizations:
+  - view_id: pse2025-main-tracks
+    label: PSE2025 main tracks
+    description: Overlay main macro tracks across recent PSE2025 runs.
+    chart_type: forecast_overlay
+    variables: [GDPR, PCPF, UR, SG, RS]
+  - view_id: pse2025-jg-tracks
+    label: PSE2025 JG tracks
+    description: Overlay job guarantee specific outputs across recent PSE2025 runs.
+    chart_type: forecast_overlay
+    variables: [JGJ, JF, WF, PF, E]
+  - view_id: pse2025-delta-table
+    label: PSE2025 delta table
+    description: Compare the largest movers between the two latest linked runs.
+    chart_type: delta_table
+    variables: [GDPR, PCPF, UR, SG, RS, JGJ, JF, WF]

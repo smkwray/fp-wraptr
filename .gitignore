@@ -32,10 +32,33 @@ FM/
 fm/
 
 # Local project overlays (local only by default; curated family assets below are tracked)
-projects_local/
+projects_local/*
 !projects_local/README.md
+!projects_local/scenario_catalog.yaml
+!projects_local/dictionary_overlays/
+projects_local/dictionary_overlays/*
+!projects_local/dictionary_overlays/baseline.json
+!projects_local/cards/
+projects_local/cards/*
+!projects_local/cards/pse2025/
+projects_local/cards/pse2025/*
+!projects_local/cards/pse2025/README.md
+!projects_local/cards/pse2025/*.yaml
+!projects_local/packs/
+projects_local/packs/*
+!projects_local/packs/pse2025/
+projects_local/packs/pse2025/*
+!projects_local/packs/pse2025/pack.yaml
 !projects_local/pse2008/
-!projects_local/pse2008/**
+projects_local/pse2008/*
+!projects_local/pse2008/README.md
+!projects_local/pse2008/*.txt
+!projects_local/pse2025/
+projects_local/pse2025/*
+!projects_local/pse2025/*.txt
+!projects_local/stock_fm/
+projects_local/stock_fm/*
+!projects_local/stock_fm/baseline_fppy_parity.yaml
 
 # Fortran source (keep in repo but be mindful of size)
 # fortran_sc/  # uncomment if you want to exclude

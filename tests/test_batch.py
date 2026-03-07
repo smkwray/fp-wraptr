@@ -13,6 +13,10 @@ def test_run_batch_executes_multiple(tmp_path, monkeypatch):
     from fp_wraptr.runtime.fp_exe import FPRunResult
     from fp_wraptr.scenarios.runner import FPExecutable
 
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text("PRINTVAR FILEOUT=OUT.DAT GDP;\n", encoding="utf-8")
+
     def fake_run(self, input_file, work_dir, extra_env=None):
         output_path = work_dir / "fmout.txt"
         output_path.write_text(
@@ -33,8 +37,8 @@ def test_run_batch_executes_multiple(tmp_path, monkeypatch):
     monkeypatch.setattr(FPExecutable, "run", fake_run)
 
     configs = [
-        ScenarioConfig(name="batch_a"),
-        ScenarioConfig(name="batch_b"),
+        ScenarioConfig(name="batch_a", fp_home=fp_home),
+        ScenarioConfig(name="batch_b", fp_home=fp_home),
     ]
     results = run_batch(configs, output_dir=tmp_path / "batch_runs")
 

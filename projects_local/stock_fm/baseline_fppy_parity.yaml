@@ -1,0 +1,16 @@
+name: baseline
+description: stock_fm baseline (fppy parity preset)
+fp_home: ../../FM
+input_file: fminput.txt
+forecast_start: '2025.4'
+forecast_end: '2029.4'
+backend: fppy
+fppy:
+  eq_flags_preset: parity
+  timeout_seconds: 2400
+track_variables:
+  - PCY
+  - PCPF
+  - UR
+  - PIEF
+  - GDPR

@@ -25,7 +25,6 @@ const state = {
 
 const dom = {
   pageTitle: document.querySelector("#pageTitle"),
-  generatedAt: document.querySelector("#generatedAt"),
   runCount: document.querySelector("#runCount"),
   variableCount: document.querySelector("#variableCount"),
   runSelect: document.querySelector("#runSelect"),
@@ -399,8 +398,7 @@ function renderRunInfo() {
     <p class="run-info-title">${run.label}</p>
     <p class="run-info-text">Scenario: ${run.scenario_name || "Unknown"}</p>
     <p class="run-info-text">Forecast: ${run.forecast_start || "?"} to ${run.forecast_end || "?"}</p>
-    <p class="run-info-text">Artifact: ${run.timestamp || "Unknown timestamp"}</p>
-    <p class="run-info-text">${run.summary || "No summary available."}</p>
+    ${run.summary ? `<p class="run-info-text">${run.summary}</p>` : ""}
     ${detailList}
   `;
   dom.runInfo.appendChild(card);
@@ -673,7 +671,6 @@ async function initialize() {
   }
 
   dom.pageTitle.textContent = manifest.title || "Model Runs Explorer";
-  dom.generatedAt.textContent = manifest.generated_at || "Unknown";
   dom.runCount.textContent = `${state.runMeta.length}`;
   dom.variableCount.textContent = `${manifest.available_variables.length}`;
 

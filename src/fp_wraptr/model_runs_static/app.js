@@ -25,7 +25,6 @@ const state = {
 
 const dom = {
   pageTitle: document.querySelector("#pageTitle"),
-  generatedAt: document.querySelector("#generatedAt"),
   runCount: document.querySelector("#runCount"),
   variableCount: document.querySelector("#variableCount"),
   runSelect: document.querySelector("#runSelect"),
@@ -672,7 +671,6 @@ async function initialize() {
   }
 
   dom.pageTitle.textContent = manifest.title || "Model Runs Explorer";
-  dom.generatedAt.textContent = manifest.generated_at || "Unknown";
   dom.runCount.textContent = `${state.runMeta.length}`;
   dom.variableCount.textContent = `${manifest.available_variables.length}`;
 
