@@ -163,10 +163,14 @@ def run_scenario(
                 if num_threads_raw is not None and int(num_threads_raw) > 0
                 else None
             )
+            eq_structural_read_cache = str(
+                fppy_settings.get("eq_structural_read_cache", "off") or "off"
+            ).strip()
             selected_backend = FairPyBackend(
                 fp_home=config.fp_home,
                 timeout_seconds=timeout_seconds,
                 eq_flags_preset=eq_flags_preset,
+                eq_structural_read_cache=eq_structural_read_cache,
                 num_threads=num_threads,
             )
         elif backend_name == "both":

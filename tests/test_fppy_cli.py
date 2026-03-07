@@ -19,6 +19,7 @@ from fppy.cli import (
     _resolve_auto_keyboard_solve_stub_flags,
     _resolve_eq_flags_preset_label,
     _serialize_setupsolve_for_summary,
+    _should_compute_residual_probe,
     _snapshot_probe_values,
 )
 from fppy.parser import parse_fminput
@@ -103,6 +104,42 @@ def test_collect_outside_seed_stats_handles_unresolved_targets() -> None:
     assert stats["resolved_target_count"] == 0
     assert stats["inspected_cells"] == 0
     assert stats["candidate_cells"] == 0
+
+
+def test_should_compute_residual_probe_skips_before_min_iters() -> None:
+    assert (
+        _should_compute_residual_probe(
+            iteration=39,
+            max_iters=100,
+            min_iters=40,
+            convergence_ratio=0.0,
+        )
+        is False
+    )
+
+
+def test_should_compute_residual_probe_runs_at_min_iters_when_converged() -> None:
+    assert (
+        _should_compute_residual_probe(
+            iteration=40,
+            max_iters=100,
+            min_iters=40,
+            convergence_ratio=0.5,
+        )
+        is True
+    )
+
+
+def test_should_compute_residual_probe_runs_on_final_iteration_even_if_not_converged() -> None:
+    assert (
+        _should_compute_residual_probe(
+            iteration=100,
+            max_iters=100,
+            min_iters=40,
+            convergence_ratio=5.0,
+        )
+        is True
+    )
 
 
 def test_resolve_auto_keyboard_solve_stub_flags_enables_stub_defaults() -> None:
@@ -584,6 +621,7 @@ def test_cmd_mini_run_report_includes_setupsolve_and_unsupported_examples(
         enable_eq=True,
         eq_use_setupsolve=True,
         eq_flags_preset_label="parity",
+        eq_structural_read_cache="numpy_columns",
         report_json=report_path,
     )
     assert exit_code == 0
@@ -600,6 +638,11 @@ def test_cmd_mini_run_report_includes_setupsolve_and_unsupported_examples(
     assert isinstance(summary["unsupported_examples"], list)
     assert summary["unsupported_examples"] == payload["unsupported_examples"]
     assert summary["eq_backfill_auto_keyboard_stub_active"] is False
+    assert summary["eq_structural_read_cache"] == "numpy_columns"
+    assert summary["eq_backfill_structural_read_cache"] == "numpy_columns"
+    assert summary["eq_backfill_structural_read_cache_column_count"] == 0
+    assert summary["eq_backfill_structural_scalar_reads_cached"] == 0
+    assert summary["eq_backfill_structural_scalar_reads_frame"] == 0
 
 
 def test_apply_outside_seed_frame_cannot_seed_first_row_without_prior_period() -> None:

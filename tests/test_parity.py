@@ -142,14 +142,14 @@ def test_run_parity_does_not_mutate_input_config_fp_home(tmp_path, monkeypatch) 
     assert config.fp_home == original_home
 
 
-def test_run_parity_records_fppy_num_threads(tmp_path, monkeypatch) -> None:
+def test_run_parity_records_fppy_num_threads_and_structural_cache(tmp_path, monkeypatch) -> None:
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     config = ScenarioConfig(
         name="parity_threads",
         fp_home=fp_home,
         forecast_end="2025.4",
-        fppy={"num_threads": 9},
+        fppy={"num_threads": 9, "eq_structural_read_cache": "numpy_columns"},
     )
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
@@ -169,6 +169,7 @@ def test_run_parity_records_fppy_num_threads(tmp_path, monkeypatch) -> None:
 
     def fake_fppy_run(self, input_file=None, work_dir=None, extra_env=None):
         assert self.num_threads == 9
+        assert self.eq_structural_read_cache == "numpy_columns"
         assert work_dir is not None
         _write_minimal_pabev(work_dir / "PABEV.TXT")
         (work_dir / "fppy.stdout.txt").write_text("", encoding="utf-8")
@@ -201,6 +202,7 @@ def test_run_parity_records_fppy_num_threads(tmp_path, monkeypatch) -> None:
     result = run_parity(config, output_dir=tmp_path / "artifacts")
 
     assert result.engine_runs["fppy"].details["num_threads"] == 9
+    assert result.engine_runs["fppy"].details["eq_structural_read_cache"] == "numpy_columns"
     payload = result.to_dict()
     assert payload.get("schema_version") == 1
     assert "producer_version" in payload

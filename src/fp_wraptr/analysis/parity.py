@@ -407,6 +407,9 @@ def run_parity(
         if fppy_num_threads_raw is not None and int(fppy_num_threads_raw) > 0
         else None
     )
+    fppy_eq_structural_read_cache = str(
+        fppy_settings.get("eq_structural_read_cache", "off") or "off"
+    ).strip()
     fppy = FairPyBackend(
         fp_home=fp_home,
         timeout_seconds=fppy_timeout,
@@ -415,6 +418,7 @@ def run_parity(
         eq_iter_trace_period=fppy_eq_iter_trace_period,
         eq_iter_trace_targets=fppy_eq_iter_trace_targets,
         eq_iter_trace_max_events=fppy_eq_iter_trace_max_events,
+        eq_structural_read_cache=fppy_eq_structural_read_cache,
         num_threads=fppy_num_threads,
     )
 
@@ -508,6 +512,7 @@ def run_parity(
             fppy_eq_iter_trace_path = work_fppy / "eq_iter_trace.json"
             fppy_details: dict[str, Any] = {
                 "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "num_threads": fppy_num_threads,
                 "parity_output_file": fppy_output.name,
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
@@ -533,6 +538,7 @@ def run_parity(
         except Exception as exc:  # pragma: no cover (integration failure path)
             fppy_details = {
                 "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "num_threads": fppy_num_threads,
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
                 "eq_iter_trace_period": fppy_eq_iter_trace_period,
@@ -609,6 +615,7 @@ def run_parity(
                 "fppy_stderr_path": str(work_fppy / "fppy.stderr.txt"),
                 "fppy_pabev_path": str(work_fppy / "PABEV.TXT"),
                 "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
                 "eq_iter_trace_period": fppy_eq_iter_trace_period,
                 "eq_iter_trace_targets": fppy_eq_iter_trace_targets,
@@ -646,6 +653,7 @@ def run_parity(
                 "fppy_stderr_path": str(work_fppy / "fppy.stderr.txt"),
                 "fppy_pabev_path": str(work_fppy / "PABEV.TXT"),
                 "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
                 "eq_iter_trace_period": fppy_eq_iter_trace_period,
                 "eq_iter_trace_targets": fppy_eq_iter_trace_targets,
