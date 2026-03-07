@@ -15,6 +15,10 @@
     <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue?style=for-the-badge&logo=github" alt="Documentation">
   </a>
   &nbsp;
+  <a href="https://smkwray.github.io/fp-wraptr/model-runs/">
+    <img src="https://img.shields.io/badge/Model_Runs-Explorer-amber?style=for-the-badge&logo=github" alt="Model Runs Explorer">
+  </a>
+  &nbsp;
   <a href="https://fairmodel.econ.yale.edu/fp/fp.htm">
     <img src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_Download-fp.exe_from_Yale-005eb8?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMCAyMCAxMCAxMCAwIDAgMCAwLTIwem0xIDEwLjU5bDMuMy0zLjNhMSAxIDAgMCAxIDEuNCAxLjQybC00IDRhMSAxIDAgMCAxLTEuNDIgMGwtNC00YTEgMSAwIDAgMSAxLjQyLTEuNDJsMy4zIDMuM1Y3YTEgMSAwIDAgMSAyIDB2NS41OXoiLz48L3N2Zz4=" alt="Download fp.exe from Yale">
   </a>
