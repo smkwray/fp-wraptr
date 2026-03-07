@@ -4,10 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Model Runs Explorer</title>
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23a44724'/%3E%3Cpath d='M8 22V10h6.2c4.4 0 7.1 2.2 7.1 6s-2.7 6-7.1 6H8zm4.1-3.1h2c2.3 0 3.8-1.1 3.8-2.9s-1.5-2.9-3.8-2.9h-2v5.8z' fill='%23fffaf1'/%3E%3C/svg%3E"
-    />
+    <link rel="icon" type="image/png" href="./assets/rptr-mv_rmgb.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -80,6 +77,12 @@
                 <h2>Charts</h2>
               </div>
             </div>
+            <div class="equation-bar">
+              <input id="equationInput" type="text" placeholder="Custom graph e.g. (CD + CN + CS) / GDP * 100" aria-label="Equation expression" />
+              <button id="equationPlotButton" type="button" class="ghost-button equation-button">Plot</button>
+            </div>
+            <div id="equationError" class="equation-error" hidden></div>
+            <div id="equationCharts" class="charts-grid"></div>
             <div id="charts" class="charts-grid"></div>
             <div id="chartEmpty" class="empty-state">
               Select runs and variables to render charts.
