@@ -91,7 +91,7 @@ fp parity examples/baseline.yaml --with-drift
 fp run examples/baseline.yaml --backend both
 ```
 
-Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails and a max relative gap under 0.04% on economically meaningful variables.
+Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails, an average relative difference of 0.00005%, and a max relative gap under 0.04% on economically meaningful variables.
 
 For the full parity operator playbook: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
 
