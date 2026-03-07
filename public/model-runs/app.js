@@ -884,13 +884,14 @@ function renderDictionary() {
   for (const record of cards) {
     const card = document.createElement("article");
     card.className = "dict-card";
+    const shortName = record.short_name ? `<span class="dict-short-name">${record.short_name}</span>` : "";
     card.innerHTML = `
       <div class="dict-header">
         <strong>${record.code}</strong>
-        <span>${record.units || "Units unavailable"}</span>
+        ${shortName}
+        <span>${record.units || ""}</span>
       </div>
-      <p><strong>${record.short_name || "No short name"}</strong></p>
-      <p>${record.description || "No description available in the exported dictionary."}</p>
+      <p>${record.description || "No description available."}</p>
     `;
     dom.dictionaryResults.appendChild(card);
   }
