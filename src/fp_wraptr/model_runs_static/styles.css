@@ -414,6 +414,12 @@ input[type="search"] {
   margin-top: 14px;
 }
 
+.equation-results {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 .dict-card {
   padding: 14px;
   border-radius: 18px;
@@ -441,6 +447,65 @@ input[type="search"] {
 .dict-card p {
   margin: 10px 0 0;
   line-height: 1.48;
+}
+
+.equation-group {
+  display: grid;
+  gap: 10px;
+}
+
+.equation-group h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.equation-card {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(24, 32, 27, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.equation-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.equation-id {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.equation-type {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.equation-card h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.equation-card p {
+  margin: 8px 0 0;
+  line-height: 1.48;
+}
+
+.equation-code {
+  font-family: "IBM Plex Mono", "IBM Plex Sans", monospace;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.equation-note {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 @media (max-width: 1080px) {

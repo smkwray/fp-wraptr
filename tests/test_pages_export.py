@@ -26,27 +26,38 @@ from fp_wraptr.pages_export import PagesExportError, export_pages_bundle
 runner = CliRunner()
 
 
-def _write_loadformat(path: Path, *, wf: list[float], pf: list[float], gdp: list[float]) -> None:
+def _write_loadformat(
+    path: Path,
+    *,
+    wf: list[float],
+    pf: list[float],
+    gdp: list[float],
+    extra_series: dict[str, list[float]] | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "\n".join([
-            "SMPL 2025.1 2025.4;",
-            "LOAD WF;",
-            " " + " ".join(str(value) for value in wf),
+    lines = [
+        "SMPL 2025.1 2025.4;",
+        "LOAD WF;",
+        " " + " ".join(str(value) for value in wf),
+        "'END'",
+        "LOAD PF;",
+        " " + " ".join(str(value) for value in pf),
+        "'END'",
+        "LOAD GDP;",
+        " " + " ".join(str(value) for value in gdp),
+        "'END'",
+        "LOAD GDPR;",
+        " " + " ".join(str(value) for value in gdp),
+        "'END'",
+    ]
+    for name, values in (extra_series or {}).items():
+        lines.extend([
+            f"LOAD {name};",
+            " " + " ".join(str(value) for value in values),
             "'END'",
-            "LOAD PF;",
-            " " + " ".join(str(value) for value in pf),
-            "'END'",
-            "LOAD GDP;",
-            " " + " ".join(str(value) for value in gdp),
-            "'END'",
-            "LOAD GDPR;",
-            " " + " ".join(str(value) for value in gdp),
-            "'END'",
-            "",
-        ]),
-        encoding="utf-8",
-    )
+        ])
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def _write_run(
@@ -60,6 +71,8 @@ def _write_run(
     wf: list[float] | None = None,
     pf: list[float] | None = None,
     gdp: list[float] | None = None,
+    fminput_text: str | None = None,
+    extra_series: dict[str, list[float]] | None = None,
 ) -> Path:
     run_dir = root / "artifacts" / f"{scenario_name}_{timestamp}"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -77,7 +90,12 @@ def _write_run(
         wf=wf or [1.0, 2.0, 3.0, 4.0],
         pf=pf or [10.0, 10.0, 10.0, 10.0],
         gdp=gdp or [100.0, 101.0, 102.0, 103.0],
+        extra_series=extra_series,
     )
+    if fminput_text is not None:
+        work_dir = run_dir / "work"
+        work_dir.mkdir(parents=True, exist_ok=True)
+        (work_dir / "fminput.txt").write_text(fminput_text, encoding="utf-8")
     return run_dir
 
 
@@ -226,9 +244,133 @@ def test_export_pages_bundle_applies_dictionary_overlay_precedence(tmp_path: Pat
     assert dictionary_payload["variables"]["GDP"] == {
         "code": "GDP",
         "description": "Scenario GDP description",
+        "defined_by_equation": 82,
         "short_name": "Shared GDP",
+        "used_in_equations": [84, 129],
         "units": "Index",
     }
+    assert dictionary_payload["equations"]["82"]["lhs_expr"] == "GDP"
+
+
+def test_export_pages_bundle_includes_overlay_equations(tmp_path: Path) -> None:
+    overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
+    (overlay_dir / "dictionary_overlays").mkdir(parents=True, exist_ok=True)
+    (overlay_dir / "dictionary_overlays" / "scenario.json").write_text(
+        json.dumps(
+            {
+                "equations": {
+                    "999": {
+                        "label": "Scenario helper equation",
+                        "lhs_expr": "JGJ",
+                        "rhs_variables": ["JF", "JGJ"],
+                        "formula": "JF + JGJ",
+                    }
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    _write_run(
+        tmp_path,
+        scenario_name="scenario",
+        timestamp="20260306_130000",
+        input_overlay_dir=overlay_dir,
+    )
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    _write_spec(spec_path)
+
+    previous_cwd = Path.cwd()
+    try:
+        os.chdir(tmp_path)
+        export_pages_bundle(
+            spec_path=spec_path,
+            artifacts_dir=tmp_path / "artifacts",
+            out_dir=tmp_path / "public" / "model-runs",
+        )
+    finally:
+        os.chdir(previous_cwd)
+
+    dictionary_payload = json.loads(
+        (tmp_path / "public" / "model-runs" / "dictionary.json").read_text(encoding="utf-8")
+    )
+    assert dictionary_payload["equations"]["999"] == {
+        "formula": "JF + JGJ",
+        "id": 999,
+        "label": "Scenario helper equation",
+        "lhs_expr": "JGJ",
+        "rhs_variables": ["JF", "JGJ"],
+        "sector_block": "",
+        "display_id": "Eq 999",
+        "source_runs": [],
+        "type": "definitional",
+    }
+
+
+def test_export_pages_bundle_includes_run_input_equations_for_scenario_variables(
+    tmp_path: Path,
+) -> None:
+    _write_run(
+        tmp_path,
+        scenario_name="scenario",
+        timestamp="20260306_130000",
+        fminput_text=(
+            "CREATE JGCOLA=0;\n"
+            "IDENT JGW=JGW(-1)*(1+JGCOLA);\n"
+            "GENR JGJ=JGPART+JGNOTLF+JGU;\n"
+        ),
+        extra_series={
+            "JGCOLA": [0.0, 0.0, 0.0, 0.0],
+            "JGW": [1.0, 1.0, 1.0, 1.0],
+            "JGJ": [0.0, 0.0, 0.0, 0.0],
+        },
+    )
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    spec_payload = {
+        "version": 1,
+        "title": "Fixture Explorer",
+        "site_subpath": "model-runs",
+        "runs": [
+            {
+                "run_id": "fixture-run",
+                "label": "Fixture Run",
+                "scenario_name": "scenario",
+            }
+        ],
+        "default_run_ids": ["fixture-run"],
+        "presets": [
+            {
+                "id": "fixture-preset",
+                "label": "Fixture Preset",
+                "variables": ["GDP", "WF", "WR", "JGCOLA", "JGW", "JGJ"],
+            }
+        ],
+        "default_preset_ids": ["fixture-preset"],
+    }
+    spec_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_path.write_text(yaml.safe_dump(spec_payload, sort_keys=False), encoding="utf-8")
+
+    export_pages_bundle(
+        spec_path=spec_path,
+        artifacts_dir=tmp_path / "artifacts",
+        out_dir=tmp_path / "public" / "model-runs",
+    )
+
+    dictionary_payload = json.loads(
+        (tmp_path / "public" / "model-runs" / "dictionary.json").read_text(encoding="utf-8")
+    )
+    equation_records = list(dictionary_payload["equations"].values())
+    create_record = next(item for item in equation_records if item["display_id"] == "CREATE JGCOLA")
+    ident_record = next(item for item in equation_records if item["display_id"] == "IDENT JGW")
+    genr_record = next(item for item in equation_records if item["display_id"] == "GENR JGJ")
+
+    assert create_record["lhs_expr"] == "JGCOLA"
+    assert create_record["formula"] == "0"
+    assert create_record["source_runs"] == ["scenario"]
+    assert ident_record["rhs_variables"] == ["JGW", "JGCOLA"]
+    assert ident_record["source_runs"] == ["scenario"]
+    assert genr_record["rhs_variables"] == ["JGPART", "JGNOTLF", "JGU"]
 
 
 def test_export_pages_bundle_rejects_absolute_path_strings(tmp_path: Path) -> None:
@@ -265,6 +407,7 @@ def test_export_pages_bundle_uses_relative_static_paths(tmp_path: Path) -> None:
     assert 'id="variableSearch"' in index_html
     assert 'id="runInfoSelect"' in index_html
     assert 'id="runInfo"' in index_html
+    assert 'id="equationSearch"' in index_html
     assert manifest["dictionary_path"] == "dictionary.json"
     assert manifest["presets_path"] == "presets.json"
     assert all(not item["data_path"].startswith("/") for item in manifest["runs"])

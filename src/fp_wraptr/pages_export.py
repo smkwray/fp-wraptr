@@ -6,6 +6,7 @@ import json
 import math
 import re
 import shutil
+from hashlib import sha1
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -22,6 +23,7 @@ from fp_wraptr.dashboard.mini_dash_helpers import (
 from fp_wraptr.data.dictionary_overlays import load_dictionary_with_overlays
 from fp_wraptr.hygiene import find_project_root
 from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
+from fp_wraptr.io.input_parser import parse_fp_input
 
 SCHEMA_VERSION = 1
 STATIC_SITE_SUBPATH = "model-runs"
@@ -29,6 +31,7 @@ DEFAULT_SPEC_PATH = Path("public") / "model-runs.spec.yaml"
 _RUN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 _PERIOD_TOKEN_RE = re.compile(r"^(?P<year>\d{4})\.(?P<sub>\d+)$")
+_INPUT_VAR_RE = re.compile(r"\b([A-Z][A-Z0-9_]{1,})\b")
 
 __all__ = [
     "DEFAULT_SPEC_PATH",
@@ -394,7 +397,7 @@ def _build_dictionary_payload(
     available_variables: list[str],
 ) -> dict[str, Any]:
     merged = load_dictionary_with_overlays(overlay_paths=overlay_paths_for_runs(runs))
-    variables: dict[str, dict[str, str | None]] = {}
+    variables: dict[str, dict[str, Any]] = {}
     for code in available_variables:
         record = merged.get_variable(code)
         variables[code] = {
@@ -402,11 +405,132 @@ def _build_dictionary_payload(
             "short_name": str(getattr(record, "short_name", "") or "").strip() if record else "",
             "description": str(getattr(record, "description", "") or "").strip() if record else "",
             "units": str(getattr(record, "units", "") or "").strip() if record else "",
+            "defined_by_equation": getattr(record, "defined_by_equation", None) if record else None,
+            "used_in_equations": list(getattr(record, "used_in_equations", []) or [])
+            if record
+            else [],
         }
+    equations: dict[str, dict[str, Any]] = {}
+    for eq_id, eq in sorted(merged.equations.items()):
+        equations[str(eq_id)] = {
+            "id": int(eq.id),
+            "type": str(getattr(eq, "type", "") or "").strip(),
+            "sector_block": str(getattr(eq, "sector_block", "") or "").strip(),
+            "label": str(getattr(eq, "label", "") or "").strip(),
+            "lhs_expr": str(getattr(eq, "lhs_expr", "") or "").strip(),
+            "rhs_variables": [str(name).strip() for name in list(getattr(eq, "rhs_variables", []) or [])],
+            "formula": str(getattr(eq, "formula", "") or "").strip(),
+            "display_id": f"Eq {eq_id}",
+            "source_runs": [],
+        }
+    equations.update(_build_run_input_equation_payloads(runs=runs, available_variables=available_variables))
     return {
         "schema_version": SCHEMA_VERSION,
         "variables": variables,
+        "equations": equations,
     }
+
+
+def _input_paths_for_run(run: RunArtifact) -> list[Path]:
+    candidates: list[Path] = []
+    work_dir = run.run_dir / "work"
+    if work_dir.exists():
+        for path in sorted(work_dir.glob("*.txt")):
+            name = path.name.lower()
+            if name in {
+                "fmout.txt",
+                "fp-exe.stdout.txt",
+                "fp-exe.stderr.txt",
+                "fmdata.txt",
+                "fmage.txt",
+                "fmexog.txt",
+            }:
+                continue
+            if name == "fminput.txt" or name == "ptcoef.txt" or name == "intgadj.txt" or name.startswith("pse"):
+                candidates.append(path)
+    root_fminput = run.run_dir / "fminput.txt"
+    if root_fminput.exists():
+        candidates.append(root_fminput)
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for path in candidates:
+        try:
+            resolved = path.resolve()
+        except Exception:
+            resolved = path
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        out.append(path)
+    return out
+
+
+def _extract_input_refs(expression: str) -> list[str]:
+    refs = [match.group(1).upper().strip() for match in _INPUT_VAR_RE.finditer(expression or "")]
+    out: list[str] = []
+    seen: set[str] = set()
+    for ref in refs:
+        if not ref or ref in seen:
+            continue
+        seen.add(ref)
+        out.append(ref)
+    return out
+
+
+def _make_run_equation_id(command_type: str, lhs: str, expression: str) -> str:
+    digest = sha1(f"{command_type}|{lhs}|{expression}".encode("utf-8")).hexdigest()[:10]
+    return f"{command_type}:{lhs}:{digest}"
+
+
+def _build_run_input_equation_payloads(
+    *,
+    runs: list[RunArtifact],
+    available_variables: list[str],
+) -> dict[str, dict[str, Any]]:
+    visible_variables = {str(name).strip().upper() for name in available_variables}
+    payloads: dict[str, dict[str, Any]] = {}
+    for run in runs:
+        for input_path in _input_paths_for_run(run):
+            try:
+                parsed = parse_fp_input(input_path)
+            except Exception:
+                continue
+            for command_type, records in (
+                ("create", parsed.get("creates", [])),
+                ("genr", parsed.get("generated_vars", [])),
+                ("identity", parsed.get("identities", [])),
+            ):
+                for raw_record in records or []:
+                    lhs = str(raw_record.get("name", "") or "").strip().upper()
+                    expression = str(raw_record.get("expression", "") or "").strip()
+                    rhs_variables = _extract_input_refs(expression)
+                    if lhs not in visible_variables and not (visible_variables & set(rhs_variables)):
+                        continue
+                    eq_id = _make_run_equation_id(command_type, lhs, expression)
+                    command_label = {
+                        "create": "CREATE",
+                        "genr": "GENR",
+                        "identity": "IDENT",
+                    }.get(command_type, command_type.upper())
+                    item = payloads.setdefault(
+                        eq_id,
+                        {
+                            "id": eq_id,
+                            "type": command_type,
+                            "sector_block": "scenario_input",
+                            "label": f"{command_label} {lhs}".strip(),
+                            "lhs_expr": lhs,
+                            "rhs_variables": rhs_variables,
+                            "formula": expression,
+                            "display_id": f"{command_label} {lhs}".strip(),
+                            "source_runs": [],
+                        },
+                    )
+                    source_runs = item.setdefault("source_runs", [])
+                    run_id = run.scenario_name
+                    if run_id not in source_runs:
+                        source_runs.append(run_id)
+    return payloads
 
 
 def _build_presets_payload(*, spec: PagesExportSpec) -> dict[str, Any]:
