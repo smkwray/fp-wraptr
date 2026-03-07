@@ -405,7 +405,9 @@ def _build_dictionary_payload(
             "short_name": str(getattr(record, "short_name", "") or "").strip() if record else "",
             "description": str(getattr(record, "description", "") or "").strip() if record else "",
             "units": str(getattr(record, "units", "") or "").strip() if record else "",
-            "defined_by_equation": getattr(record, "defined_by_equation", None) if record else None,
+            "defined_by_equation": getattr(record, "defined_by_equation", None)
+            if record
+            else None,
             "used_in_equations": list(getattr(record, "used_in_equations", []) or [])
             if record
             else [],
@@ -418,12 +420,16 @@ def _build_dictionary_payload(
             "sector_block": str(getattr(eq, "sector_block", "") or "").strip(),
             "label": str(getattr(eq, "label", "") or "").strip(),
             "lhs_expr": str(getattr(eq, "lhs_expr", "") or "").strip(),
-            "rhs_variables": [str(name).strip() for name in list(getattr(eq, "rhs_variables", []) or [])],
+            "rhs_variables": [
+                str(name).strip() for name in list(getattr(eq, "rhs_variables", []) or [])
+            ],
             "formula": str(getattr(eq, "formula", "") or "").strip(),
             "display_id": f"Eq {eq_id}",
             "source_runs": [],
         }
-    equations.update(_build_run_input_equation_payloads(runs=runs, available_variables=available_variables))
+    equations.update(
+        _build_run_input_equation_payloads(runs=runs, available_variables=available_variables)
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "variables": variables,
@@ -446,7 +452,12 @@ def _input_paths_for_run(run: RunArtifact) -> list[Path]:
                 "fmexog.txt",
             }:
                 continue
-            if name == "fminput.txt" or name == "ptcoef.txt" or name == "intgadj.txt" or name.startswith("pse"):
+            if (
+                name == "fminput.txt"
+                or name == "ptcoef.txt"
+                or name == "intgadj.txt"
+                or name.startswith("pse")
+            ):
                 candidates.append(path)
     root_fminput = run.run_dir / "fminput.txt"
     if root_fminput.exists():
@@ -504,7 +515,9 @@ def _build_run_input_equation_payloads(
                     lhs = str(raw_record.get("name", "") or "").strip().upper()
                     expression = str(raw_record.get("expression", "") or "").strip()
                     rhs_variables = _extract_input_refs(expression)
-                    if lhs not in visible_variables and not (visible_variables & set(rhs_variables)):
+                    if lhs not in visible_variables and not (
+                        visible_variables & set(rhs_variables)
+                    ):
                         continue
                     eq_id = _make_run_equation_id(command_type, lhs, expression)
                     command_label = {
