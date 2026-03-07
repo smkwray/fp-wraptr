@@ -9,6 +9,114 @@ const COMPARE_PCT_DIFF_VS_RUN = "pct_diff_vs_run";
 
 const DEFAULT_DENOMINATOR = "GDP";
 
+/* ── Expression parser (recursive descent, no eval) ────────────── */
+
+function tokenize(expr) {
+  const tokens = [];
+  let i = 0;
+  while (i < expr.length) {
+    if (/\s/.test(expr[i])) { i++; continue; }
+    if ("+-*/()".includes(expr[i])) { tokens.push({ type: "op", value: expr[i] }); i++; continue; }
+    if (/[0-9]/.test(expr[i]) || (expr[i] === "." && i + 1 < expr.length && /[0-9]/.test(expr[i + 1]))) {
+      let num = "";
+      while (i < expr.length && (/[0-9]/.test(expr[i]) || expr[i] === ".")) { num += expr[i]; i++; }
+      tokens.push({ type: "num", value: Number(num) });
+      continue;
+    }
+    if (/[A-Za-z_]/.test(expr[i])) {
+      let name = "";
+      while (i < expr.length && /[A-Za-z0-9_]/.test(expr[i])) { name += expr[i]; i++; }
+      tokens.push({ type: "var", value: name.toUpperCase() });
+      continue;
+    }
+    throw new Error(`Unexpected character: '${expr[i]}'`);
+  }
+  return tokens;
+}
+
+function parseExpression(tokens) {
+  let pos = 0;
+  function peek() { return tokens[pos] || null; }
+  function consume() { return tokens[pos++]; }
+
+  function parseExpr() { return parseAddSub(); }
+
+  function parseAddSub() {
+    let left = parseMulDiv();
+    while (peek() && (peek().value === "+" || peek().value === "-")) {
+      const op = consume().value;
+      left = { type: "binary", op, left, right: parseMulDiv() };
+    }
+    return left;
+  }
+
+  function parseMulDiv() {
+    let left = parseUnary();
+    while (peek() && (peek().value === "*" || peek().value === "/")) {
+      const op = consume().value;
+      left = { type: "binary", op, left, right: parseUnary() };
+    }
+    return left;
+  }
+
+  function parseUnary() {
+    if (peek() && peek().value === "-") { consume(); return { type: "unary", op: "-", operand: parseUnary() }; }
+    if (peek() && peek().value === "+") { consume(); return parseUnary(); }
+    return parsePrimary();
+  }
+
+  function parsePrimary() {
+    const tok = peek();
+    if (!tok) throw new Error("Unexpected end of expression");
+    if (tok.type === "num") { consume(); return { type: "num", value: tok.value }; }
+    if (tok.type === "var") { consume(); return { type: "var", value: tok.value }; }
+    if (tok.value === "(") {
+      consume();
+      const inner = parseExpr();
+      const closing = peek();
+      if (!closing || closing.value !== ")") throw new Error("Expected ')'");
+      consume();
+      return inner;
+    }
+    throw new Error(`Unexpected token: '${tok.value}'`);
+  }
+
+  const ast = parseExpr();
+  if (pos < tokens.length) throw new Error(`Unexpected token: '${tokens[pos].value}'`);
+  return ast;
+}
+
+function extractVariables(ast) {
+  const vars = new Set();
+  (function walk(node) {
+    if (node.type === "var") vars.add(node.value);
+    if (node.type === "binary") { walk(node.left); walk(node.right); }
+    if (node.type === "unary") walk(node.operand);
+  })(ast);
+  return [...vars];
+}
+
+function evaluateAst(ast, getVar) {
+  if (ast.type === "num") return ast.value;
+  if (ast.type === "var") return getVar(ast.value);
+  if (ast.type === "unary" && ast.op === "-") {
+    const v = evaluateAst(ast.operand, getVar);
+    return v === null ? null : -v;
+  }
+  if (ast.type === "binary") {
+    const l = evaluateAst(ast.left, getVar);
+    const r = evaluateAst(ast.right, getVar);
+    if (l === null || r === null) return null;
+    if (ast.op === "+") return l + r;
+    if (ast.op === "-") return l - r;
+    if (ast.op === "*") return l * r;
+    if (ast.op === "/") return r === 0 ? null : l / r;
+  }
+  return null;
+}
+
+let equationIdCounter = 0;
+
 const state = {
   manifest: null,
   presets: [],
@@ -21,6 +129,7 @@ const state = {
   variableConfigs: new Map(),
   variableSearchQuery: "",
   selectedRunInfoId: "",
+  equations: [],
 };
 
 const dom = {
@@ -32,6 +141,10 @@ const dom = {
   variableSelect: document.querySelector("#variableSelect"),
   runInfoSelect: document.querySelector("#runInfoSelect"),
   runInfo: document.querySelector("#runInfo"),
+  equationInput: document.querySelector("#equationInput"),
+  equationPlotButton: document.querySelector("#equationPlotButton"),
+  equationError: document.querySelector("#equationError"),
+  equationCharts: document.querySelector("#equationCharts"),
   charts: document.querySelector("#charts"),
   chartEmpty: document.querySelector("#chartEmpty"),
   dictionarySearch: document.querySelector("#dictionarySearch"),
@@ -242,6 +355,7 @@ function syncRunSelect() {
           }
           syncRunSelect();
           renderCharts();
+          renderEquationCharts();
           renderRunInfo();
         },
       }),
@@ -563,6 +677,52 @@ function buildChartTitle(variable, config) {
   return { title, units };
 }
 
+/* ── CSV download helpers ────────────────────────────────────── */
+
+function csvEscape(value) {
+  const str = `${value}`;
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function buildCsvContent(xLabels, traces) {
+  const header = ["Period", ...traces.map((t) => csvEscape(t.name))].join(",");
+  const rows = xLabels.map((label, i) => {
+    const values = traces.map((t) => {
+      const v = t.y[i];
+      return v === null || v === undefined ? "" : v;
+    });
+    return [csvEscape(label), ...values].join(",");
+  });
+  return [header, ...rows].join("\n");
+}
+
+function triggerCsvDownload(filename, content) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function createDownloadButton(filename, xLabels, traces) {
+  const btn = document.createElement("button");
+  btn.className = "chart-download";
+  btn.textContent = "\u2193 CSV";
+  btn.title = "Download chart data as CSV";
+  btn.addEventListener("click", () => {
+    triggerCsvDownload(filename, buildCsvContent(xLabels, traces));
+  });
+  return btn;
+}
+
 function renderCharts() {
   dom.charts.innerHTML = "";
   const hasSelections = state.selectedRunIds.length > 0 && state.selectedVariables.length > 0;
@@ -633,7 +793,9 @@ function renderCharts() {
     chart.className = "chart-surface";
     card.appendChild(heading);
     card.appendChild(chart);
-    card.appendChild(createChartControls(variable, config));
+    const controls = createChartControls(variable, config);
+    controls.appendChild(createDownloadButton(`${variable}.csv`, xLabels, traces));
+    card.appendChild(controls);
     dom.charts.appendChild(card);
 
     Plotly.newPlot(
@@ -714,6 +876,134 @@ function renderDictionary() {
   }
 }
 
+function addEquation(expression) {
+  const trimmed = expression.trim();
+  if (!trimmed) return;
+
+  dom.equationError.hidden = true;
+
+  let ast;
+  try {
+    const tokens = tokenize(trimmed);
+    ast = parseExpression(tokens);
+  } catch (err) {
+    dom.equationError.textContent = `Parse error: ${err.message}`;
+    dom.equationError.hidden = false;
+    return;
+  }
+
+  const vars = extractVariables(ast);
+  const missing = vars.filter((v) => !state.manifest.available_variables.includes(v));
+  if (missing.length > 0) {
+    dom.equationError.textContent = `Unknown variable${missing.length > 1 ? "s" : ""}: ${missing.join(", ")}`;
+    dom.equationError.hidden = false;
+    return;
+  }
+
+  equationIdCounter++;
+  state.equations.push({ id: equationIdCounter, expression: trimmed, ast });
+  dom.equationInput.value = "";
+  renderEquationCharts();
+}
+
+function removeEquation(id) {
+  state.equations = state.equations.filter((eq) => eq.id !== id);
+  renderEquationCharts();
+}
+
+function renderEquationCharts() {
+  dom.equationCharts.innerHTML = "";
+  if (state.equations.length === 0) return;
+
+  const selectedRuns = state.selectedRunIds
+    .map((runId) => ({ meta: getRunMeta(runId), payload: state.runCache.get(runId) }))
+    .filter((item) => item.meta && item.payload);
+
+  if (selectedRuns.length === 0) return;
+
+  const periods = sortPeriodTokens(
+    unique(selectedRuns.flatMap((item) => item.payload.periods || [])),
+  );
+  const xLabels = periods.map(formatPeriodToken);
+
+  for (const eq of state.equations) {
+    const traces = [];
+    for (const item of selectedRuns) {
+      const periodIndex = new Map(item.payload.periods.map((p, i) => [p, i]));
+      const values = periods.map((period) => {
+        const idx = periodIndex.get(period);
+        if (idx === undefined) return null;
+        return evaluateAst(eq.ast, (varName) => {
+          const series = item.payload.series[varName];
+          if (!series || idx >= series.length) return null;
+          return valueOrNull(series[idx]);
+        });
+      });
+      traces.push({
+        type: "scatter",
+        mode: "lines+markers",
+        name: item.meta.label,
+        x: xLabels,
+        y: values,
+        hovertemplate: `<b>${item.meta.label}</b><br>%{x}<br>%{y:,.4f}<extra></extra>`,
+        connectgaps: false,
+      });
+    }
+
+    const card = document.createElement("article");
+    card.className = "chart-card";
+
+    const header = document.createElement("div");
+    header.style.display = "flex";
+    header.style.justifyContent = "space-between";
+    header.style.alignItems = "center";
+
+    const heading = document.createElement("h3");
+    heading.textContent = eq.expression;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "equation-remove";
+    removeBtn.textContent = "\u00d7";
+    removeBtn.title = "Remove equation chart";
+    removeBtn.addEventListener("click", () => removeEquation(eq.id));
+
+    header.appendChild(heading);
+    header.appendChild(removeBtn);
+
+    const chart = document.createElement("div");
+    chart.className = "chart-surface";
+
+    card.appendChild(header);
+    card.appendChild(chart);
+    const safeName = eq.expression.replace(/[^A-Za-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+    const eqControls = document.createElement("div");
+    eqControls.className = "chart-controls";
+    eqControls.appendChild(createDownloadButton(`${safeName}.csv`, xLabels, traces));
+    card.appendChild(eqControls);
+    dom.equationCharts.appendChild(card);
+
+    Plotly.newPlot(
+      chart,
+      traces,
+      {
+        margin: { t: 30, r: 12, b: 46, l: 54 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.72)",
+        font: { family: "IBM Plex Sans, sans-serif", color: "#18201b" },
+        xaxis: { title: { text: "Period" }, automargin: true },
+        yaxis: {
+          title: { text: eq.expression },
+          zerolinecolor: "rgba(24,32,27,0.16)",
+          gridcolor: "rgba(24,32,27,0.08)",
+          automargin: true,
+        },
+        legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "left", x: 0 },
+      },
+      { responsive: true, displaylogo: false },
+    );
+  }
+}
+
 async function initialize() {
   const manifest = await fetchJson("./manifest.json");
   const presetsPayload = await fetchJson(manifest.presets_path);
@@ -766,6 +1056,16 @@ dom.variableSearch.addEventListener("input", () => {
 
 dom.dictionarySearch.addEventListener("input", () => {
   renderDictionary();
+});
+
+dom.equationPlotButton.addEventListener("click", () => {
+  addEquation(dom.equationInput.value);
+});
+
+dom.equationInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    addEquation(dom.equationInput.value);
+  }
 });
 
 initialize().catch((error) => {
