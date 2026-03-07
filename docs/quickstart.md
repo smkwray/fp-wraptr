@@ -10,7 +10,7 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/shanewray/fp-wraptr.git
+git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
 
 # Install with all extras

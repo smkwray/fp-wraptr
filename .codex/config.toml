@@ -1,3 +1,0 @@
-[mcp_servers.fp-wraptr]
-command = "uv"
-args = ["run", "fp-mcp"]

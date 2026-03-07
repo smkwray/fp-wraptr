@@ -11,6 +11,10 @@
 </p>
 
 <p align="center">
+  <a href="https://smkwray.github.io/fp-wraptr/">
+    <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue?style=for-the-badge&logo=github" alt="Documentation">
+  </a>
+  &nbsp;
   <a href="https://fairmodel.econ.yale.edu/fp/fp.zip">
     <img src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_Download-fp.exe_from_Yale-005eb8?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMCAyMCAxMCAxMCAwIDAgMCAwLTIwem0xIDEwLjU5bDMuMy0zLjNhMSAxIDAgMCAxIDEuNCAxLjQybC00IDRhMSAxIDAgMCAxLTEuNDIgMGwtNC00YTEgMSAwIDAgMSAxLjQyLTEuNDJsMy4zIDMuM1Y3YTEgMSAwIDAgMSAyIDB2NS41OXoiLz48L3N2Zz4=" alt="Download fp.exe from Yale">
   </a>
@@ -27,7 +31,7 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 | Mascot | Represents | Personality |
 |--------|-----------|-------------|
 | **Rex** the Velociraptor | `fp.exe` -- the original FORTRAN model | Battle-tested. Fast. Has been crunching macro equations since the Cretaceous. |
-| **Raptr** the Eagle | `fp-wraptr` -- the modern Python wrapper | The name's in the name. |
+| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring | The name's in the name. |
 | **Archie** the Archaeopteryx | `fppy` -- the pure-Python solver | Half-dinosaur, half-bird. The evolutionary bridge. Proves you don't need FORTRAN to fly. |
 
 <p align="center">
@@ -57,7 +61,7 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone and set up
-git clone https://github.com/shanewray/fp-wraptr.git
+git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
 uv sync --all-extras
 
@@ -91,13 +95,13 @@ fp run examples/baseline.yaml --backend both
 
 Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics.
 
-For the full parity operator playbook: [`docs/parity.md`](docs/parity.md)
+For the full parity operator playbook: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
 
 ## Parity quickstart
 
 For the canonical ship-readiness path (fpexe-only, fppy-only, parity compare, triage, golden/regression, and dashboard launch), see:
 
-- [`docs/quickstart.md#parity-quickstart`](docs/quickstart.md#parity-quickstart)
+- [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
 
 ## Dashboard
 
@@ -111,7 +115,7 @@ Pages include: Run Panels, Compare Runs, New Run, Equation Graph, Equations, Twe
 
 `New Run` now defaults to an agent handoff flow and keeps advanced manual authoring behind an explicit toggle.
 
-See [`docs/dashboard.md`](docs/dashboard.md) for the full guide.
+See the [Dashboard guide](https://smkwray.github.io/fp-wraptr/dashboard/) for the full walkthrough.
 
 ## GitHub Pages Run Explorer
 
@@ -160,13 +164,13 @@ fp-wraptr/
     dashboard/          # Streamlit dashboard helpers (artifacts, charts)
     data/               # FRED/BEA/BLS data update pipelines
     viz/                # Charts and plots
-    mcp_server.py       # FastMCP server (25 tools)
+    mcp_server.py       # FastMCP server (41 tools)
   src/fppy/             # Vendored pure-Python FP solver core
     eq_solver.py        # Equation system solver
     mini_run.py         # Mini-run execution
     parity.py           # Parity output formatting
   apps/dashboard/       # Streamlit dashboard (12 pages)
-  tests/                # Pytest suite (68 files, 538+ tests)
+  tests/                # Pytest suite (82 files, 500+ tests)
   docs/                 # MkDocs documentation
   examples/             # Example scenario configs (YAML)
   bundles/              # Bundle configurations (multi-variant runs)
@@ -217,7 +221,7 @@ difference report for parity mode (`fp parity` or `fp run --backend both`).
 - Not vendored as fp-wraptr surface: broader fair-py dictionary/release tooling.
 - Parity contract is always `PABEV.TXT`, and hard-fail invariants (`missing/discrete/signflip`) remain enforced regardless of numeric tolerances.
 
-See also: `docs/parity.md` for parity interpretation, scenario-change policy, and asset provisioning notes.
+See also the [Parity docs](https://smkwray.github.io/fp-wraptr/parity/) for parity interpretation, scenario-change policy, and asset provisioning notes.
 
 ## MCP server
 
@@ -231,7 +235,7 @@ uv run fastmcp dev fp-mcp
 uv run fp-mcp
 ```
 
-Exposed tools: 41 total, including pack discovery, managed workspace mutation, compile/run/compare flows, parser/diff, dictionary/source-map introspection, and data update. See `docs/mcp-tools.md` for the canonical tool list/params.
+Exposed tools: 41 total, including pack discovery, managed workspace mutation, compile/run/compare flows, parser/diff, dictionary/source-map introspection, and data update. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the canonical tool list/params.
 Exposed resources include `fp://packs`, `fp://workspace/{id}`, `fp://runs/latest`, and output catalogs. FastMCP prompts are also registered for common agent tasks such as coefficient edits, series imports, bundle assembly, and visualization prep.
 
 Config files for MCP discoverability:
@@ -288,7 +292,7 @@ The CI provisioning script is:
 - Streamlit dashboard (12-page run explorer + comparison)
 - FRED/BEA/BLS data ingestion modules
 - Pure-Python solver (fppy) with parity validation
-- MCP server (25 tools)
+- MCP server (41 tools)
 
 ### v1.0 -- Production
 - Human-readable equation/config DSL
