@@ -217,9 +217,77 @@
       "short_name": "Firm-sector jobs",
       "units": "Millions"
     },
+    "JGCHILD": {
+      "description": "JG CPS category: working part time due to childcare (Fullwiler 2018 CHILD).",
+      "short_name": "JG childcare PT",
+      "units": "Millions"
+    },
+    "JGCHLDU1": {
+      "description": "JG CPS category: working part time due to childcare, lagged 1 quarter (Fullwiler 2018 CHILD).",
+      "short_name": "JG childcare PT L1",
+      "units": "Millions"
+    },
+    "JGHILO": {
+      "description": "JG higher/lower bound selector. 1 = higher bound (PT + CHILD + WAJ_HIGH + UULOL), 0 = lower bound (0.5*(PT + CHILD) + WAJ_LOW + UU5WK).",
+      "short_name": "JG hi/lo bound"
+    },
     "JGJ": {
-      "description": "Custom PSE2025 job-guarantee jobs series from the Scott 2017 JG layer ported onto FM 2025.",
+      "description": "Total job-guarantee jobs from the Fullwiler 2018 JG layer.",
       "short_name": "JG jobs",
+      "units": "Millions"
+    },
+    "JGNOTLF": {
+      "description": "JG workers drawn from not-in-labor-force category (want-a-job population).",
+      "short_name": "JG not in LF",
+      "units": "Millions"
+    },
+    "JGPT": {
+      "description": "JG CPS category: working part time for economic reasons (Fullwiler 2018 PT).",
+      "short_name": "JG econ PT",
+      "units": "Millions"
+    },
+    "JGSWITCH": {
+      "description": "JG program on/off switch. 1 = JG active, 0 = JG inactive.",
+      "short_name": "JG switch"
+    },
+    "JGULLOT": {
+      "description": "JG CPS category: officially unemployed less those laid off (Fullwiler 2018 UULOL). Used in higher-bound JG workforce.",
+      "short_name": "JG unemp ex layoff",
+      "units": "Millions"
+    },
+    "JGULLL1": {
+      "description": "JG CPS category: unemployed less those laid off, lagged 1 quarter.",
+      "short_name": "JG unemp ex layoff L1",
+      "units": "Millions"
+    },
+    "JGUUWKS": {
+      "description": "JG CPS category: officially unemployed less those unemployed five weeks or less (Fullwiler 2018 UU5WK). Used in lower-bound JG workforce.",
+      "short_name": "JG unemp >5wk",
+      "units": "Millions"
+    },
+    "JGUUWKL1": {
+      "description": "JG CPS category: unemployed more than 5 weeks, lagged 1 quarter.",
+      "short_name": "JG unemp >5wk L1",
+      "units": "Millions"
+    },
+    "JGWAJHI": {
+      "description": "JG CPS category: not in labor force, want a job, searched past year but not last 4 weeks, excluding health/disability (Fullwiler 2018 WAJ_HIGH). Used in higher-bound JG workforce.",
+      "short_name": "JG want-a-job hi",
+      "units": "Millions"
+    },
+    "JGWAJHIL": {
+      "description": "JG want-a-job higher bound, lagged.",
+      "short_name": "JG want-a-job hi L",
+      "units": "Millions"
+    },
+    "JGWAJLO": {
+      "description": "JG CPS category: want a job, excluding health/disability and in-school (Fullwiler 2018 WAJ_LOW). Used in lower-bound JG workforce.",
+      "short_name": "JG want-a-job lo",
+      "units": "Millions"
+    },
+    "JGWAJLOL": {
+      "description": "JG want-a-job lower bound, lagged.",
+      "short_name": "JG want-a-job lo L",
       "units": "Millions"
     },
     "JHGSZ": {
