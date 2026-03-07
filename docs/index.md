@@ -18,7 +18,7 @@ fp-wraptr wraps [Ray Fair's US Macroeconometric Model](https://fairmodel.econ.ya
 - **Update data from FRED** — Pull the latest economic data from FRED, BEA, and BLS directly into the model
 - **Explore equations** — Build dependency graphs, trace how variables flow through 130+ equations
 - **Validate with parity** — Run the original FORTRAN engine and a pure-Python solver head-to-head to verify results
-- **Use AI agents** — An MCP server with 41 tools lets LLMs author scenarios, run models, and interpret results
+- **Use AI agents** — An MCP server with 44 tools lets LLMs author scenarios, run models, and interpret results
 
 ## Getting started
 
@@ -60,7 +60,7 @@ graph LR
 - **Dependency graph** — Trace upstream/downstream variable dependencies with networkx
 - **Report generation** — Markdown run reports and comparison summaries
 - **Visualization** — Matplotlib charts and a 12-page Streamlit dashboard with Plotly
-- **MCP server** — 41 tools for LLM-assisted exploration and workspace-first authoring
+- **MCP server** — 44 tools for LLM-assisted exploration and workspace-first authoring
 - **Local packs** — Agent-readable manifests, recipes, and presets for scenario families
 - **Dual engines** — Run the FORTRAN binary and pure-Python solver side-by-side for parity validation
 - **Data pipelines** — FRED, BEA, and BLS data integration with safe-lane update workflows

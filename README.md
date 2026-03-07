@@ -53,7 +53,7 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 - **Data pipelines** — FRED, BEA, and BLS ingestion with safe-lane update workflows
 - **Scenario DSL** — human-readable DSL compiler for compact scenario definitions
 - **Dictionary** — variable and equation lookup with source coverage and quality reports
-- **MCP server** — 41 tools for LLM-assisted exploration and scenario authoring
+- **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
 - **Managed workspaces** — local packs, cards, and recipes for agent-first workflows
 
 ## Quick start
@@ -95,7 +95,7 @@ fp parity examples/baseline.yaml --with-drift
 fp run examples/baseline.yaml --backend both
 ```
 
-Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails, an average relative difference of 0.00004717%, and a max relative gap under 0.04% on economically meaningful variables.
+Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails, an average relative difference of 0.000047%, and a max relative gap under 0.04%.
 
 For the full parity operator playbook: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
 
@@ -168,20 +168,23 @@ fp-wraptr/
     dashboard/          # Streamlit dashboard helpers (artifacts, charts)
     data/               # FRED/BEA/BLS data update pipelines
     viz/                # Charts and plots
-    mcp_server.py       # FastMCP server (41 tools)
+    mcp_server.py       # FastMCP server (44 tools, 9 resources, 6 prompts)
   src/fppy/             # Vendored pure-Python FP solver core
+    cli.py              # Solver CLI
     eq_solver.py        # Equation system solver
+    parser.py           # FP input DSL parser
+    expressions.py      # Expression evaluator
     mini_run.py         # Mini-run execution
     parity.py           # Parity output formatting
+    ...                 # + config, dependency, io/, etc.
   apps/dashboard/       # Streamlit dashboard (12 pages)
-  tests/                # Pytest suite (82 files, 500+ tests)
+  tests/                # Pytest suite (81 files, 500+ tests)
   docs/                 # MkDocs documentation
   examples/             # Example scenario configs (YAML)
   bundles/              # Bundle configurations (multi-variant runs)
   logo/                 # Mascot logos (Rex, Raptr, Archie)
   FM/                   # Local FP runtime assets (gitignored)
   fortran_sc/           # FORTRAN source for fp.exe (reference)
-  do/                   # AI memory system for dev sessions
 ```
 
 ## CLI reference
@@ -239,12 +242,18 @@ uv run fastmcp dev fp-mcp
 uv run fp-mcp
 ```
 
-Exposed tools: 41 total, including pack discovery, managed workspace mutation, compile/run/compare flows, parser/diff, dictionary/source-map introspection, and data update. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the canonical tool list/params.
-Exposed resources include `fp://packs`, `fp://workspace/{id}`, `fp://runs/latest`, and output catalogs. FastMCP prompts are also registered for common agent tasks such as coefficient edits, series imports, bundle assembly, and visualization prep.
+Exposed tools: 44 total, including pack discovery, managed workspace mutation, compile/run/compare flows, parser/diff, dictionary/source-map introspection, and data update. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the canonical tool list/params.
 
-Config files for MCP discoverability:
-- `.mcp.json` (Claude Code)
-- `.codex/config.toml` (Codex)
+9 resources are registered:
+
+- `fp://output/variables`, `fp://output/equations` — parsed model catalogs
+- `fp://packs`, `fp://pack/{pack_id}/cards`, `fp://pack/{pack_id}/recipes` — pack discovery
+- `fp://workspace/{id}`, `fp://workspace/{id}/compile-report` — workspace state
+- `fp://runs/latest`, `fp://runs/{run_id}/summary` — run history
+
+6 prompts are registered for common agent tasks: variant creation, coefficient edits, series imports, bundle assembly, run comparison, and visualization prep.
+
+Config file for MCP discoverability: `.mcp.json` (Claude Code).
 
 ## Development
 

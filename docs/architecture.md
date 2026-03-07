@@ -104,7 +104,7 @@ src/fp_wraptr/
     charts.py           # Plotly dashboard charts
     scenario_tools.py   # Scenario manipulation helpers
     ptcoef_editor.py    # Coefficient editor UI
-  mcp_server.py         # FastMCP server (41 tools, 9 resources)
+  mcp_server.py         # FastMCP server (44 tools, 9 resources)
   pages_export.py       # GitHub Pages static export
 ```
 
