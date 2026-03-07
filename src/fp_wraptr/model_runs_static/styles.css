@@ -75,15 +75,15 @@ h1 {
 .hero-title-row {
   display: inline-flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 14px;
 }
 
 .hero-mark {
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   object-fit: contain;
   flex: 0 0 auto;
-  transform: translateY(4px);
+  transform: translate(2px, 7px);
 }
 
 h2 {
