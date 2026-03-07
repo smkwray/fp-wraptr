@@ -3,7 +3,7 @@ title: FP Model Runs Explorer
 site_subpath: model-runs
 runs:
   - run_id: stock_fm_baseline
-    label: Stock FM Baseline
+    label: Stock FM 2/2026
     scenario_name: stock_fm_baseline
     summary: ""
     details:
@@ -112,6 +112,27 @@ runs:
       - 'JGWAJHIL coeffs: JHIA0=0.198907, JHILF=-0.130271, JHIYP=-0.002693, JHIJH=-0.000166.'
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
+  - run_id: pse2008_base
+    label: PSE2008 Base
+    scenario_name: pse2008_base
+    summary: Baseline with the Job Guarantee switched off (2008 Great Recession window).
+    details:
+      - PSE2008 historical counterfactual — Job Guarantee switched off.
+      - Forecast 2008.4 to 2012.4 using Scott (2017) JG layer.
+  - run_id: pse2008_low
+    label: PSE2008 $15/h Low
+    scenario_name: pse2008_low
+    summary: Job Guarantee on with low take-up and a $15/hour wage (2008 Great Recession window).
+    details:
+      - PSE2008 historical counterfactual — JG on, low take-up, $15/hour.
+      - Forecast 2008.4 to 2012.4 using Scott (2017) JG layer.
+  - run_id: pse2008_high
+    label: PSE2008 $15/h High
+    scenario_name: pse2008_high
+    summary: Job Guarantee on with high take-up and a $15/hour wage (2008 Great Recession window).
+    details:
+      - PSE2008 historical counterfactual — JG on, high take-up, $15/hour.
+      - Forecast 2008.4 to 2012.4 using Scott (2017) JG layer.
 default_run_ids:
   - pse2025_base
   - pse2025_high

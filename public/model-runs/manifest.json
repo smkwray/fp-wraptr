@@ -515,6 +515,7 @@
     "YPOP",
     "YS",
     "YT",
+    "ZEROD1GM",
     "ZEROD1SM",
     "ZEROTG",
     "ZEROTS",
@@ -540,7 +541,7 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "Stock FM Baseline",
+      "label": "Stock FM 2/2026",
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
       "summary": "",
@@ -698,6 +699,48 @@
       "scenario_name": "pse2025_low",
       "summary": "Job Guarantee on with low take-up and a wage ramp from $20/hour to $25/hour.",
       "timestamp": "20260307_121140"
+    },
+    {
+      "data_path": "runs/pse2008_base.json",
+      "details": [
+        "PSE2008 historical counterfactual \u2014 Job Guarantee switched off.",
+        "Forecast 2008.4 to 2012.4 using Scott (2017) JG layer."
+      ],
+      "forecast_end": "2012.4",
+      "forecast_start": "2008.4",
+      "label": "PSE2008 Base",
+      "run_id": "pse2008_base",
+      "scenario_name": "pse2008_base",
+      "summary": "Baseline with the Job Guarantee switched off (2008 Great Recession window).",
+      "timestamp": "20260306_195427"
+    },
+    {
+      "data_path": "runs/pse2008_low.json",
+      "details": [
+        "PSE2008 historical counterfactual \u2014 JG on, low take-up, $15/hour.",
+        "Forecast 2008.4 to 2012.4 using Scott (2017) JG layer."
+      ],
+      "forecast_end": "2012.4",
+      "forecast_start": "2008.4",
+      "label": "PSE2008 $15/h Low",
+      "run_id": "pse2008_low",
+      "scenario_name": "pse2008_low",
+      "summary": "Job Guarantee on with low take-up and a $15/hour wage (2008 Great Recession window).",
+      "timestamp": "20260306_195436"
+    },
+    {
+      "data_path": "runs/pse2008_high.json",
+      "details": [
+        "PSE2008 historical counterfactual \u2014 JG on, high take-up, $15/hour.",
+        "Forecast 2008.4 to 2012.4 using Scott (2017) JG layer."
+      ],
+      "forecast_end": "2012.4",
+      "forecast_start": "2008.4",
+      "label": "PSE2008 $15/h High",
+      "run_id": "pse2008_high",
+      "scenario_name": "pse2008_high",
+      "summary": "Job Guarantee on with high take-up and a $15/hour wage (2008 Great Recession window).",
+      "timestamp": "20260306_195446"
     }
   ],
   "schema_version": 1,
