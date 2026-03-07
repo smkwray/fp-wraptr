@@ -1,3 +1,5 @@
+const APP_VERSION = "2026.03.07";
+
 const TRANSFORM_LEVEL = "level";
 const TRANSFORM_PCT_OF = "pct_of";
 const TRANSFORM_LVL_CHANGE = "lvl_change";
@@ -156,7 +158,9 @@ function resolveAssetUrl(relativePath) {
 }
 
 async function fetchJson(relativePath) {
-  const response = await fetch(resolveAssetUrl(relativePath));
+  const url = resolveAssetUrl(relativePath);
+  const sep = url.includes("?") ? "&" : "?";
+  const response = await fetch(`${url}${sep}_v=${APP_VERSION}`);
   if (!response.ok) {
     throw new Error(`Failed to load ${relativePath}: ${response.status}`);
   }
