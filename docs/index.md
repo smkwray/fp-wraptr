@@ -8,6 +8,8 @@
 
 fp-wraptr wraps [Ray Fair's US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on decades of economic modeling work — all from Python.
 
+It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring.
+
 !!! tip "New to the Fair-Parke model?"
     The FP model is a large-scale macroeconometric model of the US economy maintained by Ray Fair at Yale University. It contains 130+ equations covering output, employment, prices, interest rates, and government accounts. fp-wraptr lets you drive this model from modern tooling instead of hand-editing FORTRAN-era input files.
 
@@ -60,8 +62,8 @@ graph LR
 - **Dependency graph** — Trace upstream/downstream variable dependencies with networkx
 - **Report generation** — Markdown run reports and comparison summaries
 - **Visualization** — Matplotlib charts and a 12-page Streamlit dashboard with Plotly
-- **MCP server** — 44 tools for LLM-assisted exploration and workspace-first authoring
-- **Local packs** — Agent-readable manifests, recipes, and presets for scenario families
+- **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
+- **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
 - **Dual engines** — Run the FORTRAN binary and pure-Python solver side-by-side for parity validation
 - **Data pipelines** — FRED, BEA, and BLS data integration with safe-lane update workflows
 
@@ -91,7 +93,7 @@ graph LR
 
 -   **[Agent Workflows](agent-workflows.md)**
 
-    MCP-managed workspaces and pack authoring
+    LLM-assisted scenario design with managed workspaces
 
 -   **[Parity](parity.md)**
 
