@@ -28,7 +28,7 @@
 
 fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on top of decades of economic modeling work — all from Python.
 
-Scenarios can be authored by hand in YAML, or through an LLM agent using the built-in MCP server — pick variables, tweak assumptions, run, and compare results from a chat interface. The Streamlit dashboard handles inspection and visualization.
+It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring — pick variables, tweak assumptions, run, and compare results from a chat interface or the Streamlit dashboard.
 
 ## Meet the mascots
 
@@ -127,9 +127,24 @@ fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --o
 
 **[Live example →](https://smkwray.github.io/fp-wraptr/model-runs/)**
 
-## Input parser
+## File compatibility
 
-fp-wraptr can parse the FP model's custom input DSL (`fminput.txt`) into Python dicts. All keys are normalized to lowercase.
+fp-wraptr reads and writes the standard Fair Model file formats:
+
+| File | Description |
+|------|-------------|
+| `fminput.txt` | Model control and equation definitions (custom DSL) |
+| `fmdata.txt` | Historical time-series data (FORTRAN scientific notation) |
+| `fmexog.txt` | Exogenous variable assumptions (`CHANGEVAR` blocks) |
+| `fmout.txt` | Model output — estimation results and forecast tables |
+| `fmage.txt` | Age-demographic variables |
+| `PABEV.TXT` | Forecast output used for parity validation |
+
+You can also define scenarios in **YAML** or a compact **DSL** — fp-wraptr compiles them into the native format before running.
+
+### Input parser
+
+The parser converts `fminput.txt` into Python dicts with all keys normalized to lowercase.
 
 ```python
 from fp_wraptr.io.input_parser import parse_fp_input_text
