@@ -3,7 +3,7 @@
   "meta": {
     "generated_from": "stock_fm_dictionary_gap_review",
     "gptpro_draft_imported_at": "2026-03-04T18:00:52",
-    "gptpro_draft_source": "/Users/shanewray/Downloads/stock_fm_dictionary_overrides_draft.json",
+    "gptpro_draft_source": "stock_fm_dictionary_overrides_draft.json",
     "gptpro_draft_var_count": 141,
     "notes": "Initial curated entries from user-provided web research + local evidence review.",
     "short_names_scenario": "baseline",

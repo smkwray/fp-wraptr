@@ -783,9 +783,9 @@ def main() -> None:
         st.warning(
             "Unsafe repo-local runtime directories detected:\n"
             + "\n".join(f"- {path}" for path in present_unsafe)
-            + "\nUse `UV_PROJECT_ENVIRONMENT=/Users/shanewray/venvs/fp-wraptr` "
+            + "\nUse `UV_PROJECT_ENVIRONMENT=$HOME/venvs/fp-wraptr` "
             "and a Wine prefix outside the repo (for example "
-            "`/Users/shanewray/.wine-fp-wraptr`)."
+            "`$HOME/.wine-fp-wraptr`)."
         )
 
     artifacts_dir = artifacts_dir_from_query()
