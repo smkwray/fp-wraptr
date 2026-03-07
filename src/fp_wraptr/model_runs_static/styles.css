@@ -410,8 +410,9 @@ input[type="search"] {
 
 .dictionary-results {
   display: grid;
-  gap: 10px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .equation-results {
@@ -421,8 +422,8 @@ input[type="search"] {
 }
 
 .dict-card {
-  padding: 14px;
-  border-radius: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
   border: 1px solid rgba(24, 32, 27, 0.08);
   background: rgba(255, 255, 255, 0.58);
 }
@@ -430,23 +431,37 @@ input[type="search"] {
 .dict-header {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   align-items: baseline;
 }
 
 .dict-header strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
+}
+
+.dict-header .dict-short-name {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dict-header span {
   color: var(--accent);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .dict-card p {
-  margin: 10px 0 0;
-  line-height: 1.48;
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
 .equation-group {
