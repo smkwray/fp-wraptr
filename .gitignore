@@ -77,6 +77,8 @@ sources/
 artifacts/
 artifacts-*/
 /runs/
+/public/model-runs/runs/*
+!/public/model-runs/runs/.gitkeep
 /do/
 *.log
 
