@@ -28,7 +28,7 @@
 
 fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on top of decades of economic modeling work — all from Python.
 
-The current direction is agent-first authoring: use MCP-managed workspaces and local pack manifests for scenario design, then use the dashboard to inspect runs, compare variants, and visualize results.
+Scenarios can be authored by hand in YAML, or through an LLM agent using the built-in MCP server — pick variables, tweak assumptions, run, and compare results from a chat interface. The Streamlit dashboard handles inspection and visualization.
 
 ## Meet the mascots
 
@@ -54,7 +54,7 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 - **Scenario DSL** — human-readable DSL compiler for compact scenario definitions
 - **Dictionary** — variable and equation lookup with source coverage and quality reports
 - **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
-- **Managed workspaces** — local packs, cards, and recipes for agent-first workflows
+- **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
 
 ## Quick start
 
@@ -101,9 +101,7 @@ For the full parity operator playbook: [Parity docs](https://smkwray.github.io/f
 
 ## Parity quickstart
 
-For the canonical ship-readiness path (fpexe-only, fppy-only, parity compare, triage, golden/regression, and dashboard launch), see:
-
-- [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
+Step-by-step guide covering both engines, parity comparison, triage, and dashboard launch: [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
 
 ## Dashboard
 
@@ -114,8 +112,6 @@ fp dashboard --artifacts-dir artifacts --port 8501
 ```
 
 Pages include: Run Panels, Compare Runs, New Run, Equation Graph, Equations, Tweak Scenario, Sensitivity, Historical Fit, Dictionary, Data Update, and Parity.
-
-`New Run` now defaults to an agent handoff flow and keeps advanced manual authoring behind an explicit toggle.
 
 See the [Dashboard guide](https://smkwray.github.io/fp-wraptr/dashboard/) for the full walkthrough.
 
@@ -131,23 +127,17 @@ fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --o
 
 **[Live example →](https://smkwray.github.io/fp-wraptr/model-runs/)**
 
-## Parser contract (FP input parsing)
+## Input parser
 
-`parse_fp_input_text()` uses a canonical key style:
-
-- Command buckets and command keys are lowercase.
-- Parameter keys are normalized to lowercase (for example: `maxvar`, `firstper`, `file`).
-- Ambiguous aliases are removed (`setupecst` is no longer emitted).
+fp-wraptr can parse the FP model's custom input DSL (`fminput.txt`) into Python dicts. All keys are normalized to lowercase.
 
 ```python
 from fp_wraptr.io.input_parser import parse_fp_input_text
 
 result = parse_fp_input_text("SPACE MAXVAR=100 MAXS=10;\nSETUPEST MAXIT=30;")
 assert result["space"]["maxvar"] == "100"
-assert result["setupect"][0]["maxit"] == "30"
+assert result["setupest"][0]["maxit"] == "30"
 ```
-
-Migration note: if any downstream consumer expects legacy alias keys, map them explicitly in caller code.
 
 ## Prerequisites
 
@@ -216,19 +206,17 @@ fp fred fetch GDP UNRATE                       # Fetch FRED series
 fp version                                     # Print version
 ```
 
-Parity artifacts are written under the run output directory (for example
-`artifacts/<scenario>_<timestamp>/parity_report.json`), including per-engine `PABEV.TXT`
-paths and gate/hard-fail/drift summaries. `parity_report.json` is the canonical
-difference report for parity mode (`fp parity` or `fp run --backend both`).
+### The `fppy` pure-Python solver
 
-### What's vendored in fp-wraptr
+fp-wraptr includes a vendored copy of **fppy**, a pure-Python re-implementation of the FP model's solve loop. It lives in `src/fppy/` and provides:
 
-- fp-wraptr ships the **minimal `fppy` execution/parity core** (module name `fp_py`) needed to run scenarios and compare `PABEV.TXT`.
-- Vendored scope: mini-run execution path + EQ solver path + parity comparison contract.
-- Not vendored as fp-wraptr surface: broader fair-py dictionary/release tooling.
-- Parity contract is always `PABEV.TXT`, and hard-fail invariants (`missing/discrete/signflip`) remain enforced regardless of numeric tolerances.
+- **Scenario execution** without Wine or fp.exe — runs natively on macOS/Linux/Windows.
+- **Parity validation** — run both engines side-by-side (`fp run --backend both`) and compare `PABEV.TXT` output cell-by-cell.
+- **Equation solver** — the same behavioral equations and identities, solved iteratively in Python.
 
-See also the [Parity docs](https://smkwray.github.io/fp-wraptr/parity/) for parity interpretation, scenario-change policy, and asset provisioning notes.
+Only the minimal execution core is vendored (run, solve, parity). Broader tooling from the upstream fair-py project (dictionary generation, release scripts) is not included. Hard-fail invariants (`missing`, `discrete`, `signflip`) are always enforced regardless of numeric tolerances.
+
+See the [Parity docs](https://smkwray.github.io/fp-wraptr/parity/) for interpretation, scenario-change policy, and asset provisioning.
 
 ## MCP server
 
@@ -242,7 +230,7 @@ uv run fastmcp dev fp-mcp
 uv run fp-mcp
 ```
 
-Exposed tools: 44 total, including pack discovery, managed workspace mutation, compile/run/compare flows, parser/diff, dictionary/source-map introspection, and data update. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the canonical tool list/params.
+44 tools covering scenario runs, workspace management, dictionary lookup, data updates, and more. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the full list.
 
 9 resources are registered:
 
@@ -256,8 +244,6 @@ Exposed tools: 44 total, including pack discovery, managed workspace mutation, c
 Config file for MCP discoverability: `.mcp.json` (Claude Code).
 
 ## Development
-
-- AI memory workflow: [`docs/ai-memory.md`](docs/ai-memory.md)
 
 ```bash
 uv sync --extra dev
