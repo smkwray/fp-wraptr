@@ -21,6 +21,7 @@ uv.lock
 .idea/
 .claude/
 .codex/
+.playwright-cli/
 *.swp
 *.swo
 *~
@@ -58,6 +59,9 @@ projects_local/pse2008/*
 !projects_local/pse2025/
 projects_local/pse2025/*
 !projects_local/pse2025/*.txt
+!projects_local/pse2025_20h/
+projects_local/pse2025_20h/*
+!projects_local/pse2025_20h/*.txt
 !projects_local/stock_fm/
 projects_local/stock_fm/*
 !projects_local/stock_fm/baseline_fppy_parity.yaml
@@ -68,6 +72,7 @@ fp.exe
 
 # Run artifacts
 artifacts/
+artifacts-*/
 /runs/
 /do/
 *.log

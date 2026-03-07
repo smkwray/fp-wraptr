@@ -1,7 +1,7 @@
 # fp-wraptr
 
 <p align="center">
-  <img src="logo/fp-wraptr-logo.png" alt="fp-wraptr mascots — Rex the velociraptor and Raptr the eagle" width="320">
+  <img src="logo/fp-wraptr-logo.png" alt="fp-wraptr mascots — Rex the velociraptor and Raptr the eagle" width="220">
 </p>
 
 <p align="center"><i>(/ˌɛf ˈpiː ˈræptər/)</i></p>
@@ -15,7 +15,7 @@
     <img src="https://img.shields.io/badge/docs-GitHub_Pages-blue?style=for-the-badge&logo=github" alt="Documentation">
   </a>
   &nbsp;
-  <a href="https://fairmodel.econ.yale.edu/fp/fp.zip">
+  <a href="https://fairmodel.econ.yale.edu/fp/fp.htm">
     <img src="https://img.shields.io/badge/%E2%AC%87%EF%B8%8F_Download-fp.exe_from_Yale-005eb8?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAxIDAgMCAyMCAxMCAxMCAwIDAgMCAwLTIwem0xIDEwLjU5bDMuMy0zLjNhMSAxIDAgMCAxIDEuNCAxLjQybC00IDRhMSAxIDAgMCAxLTEuNDIgMGwtNC00YTEgMSAwIDAgMSAxLjQyLTEuNDJsMy4zIDMuM1Y3YTEgMSAwIDAgMSAyIDB2NS41OXoiLz48L3N2Zz4=" alt="Download fp.exe from Yale">
   </a>
 </p>
@@ -31,8 +31,8 @@ The current direction is agent-first authoring: use MCP-managed workspaces and l
 | Mascot | Represents | Personality |
 |--------|-----------|-------------|
 | **Rex** the Velociraptor | `fp.exe` -- the original FORTRAN model | Battle-tested. Fast. Has been crunching macro equations since the Cretaceous. |
-| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring | The name's in the name. |
 | **Archie** the Archaeopteryx | `fppy` -- the pure-Python solver | Half-dinosaur, half-bird. The evolutionary bridge. Proves you don't need FORTRAN to fly. |
+| **Raptr** the Eagle | Agentic features -- MCP server, packs, and workspace authoring | The name's in the name. |
 
 <p align="center">
   <img src="logo/fp-py-logo.png" alt="Archie the archaeopteryx — fppy mascot" width="180">
@@ -148,8 +148,8 @@ Migration note: if any downstream consumer expects legacy alias keys, map them e
 ## Prerequisites
 
 - **Python 3.11+**
-- **fp.exe**: The Fair-Parke executable. [Download from Yale](https://fairmodel.econ.yale.edu/fp/fp.zip) and place in `FM/`, or set `FP_HOME` env var. (Windows binary; use Wine on macOS/Linux.)
-- **FM/ folder**: Model data files (`fmdata.txt`, `fmage.txt`, `fmexog.txt`, `fminput.txt`). Not included in this repo -- obtain from [fairmodel.econ.yale.edu](https://fairmodel.econ.yale.edu/).
+- **FM/ folder**: Model data files (`fmdata.txt`, `fmage.txt`, `fmexog.txt`, `fminput.txt`). Not included in this repo -- obtain from [fairmodel.econ.yale.edu](https://fairmodel.econ.yale.edu/fp/fp.htm).
+- **fp.exe** *(optional)*: The original Fair-Parke FORTRAN binary. fp-wraptr includes `fppy`, a pure-Python solver, so `fp.exe` is not required. If you want to run the original engine or use parity mode, [download from Yale](https://fairmodel.econ.yale.edu/fp/fp.htm) and place in `FM/`, or set `FP_HOME`. (Windows binary; use Wine on macOS/Linux.)
 
 ## Project structure
 
