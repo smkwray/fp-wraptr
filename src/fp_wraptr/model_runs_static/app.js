@@ -854,9 +854,11 @@ function renderCharts() {
 
 function renderDictionary() {
   const query = `${dom.dictionarySearch.value || ""}`.trim().toLowerCase();
-  const visibleVariables = state.selectedVariables.length > 0
-    ? state.selectedVariables
-    : state.manifest.available_variables;
+  const visibleVariables = query
+    ? state.manifest.available_variables
+    : state.selectedVariables.length > 0
+      ? state.selectedVariables
+      : state.manifest.available_variables;
 
   const cards = visibleVariables
     .map((variable) => getDictionaryRecord(variable))
