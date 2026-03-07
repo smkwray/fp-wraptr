@@ -221,7 +221,7 @@ function syncRunSelect() {
       createChecklistItem({
         checked: state.selectedRunIds.includes(run.run_id),
         title: run.label,
-        note: run.scenario_name || "",
+        note: "",
         onToggle: async (checked) => {
           const selected = new Set(state.selectedRunIds);
           if (checked) {
