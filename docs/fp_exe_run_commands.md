@@ -272,5 +272,5 @@ Fair model site:
 - US model run instructions are also described on the FP page (section “US Model in the FP Program”)
 
 Wine docs:
-- `wine(1)` manual page: https://linux.die.net/man/1/wine
+- Wine User's Guide: https://wiki.winehq.org/Wine_User%27s_Guide
 - ArchWiki Wine page (good practical examples): https://wiki.archlinux.org/title/Wine

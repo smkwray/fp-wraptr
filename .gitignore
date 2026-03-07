@@ -70,6 +70,9 @@ projects_local/stock_fm/*
 fortran_sc/
 fp.exe
 
+# Fair-Parke reference documents (not distributable)
+sources/
+
 # Run artifacts
 artifacts/
 artifacts-*/
@@ -101,6 +104,12 @@ site/
 
 # Prompts / memory (project-specific, keep in repo)
 # prompts/  # these ARE tracked
+
+# FORTRAN runtime temporaries
+fort.*
+
+# Scratch/temp scripts
+tmp_*.py
 
 # Logo source files (optional)
 # logo/  # keep if you want branding in repo

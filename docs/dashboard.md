@@ -62,6 +62,15 @@ artifacts/dashboard_smoke/<scenario>_<timestamp>/
 - Provides direct downloads for triage/support-gap artifacts and regression report when present.
 - Includes an agent handoff panel for parity follow-up.
 
+### Run Panels
+- Select multiple completed runs for side-by-side small-multiple charts
+- Filter runs by backend, bundle, or scenario name
+- Choose variables and transform modes (level, % change, level change, % of denominator)
+- Compare runs via diff or % diff overlays against a reference run
+- Save and load named chart presets for quick recall
+- Export multi-panel PNG snapshots
+- Reads LOADFORMAT output and derived series when available
+
 ### Home
 - Run listing and artifact discovery
 - Quick counts for total runs and runs with outputs
@@ -100,6 +109,21 @@ artifacts/dashboard_smoke/<scenario>_<timestamp>/
 - See a diff summary of what changed before running
 - Re-run the tweaked scenario and immediately compare against the baseline
 - Save tweaked config as a new YAML file
+
+### Historical Fit
+- Select a completed run with estimated equations
+- View summary metrics: equation count, average R², average Durbin-Watson
+- Identify weak equations (low R²) and DW-flagged equations
+- Browse a styled table of all equation fit metrics with color-coded R² and DW cells
+- R² bar chart visualization (requires matplotlib)
+
+### Dictionary
+- Search variables and equations by name, code, or description
+- Inspect variable definitions, categories, and source-map links
+- Browse equation specifications with cross-linked variable details
+- Manage dictionary overlays: view, edit, and save per-scenario overrides
+- Export equation detail tables as CSV
+- Auto-discovers overlay paths from selected runs and shared extensions
 
 ### Sensitivity Analysis
 - Pick a completed run as the base case
