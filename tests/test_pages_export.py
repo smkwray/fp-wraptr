@@ -316,9 +316,7 @@ def test_export_pages_bundle_includes_run_input_equations_for_scenario_variables
         scenario_name="scenario",
         timestamp="20260306_130000",
         fminput_text=(
-            "CREATE JGCOLA=0;\n"
-            "IDENT JGW=JGW(-1)*(1+JGCOLA);\n"
-            "GENR JGJ=JGPART+JGNOTLF+JGU;\n"
+            "CREATE JGCOLA=0;\nIDENT JGW=JGW(-1)*(1+JGCOLA);\nGENR JGJ=JGPART+JGNOTLF+JGU;\n"
         ),
         extra_series={
             "JGCOLA": [0.0, 0.0, 0.0, 0.0],
@@ -361,7 +359,9 @@ def test_export_pages_bundle_includes_run_input_equations_for_scenario_variables
         (tmp_path / "public" / "model-runs" / "dictionary.json").read_text(encoding="utf-8")
     )
     equation_records = list(dictionary_payload["equations"].values())
-    create_record = next(item for item in equation_records if item["display_id"] == "CREATE JGCOLA")
+    create_record = next(
+        item for item in equation_records if item["display_id"] == "CREATE JGCOLA"
+    )
     ident_record = next(item for item in equation_records if item["display_id"] == "IDENT JGW")
     genr_record = next(item for item in equation_records if item["display_id"] == "GENR JGJ")
 

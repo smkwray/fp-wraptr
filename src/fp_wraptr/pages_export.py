@@ -6,9 +6,9 @@ import json
 import math
 import re
 import shutil
-from hashlib import sha1
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from hashlib import sha1
 from pathlib import Path
 from typing import Any
 
@@ -22,8 +22,8 @@ from fp_wraptr.dashboard.mini_dash_helpers import (
 )
 from fp_wraptr.data.dictionary_overlays import load_dictionary_with_overlays
 from fp_wraptr.hygiene import find_project_root
-from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
 from fp_wraptr.io.input_parser import parse_fp_input
+from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
 
 SCHEMA_VERSION = 1
 STATIC_SITE_SUBPATH = "model-runs"
@@ -478,7 +478,7 @@ def _extract_input_refs(expression: str) -> list[str]:
 
 
 def _make_run_equation_id(command_type: str, lhs: str, expression: str) -> str:
-    digest = sha1(f"{command_type}|{lhs}|{expression}".encode("utf-8")).hexdigest()[:10]
+    digest = sha1(f"{command_type}|{lhs}|{expression}".encode()).hexdigest()[:10]
     return f"{command_type}:{lhs}:{digest}"
 
 
