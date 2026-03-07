@@ -531,7 +531,7 @@
     "pse2025_low"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-03-07T12:13:06Z",
+  "generated_at": "2026-03-07T19:17:07Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -544,8 +544,7 @@
       "label": "Stock FM 2/2026",
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
-      "summary": "",
-      "timestamp": "20260307_121051"
+      "timestamp": "20260307_123316"
     },
     {
       "data_path": "runs/pse2025_base.json",

@@ -71,15 +71,10 @@
 
         <section class="content">
           <section class="content-card">
-            <div class="section-header">
-              <div>
-                <p class="section-label">Explorer</p>
-                <h2>Charts</h2>
-              </div>
-            </div>
+            <label class="search-label" for="equationInput">Custom Series</label>
             <div class="equation-bar">
-              <input id="equationInput" type="text" placeholder="Custom graph e.g. (CD + CN + CS) / GDP * 100" aria-label="Equation expression" />
-              <button id="equationPlotButton" type="button" class="ghost-button equation-button">Plot</button>
+              <input id="equationInput" type="text" placeholder="Custom graph e.g. (CD + CN + CS) / GDP * 100" aria-label="Custom series expression" />
+              <button id="equationPlotButton" type="button" class="ghost-button equation-button">Plot series</button>
             </div>
             <div id="equationError" class="equation-error" hidden></div>
             <div id="equationCharts" class="charts-grid"></div>
@@ -99,6 +94,21 @@
             <label class="search-label" for="dictionarySearch">Search variables</label>
             <input id="dictionarySearch" type="search" placeholder="Filter by code, short name, description, or units" />
             <div id="dictionaryResults" class="dictionary-results"></div>
+          </section>
+
+          <section class="content-card">
+            <div class="section-header">
+              <div>
+                <p class="section-label">Equations</p>
+                <h2>Equation Explorer</h2>
+              </div>
+            </div>
+            <label class="search-label" for="equationSearch">Search equations</label>
+            <input id="equationSearch" type="search" placeholder="Enter a variable code, equation id, label, or formula" />
+            <p class="hint">Equation metadata is exported at the bundle level. Derived or scenario-only series may not have a matching model equation record.</p>
+            <div id="equationExplorerResults" class="equation-results">
+              <div class="empty-state">Search for a variable like GDP or an equation like 82.</div>
+            </div>
           </section>
         </section>
       </main>

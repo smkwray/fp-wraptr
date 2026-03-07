@@ -123,6 +123,7 @@ const state = {
   manifest: null,
   presets: [],
   dictionary: new Map(),
+  equationCatalog: new Map(),
   runMeta: [],
   selectedRunIds: [],
   selectedPresetIds: [],
@@ -151,6 +152,8 @@ const dom = {
   chartEmpty: document.querySelector("#chartEmpty"),
   dictionarySearch: document.querySelector("#dictionarySearch"),
   dictionaryResults: document.querySelector("#dictionaryResults"),
+  equationSearch: document.querySelector("#equationSearch"),
+  equationExplorerResults: document.querySelector("#equationExplorerResults"),
 };
 
 function resolveAssetUrl(relativePath) {
@@ -218,7 +221,20 @@ function getDictionaryRecord(variable) {
     short_name: "",
     description: "",
     units: "",
+    defined_by_equation: null,
+    used_in_equations: [],
   };
+}
+
+function getEquationRecord(eqId) {
+  if (eqId === null || eqId === undefined) {
+    return null;
+  }
+  const normalized = `${eqId}`.trim();
+  if (!normalized) {
+    return null;
+  }
+  return state.equationCatalog.get(normalized) || null;
 }
 
 function inferDenominator() {
@@ -880,6 +896,349 @@ function renderDictionary() {
   }
 }
 
+function parseEquationIdQuery(rawQuery) {
+  const match = `${rawQuery || ""}`.trim().toUpperCase().match(/^(?:EQ(?:UATION)?\s*)?(\d+)$/);
+  if (!match) {
+    return null;
+  }
+  return Number.parseInt(match[1], 10);
+}
+
+function normalizeEquationRef(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const normalized = `${value}`.trim();
+  if (!normalized) {
+    return null;
+  }
+  return normalized;
+}
+
+function collectEquationRefsForVariable(variable) {
+  const record = getDictionaryRecord(variable);
+  const defining = new Set();
+  const usage = new Set();
+
+  const linkedDefinition = normalizeEquationRef(record.defined_by_equation);
+  if (linkedDefinition) {
+    defining.add(linkedDefinition);
+  }
+  for (const value of Array.isArray(record.used_in_equations) ? record.used_in_equations : []) {
+    const normalized = normalizeEquationRef(value);
+    if (normalized) {
+      usage.add(normalized);
+    }
+  }
+
+  for (const equation of state.equationCatalog.values()) {
+    const lhs = `${equation.lhs_expr || ""}`.trim().toUpperCase();
+    const rhsVariables = Array.isArray(equation.rhs_variables)
+      ? equation.rhs_variables.map((name) => `${name}`.trim().toUpperCase())
+      : [];
+    const equationId = normalizeEquationRef(equation.id);
+    if (!equationId) {
+      continue;
+    }
+    if (lhs === variable) {
+      defining.add(equationId);
+    }
+    if (rhsVariables.includes(variable)) {
+      usage.add(equationId);
+    }
+  }
+
+  for (const definitionId of defining) {
+    usage.delete(definitionId);
+  }
+
+  return {
+    defining: [...defining],
+    usage: [...usage],
+  };
+}
+
+function compareEquationIds(left, right) {
+  const leftIsNumeric = /^\d+$/.test(left);
+  const rightIsNumeric = /^\d+$/.test(right);
+  if (leftIsNumeric && rightIsNumeric) {
+    return Number(left) - Number(right);
+  }
+  if (leftIsNumeric) {
+    return -1;
+  }
+  if (rightIsNumeric) {
+    return 1;
+  }
+  return left.localeCompare(right);
+}
+
+function formatEquationId(record) {
+  if (record.display_id) {
+    return record.display_id;
+  }
+  if (/^\d+$/.test(`${record.id}`)) {
+    return `Eq ${record.id}`;
+  }
+  return `${record.id}`;
+}
+
+function formatSourceRuns(record) {
+  const runs = Array.isArray(record.source_runs)
+    ? record.source_runs.map((item) => `${item}`.trim()).filter(Boolean)
+    : [];
+  return runs.length > 0 ? `Runs: ${runs.join(", ")}` : "";
+}
+
+function createTextElement(tagName, text, className = "") {
+  const element = document.createElement(tagName);
+  if (className) {
+    element.className = className;
+  }
+  element.textContent = text;
+  return element;
+}
+
+function createEquationCard(record, note = "") {
+  const card = document.createElement("article");
+  card.className = "equation-card";
+
+  const meta = document.createElement("div");
+  meta.className = "equation-meta";
+  meta.appendChild(createTextElement("span", formatEquationId(record), "equation-id"));
+  meta.appendChild(
+    createTextElement(
+      "span",
+      record.type ? record.type.replace(/_/g, " ") : "Equation",
+      "equation-type",
+    ),
+  );
+  card.appendChild(meta);
+
+  const heading = createTextElement(
+    "h4",
+    record.label || record.lhs_expr || `Equation ${record.id}`,
+  );
+  card.appendChild(heading);
+
+  const lhs = createTextElement(
+    "p",
+    `LHS: ${record.lhs_expr || "Unavailable"}`,
+    "equation-code",
+  );
+  card.appendChild(lhs);
+
+  const formula = createTextElement(
+    "p",
+    `Formula: ${record.formula || "Unavailable"}`,
+    "equation-code",
+  );
+  card.appendChild(formula);
+
+  if (Array.isArray(record.rhs_variables) && record.rhs_variables.length > 0) {
+    card.appendChild(
+      createTextElement(
+        "p",
+        `Variables: ${record.rhs_variables.join(", ")}`,
+        "equation-note",
+      ),
+    );
+  }
+
+  const sourceRuns = formatSourceRuns(record);
+  if (sourceRuns) {
+    card.appendChild(createTextElement("p", sourceRuns, "equation-note"));
+  }
+
+  if (note) {
+    card.appendChild(createTextElement("p", note, "equation-note"));
+  }
+
+  return card;
+}
+
+function createMissingEquationCard(eqId, note) {
+  const card = document.createElement("article");
+  card.className = "equation-card";
+  const heading = createTextElement("h4", /^\d+$/.test(`${eqId}`) ? `Eq ${eqId}` : `${eqId}`);
+  const copy = createTextElement(
+    "p",
+    note || "This equation id is referenced by the exported dictionary, but no equation body was exported.",
+    "equation-note",
+  );
+  card.appendChild(heading);
+  card.appendChild(copy);
+  return card;
+}
+
+function appendEquationGroup(container, title, cards) {
+  if (cards.length === 0) {
+    return;
+  }
+  const section = document.createElement("section");
+  section.className = "equation-group";
+  section.appendChild(createTextElement("h3", title));
+  for (const card of cards) {
+    section.appendChild(card);
+  }
+  container.appendChild(section);
+}
+
+function renderEquationExplorerEmpty(message) {
+  dom.equationExplorerResults.innerHTML = "";
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+  empty.textContent = message;
+  dom.equationExplorerResults.appendChild(empty);
+}
+
+function renderVariableEquationLookup(variable) {
+  dom.equationExplorerResults.innerHTML = "";
+  const record = getDictionaryRecord(variable);
+  const summary = document.createElement("article");
+  summary.className = "dict-card";
+  summary.appendChild(
+    createTextElement(
+      "p",
+      `${variable}${record.short_name ? ` — ${record.short_name}` : ""}`,
+    ),
+  );
+  summary.appendChild(
+    createTextElement(
+      "p",
+      record.description || "No variable description is available in the exported dictionary.",
+    ),
+  );
+  dom.equationExplorerResults.appendChild(summary);
+
+  const refs = collectEquationRefsForVariable(variable);
+  const definingIds = refs.defining.sort(compareEquationIds);
+  const usedIds = refs.usage.sort(compareEquationIds);
+
+  const definingCards = [];
+  for (const definingId of definingIds) {
+    const equation = getEquationRecord(definingId);
+    definingCards.push(
+      equation
+        ? createEquationCard(equation, `Defines ${variable}.`)
+        : createMissingEquationCard(
+          definingId,
+          `Eq ${definingId} is referenced as the defining equation for ${variable}, but no equation body was exported.`,
+        ),
+    );
+  }
+
+  const usageCards = [];
+  for (const eqId of usedIds) {
+    const equation = getEquationRecord(eqId);
+    usageCards.push(
+      equation
+        ? createEquationCard(equation, `${variable} appears in this equation.`)
+        : createMissingEquationCard(
+          eqId,
+          `Eq ${eqId} is referenced as using ${variable}, but no equation body was exported.`,
+        ),
+    );
+  }
+
+  appendEquationGroup(dom.equationExplorerResults, "Defines This Variable", definingCards);
+  appendEquationGroup(dom.equationExplorerResults, "Uses This Variable", usageCards);
+
+  if (definingCards.length === 0 && usageCards.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent =
+      `${variable} has no exported model-equation links. It may be a derived, helper, or scenario-only series.`;
+    dom.equationExplorerResults.appendChild(empty);
+  }
+}
+
+function scoreEquationMatch(record, rawQuery) {
+  const query = rawQuery.toLowerCase();
+  const queryUpper = rawQuery.toUpperCase();
+  let score = 0;
+  if ((record.label || "").toUpperCase() === queryUpper) score += 120;
+  if ((record.lhs_expr || "").toUpperCase() === queryUpper) score += 110;
+  if ((record.rhs_variables || []).includes(queryUpper)) score += 100;
+  if (`${record.id}` === rawQuery || `${record.display_id || ""}`.toUpperCase() === queryUpper) score += 95;
+  if ((record.label || "").toLowerCase().startsWith(query)) score += 20;
+  if ((record.lhs_expr || "").toLowerCase().includes(query)) score += 15;
+  if ((record.formula || "").toLowerCase().includes(query)) score += 10;
+  if ((`${record.display_id || ""}`).toLowerCase().includes(query)) score += 12;
+  if ((record.rhs_variables || []).some((name) => `${name}`.toLowerCase().includes(query))) {
+    score += 8;
+  }
+  return score;
+}
+
+function renderEquationExplorer() {
+  if (!state.manifest) {
+    renderEquationExplorerEmpty("Loading exported equation metadata...");
+    return;
+  }
+  const rawQuery = `${dom.equationSearch.value || ""}`.trim();
+  if (!rawQuery) {
+    renderEquationExplorerEmpty("Search for a variable like GDP or an equation like 82.");
+    return;
+  }
+
+  const exactVariable = rawQuery.toUpperCase();
+  if (state.manifest.available_variables.includes(exactVariable)) {
+    renderVariableEquationLookup(exactVariable);
+    return;
+  }
+
+  const exactEquationId = parseEquationIdQuery(rawQuery);
+  if (exactEquationId !== null) {
+    const equation = getEquationRecord(exactEquationId);
+    dom.equationExplorerResults.innerHTML = "";
+    dom.equationExplorerResults.appendChild(
+      equation
+        ? createEquationCard(equation)
+        : createMissingEquationCard(
+          exactEquationId,
+          `Eq ${exactEquationId} is not present in the exported equation catalog for this bundle.`,
+        ),
+    );
+    return;
+  }
+
+  const matches = [...state.equationCatalog.values()]
+    .filter((record) => {
+      const haystack = [
+        `${record.id}`,
+        record.display_id,
+        record.label,
+        record.lhs_expr,
+        record.formula,
+        ...(record.source_runs || []),
+        ...(record.rhs_variables || []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(rawQuery.toLowerCase());
+    })
+    .sort((left, right) => {
+      const scoreDelta = scoreEquationMatch(right, rawQuery) - scoreEquationMatch(left, rawQuery);
+      if (scoreDelta !== 0) {
+        return scoreDelta;
+      }
+      return compareEquationIds(`${left.id}`, `${right.id}`);
+    });
+
+  if (matches.length === 0) {
+    renderEquationExplorerEmpty(`No exported equations match "${rawQuery}".`);
+    return;
+  }
+
+  dom.equationExplorerResults.innerHTML = "";
+  appendEquationGroup(
+    dom.equationExplorerResults,
+    `Matching Equations (${matches.length})`,
+    matches.map((record) => createEquationCard(record)),
+  );
+}
+
 function addEquation(expression) {
   const trimmed = expression.trim();
   if (!trimmed) return;
@@ -1019,6 +1378,9 @@ async function initialize() {
   state.dictionary = new Map(
     Object.entries(dictionaryPayload.variables || {}).map(([key, value]) => [key, value]),
   );
+  state.equationCatalog = new Map(
+    Object.values(dictionaryPayload.equations || {}).map((value) => [`${value.id}`, value]),
+  );
   state.selectedRunIds = [...(manifest.default_run_ids || [])];
   state.selectedPresetIds = [...(manifest.default_preset_ids || [])];
 
@@ -1040,6 +1402,7 @@ async function initialize() {
   renderRunInfo();
   renderCharts();
   renderDictionary();
+  renderEquationExplorer();
 }
 
 dom.runInfoSelect.addEventListener("change", () => {
@@ -1060,6 +1423,10 @@ dom.variableSearch.addEventListener("input", () => {
 
 dom.dictionarySearch.addEventListener("input", () => {
   renderDictionary();
+});
+
+dom.equationSearch.addEventListener("input", () => {
+  renderEquationExplorer();
 });
 
 dom.equationPlotButton.addEventListener("click", () => {
