@@ -34,7 +34,7 @@ Then follow the [Quickstart guide](quickstart.md) to configure your model files 
 
 | | Name | Role |
 |---|---|---|
-| <img src="assets/rex.png" alt="Rex" width="64"> | **Rex** (Velociraptor) | `fp.exe` — the battle-hardened FORTRAN engine |
+| <img src="assets/rex.png" alt="Rex" width="64"> | **Rex** (Velociraptor) | `fp.exe` — the original FORTRAN engine |
 | <img src="assets/archie.png" alt="Archie" width="64"> | **Archie** (Archaeopteryx) | `fppy` — the pure-Python solver |
 | <img src="assets/logo.png" alt="Raptr" width="64"> | **Raptr** (Eagle) | Agentic features — MCP server, packs, and workspace authoring |
 
