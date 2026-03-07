@@ -56,6 +56,7 @@
     "CTR",
     "CTS",
     "CUR",
+    "CUST",
     "D1",
     "D1G",
     "D1S",
@@ -251,6 +252,7 @@
     "LCSZ",
     "LCURL1Q",
     "LCURZ",
+    "LCUSTZ",
     "LDF",
     "LDF1",
     "LEX",
@@ -513,7 +515,6 @@
     "YPOP",
     "YS",
     "YT",
-    "ZEROD1GM",
     "ZEROD1SM",
     "ZEROTG",
     "ZEROTS",
@@ -529,7 +530,7 @@
     "pse2025_low"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-03-07T11:57:43Z",
+  "generated_at": "2026-03-07T12:13:06Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -543,7 +544,7 @@
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
       "summary": "",
-      "timestamp": "20260306_160214"
+      "timestamp": "20260307_121051"
     },
     {
       "data_path": "runs/low_15h.json",
@@ -561,11 +562,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 $15/h Low",
+      "label": "PSE2026.1 $15/h Low",
       "run_id": "low_15h",
       "scenario_name": "low_15h",
       "summary": "Job Guarantee on with low take-up and a flat $15/hour wage.",
-      "timestamp": "20260306_160317"
+      "timestamp": "20260307_121102"
     },
     {
       "data_path": "runs/high_15h.json",
@@ -583,11 +584,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 $15/h High",
+      "label": "PSE2026.1 $15/h High",
       "run_id": "high_15h",
       "scenario_name": "high_15h",
       "summary": "Job Guarantee on with high take-up and a flat $15/hour wage.",
-      "timestamp": "20260306_160307"
+      "timestamp": "20260307_121111"
     },
     {
       "data_path": "runs/pse2025_high_20h.json",
@@ -605,11 +606,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 $20/h High",
+      "label": "PSE2026.1 $20/h High",
       "run_id": "pse2025_high_20h",
       "scenario_name": "pse2025_high_20h",
       "summary": "Job Guarantee on with high take-up and a wage ramp from $15/hour to $20/hour.",
-      "timestamp": "20260307_115511"
+      "timestamp": "20260307_121149"
     },
     {
       "data_path": "runs/pse2025_low_20h.json",
@@ -627,11 +628,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 $20/h Low",
+      "label": "PSE2026.1 $20/h Low",
       "run_id": "pse2025_low_20h",
       "scenario_name": "pse2025_low_20h",
       "summary": "Job Guarantee on with low take-up and a wage ramp from $15/hour to $20/hour.",
-      "timestamp": "20260307_115522"
+      "timestamp": "20260307_121158"
     },
     {
       "data_path": "runs/pse2025_base.json",
@@ -648,11 +649,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 Base",
+      "label": "PSE2026.1 Base",
       "run_id": "pse2025_base",
       "scenario_name": "pse2025_base",
       "summary": "Baseline with the Job Guarantee switched off.",
-      "timestamp": "20260306_160238"
+      "timestamp": "20260307_121121"
     },
     {
       "data_path": "runs/pse2025_high.json",
@@ -670,11 +671,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 High $25/h",
+      "label": "PSE2026.1 High $25/h",
       "run_id": "pse2025_high",
       "scenario_name": "pse2025_high",
       "summary": "Job Guarantee on with high take-up and a wage ramp from $20/hour to $25/hour.",
-      "timestamp": "20260306_160258"
+      "timestamp": "20260307_121130"
     },
     {
       "data_path": "runs/pse2025_low.json",
@@ -692,11 +693,11 @@
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "label": "PSE2025 Low $25/h",
+      "label": "PSE2026.1 Low $25/h",
       "run_id": "pse2025_low",
       "scenario_name": "pse2025_low",
       "summary": "Job Guarantee on with low take-up and a wage ramp from $20/hour to $25/hour.",
-      "timestamp": "20260306_160248"
+      "timestamp": "20260307_121140"
     }
   ],
   "schema_version": 1,
