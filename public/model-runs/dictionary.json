@@ -337,6 +337,12 @@
       "short_name": "",
       "units": ""
     },
+    "CUST": {
+      "code": "CUST",
+      "description": "",
+      "short_name": "",
+      "units": ""
+    },
     "D1": {
       "code": "D1",
       "description": "Model constant (0)",
@@ -1506,6 +1512,12 @@
       "description": "Log transform",
       "short_name": "",
       "units": "log level"
+    },
+    "LCUSTZ": {
+      "code": "LCUSTZ",
+      "description": "",
+      "short_name": "",
+      "units": ""
     },
     "LDF": {
       "code": "LDF",
@@ -3078,12 +3090,6 @@
       "description": "Taxable income, h, B$.",
       "short_name": "Household Taxable Income",
       "units": "B$"
-    },
-    "ZEROD1GM": {
-      "code": "ZEROD1GM",
-      "description": "",
-      "short_name": "",
-      "units": ""
     },
     "ZEROD1SM": {
       "code": "ZEROD1SM",

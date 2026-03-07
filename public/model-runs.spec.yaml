@@ -9,7 +9,7 @@ runs:
     details:
       - Forecast 2025.4 to 2029.4 using the stock FM input deck.
   - run_id: low_15h
-    label: PSE2025 $15/h Low
+    label: PSE2026.1 $15/h Low
     scenario_name: low_15h
     summary: Job Guarantee on with low take-up and a flat $15/hour wage.
     details:
@@ -24,7 +24,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: high_15h
-    label: PSE2025 $15/h High
+    label: PSE2026.1 $15/h High
     scenario_name: high_15h
     summary: Job Guarantee on with high take-up and a flat $15/hour wage.
     details:
@@ -39,7 +39,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: pse2025_high_20h
-    label: PSE2025 $20/h High
+    label: PSE2026.1 $20/h High
     scenario_name: pse2025_high_20h
     summary: Job Guarantee on with high take-up and a wage ramp from $15/hour to $20/hour.
     details:
@@ -54,7 +54,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: pse2025_low_20h
-    label: PSE2025 $20/h Low
+    label: PSE2026.1 $20/h Low
     scenario_name: pse2025_low_20h
     summary: Job Guarantee on with low take-up and a wage ramp from $15/hour to $20/hour.
     details:
@@ -69,7 +69,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: pse2025_base
-    label: PSE2025 Base
+    label: PSE2026.1 Base
     scenario_name: pse2025_base
     summary: Baseline with the Job Guarantee switched off.
     details:
@@ -83,7 +83,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: pse2025_high
-    label: PSE2025 High $25/h
+    label: PSE2026.1 High $25/h
     scenario_name: pse2025_high
     summary: Job Guarantee on with high take-up and a wage ramp from $20/hour to $25/hour.
     details:
@@ -98,7 +98,7 @@ runs:
       - 'JGWAJLOL coeffs: JLOA0=0.189759, JLOLF=-0.132137, JLOYP=-0.002507, JLOJH=-0.000146.'
       - 'JGULLL1 coeffs: JULUR=0.856919, JULJH=-0.000121; JGUUWKL1 coeffs: JUWUR=0.81760, JUWJH=-0.000159.'
   - run_id: pse2025_low
-    label: PSE2025 Low $25/h
+    label: PSE2026.1 Low $25/h
     scenario_name: pse2025_low
     summary: Job Guarantee on with low take-up and a wage ramp from $20/hour to $25/hour.
     details:
