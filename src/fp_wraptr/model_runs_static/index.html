@@ -43,28 +43,14 @@
       <main class="layout">
         <aside class="control-panel">
           <section class="panel-card">
-            <h2>Bundle</h2>
-            <dl class="bundle-meta">
-              <div>
-                <dt>Runs</dt>
-                <dd id="runCount">0</dd>
-              </div>
-              <div>
-                <dt>Variables</dt>
-                <dd id="variableCount">0</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section class="panel-card">
             <h2>Runs</h2>
-            <select id="runSelect" multiple size="8"></select>
+            <div id="runSelect" class="checklist" aria-label="Runs"></div>
             <p class="hint">Select one or more exported runs to overlay.</p>
           </section>
 
           <section class="panel-card">
             <h2>Presets</h2>
-            <select id="presetSelect" multiple size="4"></select>
+            <div id="presetSelect" class="checklist" aria-label="Presets"></div>
             <button id="applyPresetButton" type="button" class="ghost-button">Apply preset selection</button>
           </section>
 
@@ -72,7 +58,7 @@
             <h2>Variables</h2>
             <label class="search-label" for="variableSearch">Search variables</label>
             <input id="variableSearch" type="search" placeholder="Filter by code or short name" />
-            <select id="variableSelect" multiple size="10"></select>
+            <div id="variableSelect" class="checklist checklist-tall" aria-label="Variables"></div>
             <p class="hint">Preset selection seeds variables; manual edits stay in-browser only.</p>
           </section>
 
@@ -93,9 +79,7 @@
                 <p class="section-label">Explorer</p>
                 <h2>Charts</h2>
               </div>
-              <p class="hint">Transforms apply before run comparisons, matching dashboard semantics.</p>
             </div>
-            <div id="variableControls" class="variable-controls"></div>
             <div id="charts" class="charts-grid"></div>
             <div id="chartEmpty" class="empty-state">
               Select runs and variables to render charts.

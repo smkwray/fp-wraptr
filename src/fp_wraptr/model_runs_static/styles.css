@@ -92,8 +92,7 @@ h2 {
 }
 
 .hero-copy,
-.hint,
-dt {
+.hint {
   color: var(--muted);
 }
 
@@ -155,31 +154,6 @@ dt {
   padding: 22px;
 }
 
-.bundle-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin: 0;
-}
-
-.bundle-meta div {
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.58);
-  border: 1px solid rgba(24, 32, 27, 0.06);
-}
-
-dt,
-dd {
-  margin: 0;
-}
-
-dd {
-  margin-top: 6px;
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
 select,
 input[type="search"] {
   width: 100%;
@@ -188,10 +162,6 @@ input[type="search"] {
   border: 1px solid rgba(24, 32, 27, 0.16);
   background: var(--paper-strong);
   color: var(--ink);
-}
-
-select[multiple] {
-  min-height: 130px;
 }
 
 .ghost-button {
@@ -216,46 +186,48 @@ select[multiple] {
   align-items: end;
 }
 
-.variable-controls {
+.checklist {
   display: grid;
-  gap: 6px;
-  margin: 8px 0 12px;
+  gap: 8px;
+  max-height: 224px;
+  overflow: auto;
+  padding: 4px 2px;
 }
 
-.var-card {
+.checklist-tall {
+  max-height: 360px;
+}
+
+.check-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 12px;
-  flex-wrap: wrap;
-  padding: 6px 8px;
-  border-radius: 12px;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 10px;
+  border-radius: 14px;
   border: 1px solid rgba(24, 32, 27, 0.08);
   background: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
 }
 
-.var-card-header {
-  display: flex;
-  gap: 6px 10px;
-  align-items: center;
-  flex-wrap: wrap;
+.check-item input {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.check-copy {
   min-width: 0;
+  display: grid;
+  gap: 2px;
 }
 
-.var-card-header strong {
-  font-size: 0.88rem;
+.check-title {
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
-.var-card-header span {
+.check-note {
   color: var(--muted);
-  font-size: 0.74rem;
-}
-
-.var-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  align-items: center;
+  font-size: 0.73rem;
 }
 
 .search-label {
@@ -286,10 +258,19 @@ select[multiple] {
 .control-field select {
   width: auto;
   min-width: 0;
-  max-width: 148px;
+  max-width: 168px;
   padding: 4px 6px;
   border-radius: 8px;
   font-size: 0.76rem;
+}
+
+.chart-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(24, 32, 27, 0.08);
 }
 
 #runInfoSelect {
@@ -419,12 +400,9 @@ select[multiple] {
     border-radius: 20px;
   }
 
-  .var-card {
-    align-items: start;
-  }
-
-  .var-grid {
-    width: 100%;
+  .checklist,
+  .checklist-tall {
+    max-height: 260px;
   }
 
   .chart-surface {

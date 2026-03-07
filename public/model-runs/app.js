@@ -25,8 +25,6 @@ const state = {
 
 const dom = {
   pageTitle: document.querySelector("#pageTitle"),
-  runCount: document.querySelector("#runCount"),
-  variableCount: document.querySelector("#variableCount"),
   runSelect: document.querySelector("#runSelect"),
   presetSelect: document.querySelector("#presetSelect"),
   applyPresetButton: document.querySelector("#applyPresetButton"),
@@ -34,7 +32,6 @@ const dom = {
   variableSelect: document.querySelector("#variableSelect"),
   runInfoSelect: document.querySelector("#runInfoSelect"),
   runInfo: document.querySelector("#runInfo"),
-  variableControls: document.querySelector("#variableControls"),
   charts: document.querySelector("#charts"),
   chartEmpty: document.querySelector("#chartEmpty"),
   dictionarySearch: document.querySelector("#dictionarySearch"),
@@ -151,9 +148,7 @@ function getVariableConfig(variable) {
 }
 
 function applyPresetSelection() {
-  const selectedPresetIds = [...dom.presetSelect.selectedOptions].map((item) => item.value);
-  state.selectedPresetIds = selectedPresetIds;
-  const selectedPresets = state.presets.filter((item) => selectedPresetIds.includes(item.id));
+  const selectedPresets = state.presets.filter((item) => state.selectedPresetIds.includes(item.id));
   const nextVariables = unique(selectedPresets.flatMap((item) => item.variables || []))
     .filter((name) => state.manifest.available_variables.includes(name));
   if (nextVariables.length > 0) {
@@ -187,29 +182,95 @@ function applyPresetSelection() {
   }
   state.variableConfigs = nextConfigs;
   syncVariableSelect();
-  renderVariableControls();
   renderCharts();
+}
+
+function createChecklistItem({ checked, title, note, onToggle }) {
+  const label = document.createElement("label");
+  label.className = "check-item";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.checked = checked;
+  input.addEventListener("change", () => onToggle(input.checked));
+
+  const copy = document.createElement("span");
+  copy.className = "check-copy";
+
+  const titleSpan = document.createElement("span");
+  titleSpan.className = "check-title";
+  titleSpan.textContent = title;
+  copy.appendChild(titleSpan);
+
+  if (note) {
+    const noteSpan = document.createElement("span");
+    noteSpan.className = "check-note";
+    noteSpan.textContent = note;
+    copy.appendChild(noteSpan);
+  }
+
+  label.appendChild(input);
+  label.appendChild(copy);
+  return label;
 }
 
 function syncRunSelect() {
   dom.runSelect.innerHTML = "";
   for (const run of state.runMeta) {
-    const option = document.createElement("option");
-    option.value = run.run_id;
-    option.textContent = run.label;
-    option.selected = state.selectedRunIds.includes(run.run_id);
-    dom.runSelect.appendChild(option);
+    dom.runSelect.appendChild(
+      createChecklistItem({
+        checked: state.selectedRunIds.includes(run.run_id),
+        title: run.label,
+        note: run.scenario_name || "",
+        onToggle: async (checked) => {
+          const selected = new Set(state.selectedRunIds);
+          if (checked) {
+            selected.add(run.run_id);
+          } else {
+            selected.delete(run.run_id);
+          }
+          state.selectedRunIds = state.runMeta
+            .map((item) => item.run_id)
+            .filter((runId) => selected.has(runId));
+          await ensureRunsLoaded(state.selectedRunIds);
+          for (const variable of state.selectedVariables) {
+            sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
+          }
+          if (!state.selectedRunIds.includes(state.selectedRunInfoId)) {
+            state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
+            syncRunInfoSelect();
+          }
+          syncRunSelect();
+          renderCharts();
+          renderRunInfo();
+        },
+      }),
+    );
   }
 }
 
 function syncPresetSelect() {
   dom.presetSelect.innerHTML = "";
   for (const preset of state.presets) {
-    const option = document.createElement("option");
-    option.value = preset.id;
-    option.textContent = preset.label;
-    option.selected = state.selectedPresetIds.includes(preset.id);
-    dom.presetSelect.appendChild(option);
+    dom.presetSelect.appendChild(
+      createChecklistItem({
+        checked: state.selectedPresetIds.includes(preset.id),
+        title: preset.label,
+        note: `${(preset.variables || []).length} variables`,
+        onToggle: (checked) => {
+          const selected = new Set(state.selectedPresetIds);
+          if (checked) {
+            selected.add(preset.id);
+          } else {
+            selected.delete(preset.id);
+          }
+          state.selectedPresetIds = state.presets
+            .map((item) => item.id)
+            .filter((presetId) => selected.has(presetId));
+          syncPresetSelect();
+        },
+      }),
+    );
   }
 }
 
@@ -235,11 +296,31 @@ function syncVariableSelect() {
     if (query && !haystack.includes(query)) {
       continue;
     }
-    const option = document.createElement("option");
-    option.value = variable;
-    option.textContent = record.short_name ? `${variable} - ${record.short_name}` : variable;
-    option.selected = state.selectedVariables.includes(variable);
-    dom.variableSelect.appendChild(option);
+    dom.variableSelect.appendChild(
+      createChecklistItem({
+        checked: state.selectedVariables.includes(variable),
+        title: variable,
+        note: record.short_name || record.units || "",
+        onToggle: (checked) => {
+          const selected = new Set(state.selectedVariables);
+          if (checked) {
+            selected.add(variable);
+          } else {
+            selected.delete(variable);
+          }
+          state.selectedVariables = state.manifest.available_variables
+            .filter((name) => selected.has(name));
+          const nextConfigs = new Map();
+          for (const name of state.selectedVariables) {
+            nextConfigs.set(name, sanitizeVariableConfig(name, state.variableConfigs.get(name)));
+          }
+          state.variableConfigs = nextConfigs;
+          syncVariableSelect();
+          renderCharts();
+          renderDictionary();
+        },
+      }),
+    );
   }
 }
 
@@ -271,112 +352,94 @@ function buildCompactControl({ label, value, options, onChange, variable }) {
   return field;
 }
 
-function renderVariableControls() {
-  dom.variableControls.innerHTML = "";
-  for (const variable of state.selectedVariables) {
-    const record = getDictionaryRecord(variable);
-    const cfg = getVariableConfig(variable);
-    const wrapper = document.createElement("article");
-    wrapper.className = "var-card";
+function createChartControls(variable, cfg) {
+  const controls = document.createElement("div");
+  controls.className = "chart-controls";
 
-    const header = document.createElement("div");
-    header.className = "var-card-header";
-    header.innerHTML = `
-      <strong>${variable}</strong>
-      <span>${record.short_name || ""}</span>
-    `;
+  controls.appendChild(
+    buildCompactControl({
+      label: "Transform",
+      value: cfg.transformMode,
+      variable,
+      options: [
+        { value: TRANSFORM_LEVEL, label: "Level" },
+        { value: TRANSFORM_PCT_OF, label: "% of denominator" },
+        { value: TRANSFORM_LVL_CHANGE, label: "Lvl change" },
+        { value: TRANSFORM_PCT_CHANGE, label: "% change" },
+      ],
+      onChange: (event) => {
+        sanitizeVariableConfig(variable, {
+          ...cfg,
+          transformMode: event.target.value,
+        });
+        renderCharts();
+      },
+    }),
+  );
 
-    const grid = document.createElement("div");
-    grid.className = "var-grid";
-    grid.appendChild(
+  if (cfg.transformMode === TRANSFORM_PCT_OF) {
+    controls.appendChild(
       buildCompactControl({
-        label: "Transform",
-        value: cfg.transformMode,
+        label: "Denom",
+        value: cfg.denominator,
         variable,
-        options: [
-          { value: TRANSFORM_LEVEL, label: "Level" },
-          { value: TRANSFORM_PCT_OF, label: "% of denominator" },
-          { value: TRANSFORM_LVL_CHANGE, label: "Lvl change" },
-          { value: TRANSFORM_PCT_CHANGE, label: "% change" },
-        ],
+        options: state.manifest.available_variables.map((name) => ({
+          value: name,
+          label: name,
+        })),
         onChange: (event) => {
           sanitizeVariableConfig(variable, {
             ...cfg,
-            transformMode: event.target.value,
+            denominator: event.target.value,
           });
-          renderVariableControls();
           renderCharts();
         },
       }),
     );
-
-    if (cfg.transformMode === TRANSFORM_PCT_OF) {
-      grid.appendChild(
-        buildCompactControl({
-          label: "Denom",
-          value: cfg.denominator,
-          variable,
-          options: state.manifest.available_variables.map((name) => ({
-            value: name,
-            label: name,
-          })),
-          onChange: (event) => {
-            sanitizeVariableConfig(variable, {
-              ...cfg,
-              denominator: event.target.value,
-            });
-            renderCharts();
-          },
-        }),
-      );
-    }
-
-    grid.appendChild(
-      buildCompactControl({
-        label: "Compare",
-        value: cfg.compareMode,
-        variable,
-        options: [
-          { value: COMPARE_NONE, label: "None" },
-          { value: COMPARE_DIFF_VS_RUN, label: "Diff vs run" },
-          { value: COMPARE_PCT_DIFF_VS_RUN, label: "% diff vs run" },
-        ],
-        onChange: (event) => {
-          sanitizeVariableConfig(variable, {
-            ...cfg,
-            compareMode: event.target.value,
-          });
-          renderVariableControls();
-          renderCharts();
-        },
-      }),
-    );
-
-    if (cfg.compareMode !== COMPARE_NONE && state.selectedRunIds.length > 1) {
-      grid.appendChild(
-        buildCompactControl({
-          label: "Ref",
-          value: cfg.referenceRunId,
-          variable,
-          options: state.runMeta.map((run) => ({
-            value: run.run_id,
-            label: run.label,
-          })),
-          onChange: (event) => {
-            sanitizeVariableConfig(variable, {
-              ...cfg,
-              referenceRunId: event.target.value,
-            });
-            renderCharts();
-          },
-        }),
-      );
-    }
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(grid);
-    dom.variableControls.appendChild(wrapper);
   }
+
+  controls.appendChild(
+    buildCompactControl({
+      label: "Compare",
+      value: cfg.compareMode,
+      variable,
+      options: [
+        { value: COMPARE_NONE, label: "None" },
+        { value: COMPARE_DIFF_VS_RUN, label: "Diff vs run" },
+        { value: COMPARE_PCT_DIFF_VS_RUN, label: "% diff vs run" },
+      ],
+      onChange: (event) => {
+        sanitizeVariableConfig(variable, {
+          ...cfg,
+          compareMode: event.target.value,
+        });
+        renderCharts();
+      },
+    }),
+  );
+
+  if (cfg.compareMode !== COMPARE_NONE && state.selectedRunIds.length > 1) {
+    controls.appendChild(
+      buildCompactControl({
+        label: "Ref",
+        value: cfg.referenceRunId,
+        variable,
+        options: state.runMeta.map((run) => ({
+          value: run.run_id,
+          label: run.label,
+        })),
+        onChange: (event) => {
+          sanitizeVariableConfig(variable, {
+            ...cfg,
+            referenceRunId: event.target.value,
+          });
+          renderCharts();
+        },
+      }),
+    );
+  }
+
+  return controls;
 }
 
 function renderRunInfo() {
@@ -570,6 +633,7 @@ function renderCharts() {
     chart.className = "chart-surface";
     card.appendChild(heading);
     card.appendChild(chart);
+    card.appendChild(createChartControls(variable, config));
     dom.charts.appendChild(card);
 
     Plotly.newPlot(
@@ -671,8 +735,6 @@ async function initialize() {
   }
 
   dom.pageTitle.textContent = manifest.title || "Model Runs Explorer";
-  dom.runCount.textContent = `${state.runMeta.length}`;
-  dom.variableCount.textContent = `${manifest.available_variables.length}`;
 
   syncRunSelect();
   syncPresetSelect();
@@ -682,20 +744,9 @@ async function initialize() {
 
   await ensureRunsLoaded(state.selectedRunIds);
   renderRunInfo();
-  renderVariableControls();
   renderCharts();
   renderDictionary();
 }
-
-dom.runSelect.addEventListener("change", async () => {
-  state.selectedRunIds = [...dom.runSelect.selectedOptions].map((item) => item.value);
-  await ensureRunsLoaded(state.selectedRunIds);
-  for (const variable of state.selectedVariables) {
-    sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
-  }
-  renderVariableControls();
-  renderCharts();
-});
 
 dom.runInfoSelect.addEventListener("change", () => {
   state.selectedRunInfoId = dom.runInfoSelect.value;
@@ -705,21 +756,6 @@ dom.runInfoSelect.addEventListener("change", () => {
 dom.applyPresetButton.addEventListener("click", async () => {
   applyPresetSelection();
   await ensureRunsLoaded(state.selectedRunIds);
-  renderDictionary();
-});
-
-dom.variableSelect.addEventListener("change", () => {
-  const visibleVariables = [...dom.variableSelect.options].map((item) => item.value);
-  const hiddenSelected = state.selectedVariables.filter((variable) => !visibleVariables.includes(variable));
-  const visibleSelected = [...dom.variableSelect.selectedOptions].map((item) => item.value);
-  state.selectedVariables = unique([...hiddenSelected, ...visibleSelected]);
-  const nextConfigs = new Map();
-  for (const variable of state.selectedVariables) {
-    nextConfigs.set(variable, sanitizeVariableConfig(variable, state.variableConfigs.get(variable)));
-  }
-  state.variableConfigs = nextConfigs;
-  renderVariableControls();
-  renderCharts();
   renderDictionary();
 });
 
