@@ -4,15 +4,17 @@
 
 ```bash
 pip install fp-wraptr[dashboard]
+# or with uv:
+uv sync --extra dashboard
 ```
 
 Requires Streamlit + Plotly.
 
 ## Product posture
 
-The dashboard is now optimized for inspection, comparison, and visualization first.
+!!! info "Dashboard = inspect, MCP = author"
+    The dashboard is optimized for **inspection, comparison, and visualization**. Use MCP-managed workspaces and agent prompts for scenario authoring, then use the dashboard to explore and compare results.
 
-- Use MCP-managed workspaces and agent prompts for most scenario authoring.
 - Use the dashboard to browse runs, compare variants, inspect parity, and review visualizations.
 - `New Run` keeps advanced manual authoring available, but hides it behind an explicit toggle by default.
 

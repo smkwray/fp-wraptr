@@ -1,36 +1,58 @@
 site_name: fp-wraptr
-site_description: Python utilities for the Fair-Parke macroeconomic model
-repo_url: https://github.com/shanewray/fp-wraptr
+site_description: Python toolkit to modernize the Fair-Parke macroeconomic model workflow
+site_url: https://smkwray.github.io/fp-wraptr/
+repo_url: https://github.com/smkwray/fp-wraptr
 
 theme:
   name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
   features:
     - content.code.copy
     - navigation.sections
     - navigation.expand
+    - navigation.tabs
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
   palette:
     - scheme: default
       primary: indigo
       accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
-  - Architecture: architecture.md
-  - Agent Workflows: agent-workflows.md
-  - Pack Authoring: packs.md
-  - Scenarios: scenarios.md
-  - Data Update: data-update.md
-  - Model Runs Export: model-runs.md
-  - Scenario DSL: dsl.md
-  - Scenario YAML Schema: scenario-schema.md
-  - CLI Reference: cli.md
-  - Parity: parity.md
-  - MCP Server: mcp.md
-  - MCP Tools: mcp-tools.md
-  - API Reference: api.md
-  - fp.exe Commands: fp_exe_run_commands.md
-  - Dashboard: dashboard.md
+  - Getting Started:
+    - Quickstart: quickstart.md
+    - Architecture: architecture.md
+  - Workflows:
+    - Scenarios: scenarios.md
+    - Data Update: data-update.md
+    - Parity: parity.md
+    - Dashboard: dashboard.md
+    - Model Runs Export: model-runs.md
+  - Agent & MCP:
+    - Agent Workflows: agent-workflows.md
+    - Pack Authoring: packs.md
+    - MCP Server: mcp.md
+    - MCP Tools: mcp-tools.md
+  - Reference:
+    - CLI: cli.md
+    - Scenario YAML Schema: scenario-schema.md
+    - Scenario DSL: dsl.md
+    - fp.exe Commands: fp_exe_run_commands.md
+    - API Reference: api.md
+    - Changelog: changelog.md
 
 exclude_docs: |
   ai-memory.md
@@ -47,8 +69,16 @@ plugins:
 
 markdown_extensions:
   - admonition
-  - pymdownx.highlight
-  - pymdownx.superfences
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
   - toc:

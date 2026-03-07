@@ -1,5 +1,55 @@
 # Architecture
 
+## Data flow
+
+```mermaid
+graph TD
+    subgraph Input
+        A[YAML Scenario] --> B[ScenarioConfig<br/>Pydantic v2]
+        P[fminput.txt] --> Q[Input Parser]
+    end
+
+    subgraph Execution
+        B --> C[Runner]
+        C -->|apply overrides| D1[fp.exe<br/>FORTRAN via Wine]
+        C -->|apply overrides| D2[fppy<br/>Pure Python]
+    end
+
+    subgraph Output
+        D1 --> E1[fmout.txt / PABEV.TXT]
+        D2 --> E2[fmout.txt / PABEV.TXT]
+        E1 --> F[Output Parser]
+        E2 --> F
+    end
+
+    subgraph Analysis
+        F --> G[DataFrames]
+        G --> H[Reports & Charts]
+        G --> I[Dashboard<br/>12 Streamlit pages]
+        G --> J[Run Diff]
+        E1 & E2 --> K[Parity Engine]
+        K --> L[parity_report.json]
+        Q --> M[Dependency Graph]
+    end
+```
+
+## Parity validation flow
+
+```mermaid
+graph LR
+    A[fp parity] --> B[Run fp.exe]
+    A --> C[Run fppy]
+    B --> D[work_fpexe/PABEV.TXT]
+    C --> E[work_fppy/PABEV.TXT]
+    D & E --> F[toleranced_compare]
+    F --> G{Hard fails?}
+    G -->|yes| H[parity_report.json<br/>+ triage artifacts]
+    G -->|no| I[parity_report.json<br/>status: pass]
+    H --> J[Regression gate]
+    I --> J
+    J --> K[Dashboard Parity page]
+```
+
 ## Module layout
 
 ```
@@ -10,79 +60,85 @@ src/fp_wraptr/
     parser.py           # FP output parser (fmout.txt -> FPOutputData)
     input_parser.py     # FP input parser (fminput.txt -> dict)
     writer.py           # Write FP-format files from Python objects
+    loadformat.py       # LOADFORMAT output handling
+    fmdata_writer.py    # fmdata.txt writer
+    fmdata_diff.py      # fmdata.txt comparison
   runtime/
+    backend.py          # Backend interface
     fp_exe.py           # Subprocess wrapper for fp.exe
     fairpy.py           # Subprocess wrapper for fppy (pure-Python backend)
+    solve_errors.py     # Solve error classification
   scenarios/
     config.py           # Pydantic scenario config models
     runner.py           # Scenario execution pipeline
     batch.py            # Multi-scenario batch execution
+    bundle.py           # Bundle management
+    catalog.py          # Catalog entries
+    packs.py            # Pack discovery
+    dsl.py              # Scenario DSL compiler
+    authoring/          # Managed workspace authoring
+    policies.py         # Policy/override templates
   analysis/
     diff.py             # Run comparison and summary deltas
-    parity.py           # Run both engines and compute PABEV-based parity report
-    parity_regression.py# Golden baseline save/compare (new findings gate)
-    triage_fppy.py      # Deterministic bucketing of fppy_report.json issues
-    triage_parity_hardfails.py  # Recompute full hard-fail set from PABEV artifacts
+    parity.py           # Dual-engine PABEV-based parity
+    parity_regression.py# Golden baseline save/compare
+    triage_fppy.py      # fppy report bucketing
+    triage_parity_hardfails.py  # Hard-fail recomputation
     report.py           # Markdown report generation
-    graph.py            # Dependency graph extraction and traversal
+    graph.py            # Dependency graph (networkx)
+    sensitivity.py      # Sensitivity analysis
+    historical_fit.py   # Historical vs forecast fit
+    scoreboard.py       # Run scoring
+  data/
+    update_fred.py      # FRED data integration
+    fair_bundle.py      # Official Fair bundle handling
+    dictionary.py       # Variable dictionary
+    source_map.py       # Data source tracking
+  fred/                 # FRED API client
+  bea/                  # BEA API client
+  bls/                  # BLS API client
   viz/
     plots.py            # Matplotlib forecast charts
   dashboard/
-    artifacts.py        # Artifact scanning and metadata helpers
+    artifacts.py        # Artifact scanning and metadata
     charts.py           # Plotly dashboard charts
-  mcp_server.py         # FastMCP tool and resource definitions
-```
-
-## Data flow
-
-```
-Scenario YAML
-    -> ScenarioConfig (Pydantic model)
-    -> runner.py: prepare work dir, apply overrides
-    -> fp_exe.py: invoke fp.exe subprocess (fpexe backend)
-    -> fairpy.py: invoke fppy subprocess (fppy backend)
-    -> parser.py: parse fmout.txt into FPOutputData
-    -> report.py: generate markdown reports
-    -> viz/plots.py: generate charts
-    -> analysis/diff.py: compare vs baseline
-    -> batch.py: run multiple scenarios
-
-Parity (fp.exe vs fppy)
-    -> analysis/parity.py: run both engines into `work_fpexe/` and `work_fppy/`
-    -> PABEV.TXT contract: both engines emit PRINTVAR LOADFORMAT output
-    -> fppy_report.json: fppy emits a structured execution/solve report
-    -> toleranced_compare(): compute hard-fails + toleranced numeric diffs
-    -> parity_report.json: machine-readable comparison payload (dashboard input)
-    -> analysis/parity_regression.py: compare run vs golden baseline (new findings gate)
-    -> analysis/triage_*.py: emit deterministic CSV/JSON triage artifacts for debugging
-
-fminput.txt
-    -> input_parser.py: structured input model
-    -> graph.py: build dependency graph
-    -> viz/analysis pages via dashboard
-
-Artifacts + Dashboard
-    -> scan_artifacts() from dashboard/artifacts.py
-    -> charts.py: forecast/comparison/delta charts
-    -> cli.py dashboard command: launch Streamlit pages
+    scenario_tools.py   # Scenario manipulation helpers
+    ptcoef_editor.py    # Coefficient editor UI
+  mcp_server.py         # FastMCP server (41 tools, 9 resources)
+  pages_export.py       # GitHub Pages static export
 ```
 
 ## Key design decisions
 
 ### Subprocess-first for fp.exe
+
 We call `fp.exe` as a subprocess rather than compiling Fortran into a Python extension. This is simpler, more portable (any platform that can run the binary), and avoids complex build tooling. The tradeoff is requiring Wine on macOS/Linux.
 
+### Dual engines with parity contract
+
+Both `fp.exe` (FORTRAN) and `fppy` (pure Python) emit a common `PABEV.TXT` output. The parity engine compares these cell-by-cell with hard-fail invariants (missing values, discrete jumps, sign flips) and toleranced numeric diffs. This lets us validate fppy against the battle-tested original.
+
 ### Pydantic for config
+
 Scenario configs use Pydantic v2 models for validation, serialization, and type safety. YAML is the user-facing format.
 
 ### Copy-and-patch for input overrides
+
 The initial approach to scenario overrides is simple text-level patching of `fminput.txt`. A future AST-level manipulation layer will replace this once the input parser is complete.
 
 ### Canonical parser contract
-`parse_fp_input_text` now emits normalized, lower-case dictionary keys (for commands and parameters) and removes ambiguous alias duplication so consumers can rely on one canonical shape.
+
+`parse_fp_input_text` emits normalized, lower-case dictionary keys (for commands and parameters) and removes ambiguous alias duplication so consumers can rely on one canonical shape.
 
 ### Optional extras
-Heavy dependencies (matplotlib, streamlit, fastmcp, networkx) are optional extras to keep the core package lightweight.
+
+Heavy dependencies (matplotlib, streamlit, fastmcp, networkx) are optional extras to keep the core package lightweight. Install what you need:
+
+```bash
+uv sync                       # core only
+uv sync --all-extras          # everything
+pip install fp-wraptr[dashboard,mcp]  # specific extras
+```
 
 ## FP file format reference
 
@@ -96,6 +152,7 @@ FORTRAN-format time series: `SMPL <start> <end>; LOAD <varname>;` followed by sc
 
 ### fmout.txt
 Program output log containing:
+
 1. Echo of input commands with program responses
 2. Estimation results (coefficients, R-squared, etc.)
 3. Solve iteration log
