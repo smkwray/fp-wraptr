@@ -23,6 +23,15 @@ jobs:
       - uses: astral-sh/setup-uv@v4
         with:
           python-version: "3.11"
+      - name: Provision model-runs payloads
+        env:
+          MODEL_RUNS_SOURCE_DIR: ${{ vars.MODEL_RUNS_SOURCE_DIR }}
+          MODEL_RUNS_ARCHIVE_URL: ${{ secrets.MODEL_RUNS_ARCHIVE_URL }}
+          MODEL_RUNS_BEARER_TOKEN: ${{ secrets.MODEL_RUNS_BEARER_TOKEN }}
+          MODEL_RUNS_ARCHIVE_SHA256: ${{ vars.MODEL_RUNS_ARCHIVE_SHA256 }}
+          MODEL_RUNS_ARCHIVE_TYPE: ${{ vars.MODEL_RUNS_ARCHIVE_TYPE }}
+          MODEL_RUNS_BASE_URL: ${{ vars.MODEL_RUNS_BASE_URL }}
+        run: bash scripts/ci/provision_model_runs.sh
       - run: uv sync --extra docs
       - run: uv run mkdocs build --strict
       - run: test -f public/model-runs/manifest.json
