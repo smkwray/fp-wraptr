@@ -10,6 +10,10 @@ fp-wraptr wraps [Ray Fair's US Macroeconometric Model](https://fairmodel.econ.ya
 
 It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring.
 
+<div style="text-align: center; margin: 1rem 0 1.5rem;">
+  <a class="md-button md-button--primary" href="https://github.com/smkwray/fp-wraptr">View on GitHub</a>
+</div>
+
 !!! tip "New to the Fair-Parke model?"
     The FP model is a large-scale macroeconometric model of the US economy maintained by Ray Fair at Yale University. It contains 130+ equations covering output, employment, prices, interest rates, and government accounts. fp-wraptr lets you drive this model from modern tooling instead of hand-editing FORTRAN-era input files.
 
