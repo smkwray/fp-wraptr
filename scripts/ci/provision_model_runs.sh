@@ -23,14 +23,38 @@ manifest_path="${site_dir}/manifest.json"
 
 echo "Provisioning model run payloads into: ${dest_dir}"
 mkdir -p "${dest_dir}"
-find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
 
 if [[ ! -f "${manifest_path}" ]]; then
   echo "ERROR: Missing manifest at ${manifest_path}" >&2
   exit 1
 fi
 
-if [[ -n "${MODEL_RUNS_SOURCE_DIR:-}" ]]; then
+manifest_complete() {
+  python3 - "${manifest_path}" "${dest_dir}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+manifest_path = Path(sys.argv[1])
+dest_dir = Path(sys.argv[2])
+
+payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+missing = []
+for run in payload.get("runs", []):
+    rel_path = str(run.get("data_path", "")).strip()
+    if rel_path and not (dest_dir.parent / rel_path).is_file():
+        missing.append(rel_path)
+
+if missing:
+    raise SystemExit(1)
+PY
+}
+
+if manifest_complete; then
+  echo "Using checked-in model-runs payloads already present in ${dest_dir}"
+elif [[ -n "${MODEL_RUNS_SOURCE_DIR:-}" ]]; then
+  find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
+
   echo "Using MODEL_RUNS_SOURCE_DIR=${MODEL_RUNS_SOURCE_DIR}"
   if [[ ! -d "${MODEL_RUNS_SOURCE_DIR}" ]]; then
     echo "ERROR: MODEL_RUNS_SOURCE_DIR does not exist: ${MODEL_RUNS_SOURCE_DIR}" >&2
@@ -38,6 +62,7 @@ if [[ -n "${MODEL_RUNS_SOURCE_DIR:-}" ]]; then
   fi
   cp -R "${MODEL_RUNS_SOURCE_DIR}/." "${dest_dir}/"
 elif [[ -n "${MODEL_RUNS_ARCHIVE_URL:-}" ]]; then
+  find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
   echo "Downloading model-runs archive from configured URL"
   curl_args=(--fail --location --silent --show-error "${MODEL_RUNS_ARCHIVE_URL}" -o "${tmp_archive}")
   if [[ -n "${MODEL_RUNS_BEARER_TOKEN:-}" ]]; then
@@ -86,6 +111,7 @@ elif [[ -n "${MODEL_RUNS_ARCHIVE_URL:-}" ]]; then
     rm -rf "${dest_dir}/runs"
   fi
 else
+  find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
   echo "No dedicated model-runs source configured; fetching run payloads from ${base_url}"
   python3 - "${manifest_path}" "${base_url}" "${dest_dir}" <<'PY'
 import json
