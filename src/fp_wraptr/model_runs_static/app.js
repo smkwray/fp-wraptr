@@ -1377,7 +1377,9 @@ async function initialize() {
 
   state.manifest = manifest;
   state.runMeta = manifest.runs || [];
-  state.presets = presetsPayload.presets || [];
+  state.presets = Array.isArray(presetsPayload)
+    ? presetsPayload
+    : (presetsPayload.presets || []);
   state.dictionary = new Map(
     Object.entries(dictionaryPayload.variables || {}).map(([key, value]) => [key, value]),
   );

@@ -1,38 +1,41 @@
-[
-  {
-    "id": "pse-economy",
-    "label": "Economy",
-    "variables": [
-      "GDPR",
-      "GDP",
-      "PCPF",
-      "PIEF",
-      "SG",
-      "RS"
-    ]
-  },
-  {
-    "id": "pse-employment-wages",
-    "label": "PSE Employment",
-    "variables": [
-      "UR",
-      "E",
-      "JGJ",
-      "JF",
-      "WF",
-      "WR"
-    ]
-  },
-  {
-    "id": "households-demand",
-    "label": "Households & Demand",
-    "variables": [
-      "YD",
-      "SH",
-      "CN",
-      "CS",
-      "CD",
-      "AH"
-    ]
-  }
-]
+{
+  "presets": [
+    {
+      "id": "pse-economy",
+      "label": "Economy",
+      "variables": [
+        "GDPR",
+        "GDP",
+        "PCPF",
+        "PIEF",
+        "SG",
+        "RS"
+      ]
+    },
+    {
+      "id": "pse-employment-wages",
+      "label": "PSE Employment",
+      "variables": [
+        "UR",
+        "E",
+        "JGJ",
+        "JF",
+        "WF",
+        "WR"
+      ]
+    },
+    {
+      "id": "households-demand",
+      "label": "Households & Demand",
+      "variables": [
+        "YD",
+        "SH",
+        "CN",
+        "CS",
+        "CD",
+        "AH"
+      ]
+    }
+  ],
+  "schema_version": 1
+}
