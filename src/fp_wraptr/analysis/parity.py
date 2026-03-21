@@ -378,38 +378,32 @@ def run_parity(
 
     # Build backends
     fpexe = FPExecutable(fp_home=fp_home, timeout_seconds=600)
-    fppy_settings = getattr(config_run, "fppy", {}) or {}
+    fps = getattr(config_run, "fppy", None)
+    if fps is None:
+        from fp_wraptr.scenarios.config import FPPySettings
+
+        fps = FPPySettings()
     # Full-horizon parity runs can be slow (especially with updated fmdata).
     # Keep a conservative default, but allow scenarios to override.
-    fppy_timeout = int(fppy_settings.get("timeout_seconds", 2400))
+    fppy_timeout = int(fps.timeout_seconds) if fps.timeout_seconds is not None else 2400
     # Parity is primarily about fp.exe vs fppy solve fidelity; default to a
     # preset that enables EQ backfill + SETUPSOLVE semantics. Scenarios can
     # override via `fppy.eq_flags_preset`.
-    fppy_preset = str(fppy_settings.get("eq_flags_preset", "parity"))
-    fppy_eq_iter_trace = bool(fppy_settings.get("eq_iter_trace", False))
-    fppy_eq_iter_trace_period_raw = fppy_settings.get("eq_iter_trace_period")
+    fppy_preset = str(fps.eq_flags_preset if fps.eq_flags_preset is not None else "parity")
+    fppy_eq_iter_trace = fps.eq_iter_trace
     fppy_eq_iter_trace_period = (
-        str(fppy_eq_iter_trace_period_raw) if fppy_eq_iter_trace_period_raw is not None else None
+        str(fps.eq_iter_trace_period) if fps.eq_iter_trace_period is not None else None
     )
-    fppy_eq_iter_trace_targets_raw = fppy_settings.get("eq_iter_trace_targets")
     fppy_eq_iter_trace_targets = (
-        str(fppy_eq_iter_trace_targets_raw) if fppy_eq_iter_trace_targets_raw is not None else None
+        str(fps.eq_iter_trace_targets) if fps.eq_iter_trace_targets is not None else None
     )
-    fppy_eq_iter_trace_max_events_raw = fppy_settings.get("eq_iter_trace_max_events")
     fppy_eq_iter_trace_max_events = (
-        int(fppy_eq_iter_trace_max_events_raw)
-        if fppy_eq_iter_trace_max_events_raw is not None
-        else None
+        int(fps.eq_iter_trace_max_events) if fps.eq_iter_trace_max_events is not None else None
     )
-    fppy_num_threads_raw = fppy_settings.get("num_threads")
     fppy_num_threads = (
-        int(fppy_num_threads_raw)
-        if fppy_num_threads_raw is not None and int(fppy_num_threads_raw) > 0
-        else None
+        int(fps.num_threads) if fps.num_threads is not None and int(fps.num_threads) > 0 else None
     )
-    fppy_eq_structural_read_cache = str(
-        fppy_settings.get("eq_structural_read_cache", "off") or "off"
-    ).strip()
+    fppy_eq_structural_read_cache = str(fps.eq_structural_read_cache or "off").strip()
     fppy = FairPyBackend(
         fp_home=fp_home,
         timeout_seconds=fppy_timeout,

@@ -13,6 +13,8 @@ from typer.testing import CliRunner
 
 from fp_wraptr import __version__
 from fp_wraptr.cli import app
+from fp_wraptr.runtime.backend import RunResult
+from fp_wraptr.scenarios.config import ScenarioConfig
 from tests.test_authoring import _make_repo
 
 runner = CliRunner()
@@ -635,6 +637,265 @@ def test_run_backend_both_rejects_baseline_option(tmp_path):
     assert "--baseline is not supported with --backend both" in output
 
 
+def test_run_backend_fpr_flows_through_to_run_scenario(tmp_path, monkeypatch):
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text(f"name: fpr_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
+
+    observed: dict[str, object] = {}
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+
+    def fake_load_scenario_config(path):
+        assert Path(path) == scenario
+        return ScenarioConfig(name="fpr_cli", fp_home=tmp_path, backend="fpexe")
+
+    def fake_validate_fp_home(path):
+        observed["fp_home"] = Path(path)
+
+    def fake_run_scenario(config, output_dir=None, backend=None):
+        _ = backend
+        observed["backend"] = config.backend
+        out_dir = Path(output_dir) / "fpr_cli_20990101_000000"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        return type(
+            "FakeScenarioResult",
+            (),
+            {
+                "output_dir": out_dir,
+                "run_result": RunResult(
+                    return_code=0,
+                    stdout="ok",
+                    stderr="",
+                    working_dir=out_dir / "work",
+                    input_file=out_dir / "work" / "fminput.txt",
+                    output_file=out_dir / "PABEV.TXT",
+                    duration_seconds=0.1,
+                ),
+            },
+        )()
+
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.load_scenario_config", fake_load_scenario_config
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.validate_fp_home", fake_validate_fp_home)
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.run_scenario", fake_run_scenario)
+
+    result = runner.invoke(
+        app,
+        ["run", str(scenario), "--backend", "fp-r", "--output-dir", str(tmp_path / "artifacts")],
+    )
+
+    assert result.exit_code == 0
+    assert observed["backend"] == "fp-r"
+    assert observed["fp_home"] == tmp_path
+    output = result.stdout + result.stderr
+    assert "backend=fp-r" in output
+
+
+def test_fpr_compare_writes_report_for_seeded_slice(tmp_path, monkeypatch):
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("name: fpr_compare\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
+    expected = tmp_path / "expected.csv"
+    expected.write_text("period,A\n2025.1,1.0\n2025.2,2.0\n", encoding="utf-8")
+
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+
+    def fake_load_scenario_config(path):
+        assert Path(path) == scenario
+        return ScenarioConfig(name="fpr_compare", fp_home=tmp_path, backend="fpexe")
+
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.load_scenario_config", fake_load_scenario_config
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.validate_fp_home", lambda _path: None)
+
+    def fake_run_scenario(config, output_dir=None, backend=None):
+        _ = backend
+        out_dir = Path(output_dir) / "fpr_compare_20990101_000000"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "fp_r_series.csv").write_text(
+            "period,A\n2025.1,1.0\n2025.2,2.0\n",
+            encoding="utf-8",
+        )
+        return type(
+            "FakeScenarioResult",
+            (),
+            {
+                "output_dir": out_dir,
+                "run_result": RunResult(
+                    return_code=0,
+                    stdout="ok",
+                    stderr="",
+                    working_dir=out_dir / "work",
+                    input_file=out_dir / "work" / "fminput.txt",
+                    output_file=out_dir / "PABEV.TXT",
+                    duration_seconds=0.1,
+                ),
+            },
+        )()
+
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.run_scenario", fake_run_scenario)
+
+    result = runner.invoke(
+        app,
+        [
+            "fpr-compare",
+            str(scenario),
+            "expected.csv",
+            "--output-dir",
+            str(tmp_path / "artifacts"),
+        ],
+    )
+
+    assert result.exit_code == 0
+    report_path = (
+        tmp_path / "artifacts" / "fpr_compare_20990101_000000" / "fp_r_compare_report.json"
+    )
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["status"] == "ok"
+    assert payload["mismatch_count"] == 0
+    output = result.stdout + result.stderr
+    assert "status=ok" in output
+    assert "Comparison report:" in output
+
+
+def test_fpr_compare_uses_expected_csv_from_scenario_config(tmp_path, monkeypatch):
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("name: fpr_compare_cfg\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
+    expected = tmp_path / "expected.csv"
+    expected.write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.load_scenario_config",
+        lambda _path: ScenarioConfig(
+            name="fpr_compare_cfg",
+            fp_home=tmp_path,
+            backend="fp-r",
+            fpr={"expected_csv": str(expected)},
+        ),
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.validate_fp_home", lambda _path: None)
+
+    def fake_run_scenario(config, output_dir=None, backend=None):
+        _ = config, backend
+        out_dir = Path(output_dir) / "fpr_compare_cfg_20990101_000000"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        return type(
+            "FakeScenarioResult",
+            (),
+            {
+                "output_dir": out_dir,
+                "run_result": RunResult(
+                    return_code=0,
+                    stdout="ok",
+                    stderr="",
+                    working_dir=out_dir / "work",
+                    input_file=out_dir / "work" / "fminput.txt",
+                    output_file=out_dir / "PABEV.TXT",
+                    duration_seconds=0.1,
+                ),
+            },
+        )()
+
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.run_scenario", fake_run_scenario)
+
+    result = runner.invoke(
+        app,
+        [
+            "fpr-compare",
+            str(scenario),
+            "--output-dir",
+            str(tmp_path / "artifacts"),
+        ],
+    )
+
+    assert result.exit_code == 0
+    report_path = (
+        tmp_path / "artifacts" / "fpr_compare_cfg_20990101_000000" / "fp_r_compare_report.json"
+    )
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["status"] == "ok"
+
+
+def test_fpr_compare_exits_nonzero_on_mismatch(tmp_path, monkeypatch):
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("name: fpr_compare_bad\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
+    expected = tmp_path / "expected.csv"
+    expected.write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.load_scenario_config",
+        lambda _path: ScenarioConfig(name="fpr_compare_bad", fp_home=tmp_path, backend="fp-r"),
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.validate_fp_home", lambda _path: None)
+
+    def fake_run_scenario(config, output_dir=None, backend=None):
+        _ = config, backend
+        out_dir = Path(output_dir) / "fpr_compare_bad_20990101_000000"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "fp_r_series.csv").write_text(
+            "period,A\n2025.1,1.5\n",
+            encoding="utf-8",
+        )
+        return type(
+            "FakeScenarioResult",
+            (),
+            {
+                "output_dir": out_dir,
+                "run_result": RunResult(
+                    return_code=0,
+                    stdout="ok",
+                    stderr="",
+                    working_dir=out_dir / "work",
+                    input_file=out_dir / "work" / "fminput.txt",
+                    output_file=out_dir / "PABEV.TXT",
+                    duration_seconds=0.1,
+                ),
+            },
+        )()
+
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.run_scenario", fake_run_scenario)
+
+    result = runner.invoke(
+        app,
+        [
+            "fpr-compare",
+            str(scenario),
+            str(expected),
+            "--output-dir",
+            str(tmp_path / "artifacts"),
+        ],
+    )
+
+    assert result.exit_code == 2
+    report_path = (
+        tmp_path / "artifacts" / "fpr_compare_bad_20990101_000000" / "fp_r_compare_report.json"
+    )
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["status"] == "mismatch"
+    assert payload["mismatch_count"] == 1
+
+
+def test_fpr_compare_requires_expected_csv_when_not_in_scenario(tmp_path, monkeypatch):
+    scenario = tmp_path / "scenario.yaml"
+    scenario.write_text("name: fpr_compare_missing\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
+
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    monkeypatch.setattr(
+        "fp_wraptr.scenarios.runner.load_scenario_config",
+        lambda _path: ScenarioConfig(name="fpr_compare_missing", fp_home=tmp_path, backend="fp-r"),
+    )
+    monkeypatch.setattr("fp_wraptr.scenarios.runner.validate_fp_home", lambda _path: None)
+
+    result = runner.invoke(app, ["fpr-compare", str(scenario)])
+
+    assert result.exit_code == 1
+    output = result.stdout + result.stderr
+    assert "Expected CSV is required" in output
+
+
 def test_run_backend_both_passes_gate_pabev_end(tmp_path, monkeypatch):
     from fp_wraptr.analysis.parity import ParityResult
 
@@ -750,7 +1011,6 @@ def test_run_backend_both_strict_failure_prints_run_dir(tmp_path, monkeypatch):
             str(scenario),
             "--backend",
             "both",
-            "--parity-strict",
             "--output-dir",
             str(tmp_path / "artifacts"),
         ],
@@ -867,12 +1127,12 @@ def test_parity_command_gate_pabev_end_can_suppress_late_window_failure(tmp_path
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
 
-    without_gate = runner.invoke(app, ["parity", str(scenario), "--strict"])
+    without_gate = runner.invoke(app, ["parity", str(scenario)])
     assert without_gate.exit_code == 2
 
     with_gate = runner.invoke(
         app,
-        ["parity", str(scenario), "--strict", "--gate-pabev-end", "2025.4"],
+        ["parity", str(scenario), "--gate-pabev-end", "2025.4"],
     )
     assert with_gate.exit_code == 0
 
@@ -911,7 +1171,7 @@ def test_parity_command_quick_sets_gate_end_to_forecast_start(tmp_path, monkeypa
     assert observed["gate_end"] == "2031.2"
 
 
-def test_parity_command_strict_failure_prints_run_dir(tmp_path, monkeypatch):
+def test_parity_command_failure_prints_run_dir(tmp_path, monkeypatch):
     from fp_wraptr.analysis.parity import ParityResult
 
     scenario = tmp_path / "scenario.yaml"
@@ -934,7 +1194,7 @@ def test_parity_command_strict_failure_prints_run_dir(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
 
-    result = runner.invoke(app, ["parity", str(scenario), "--strict"])
+    result = runner.invoke(app, ["parity", str(scenario)])
     assert result.exit_code == 2
     output = result.stdout + result.stderr
     assert "run dir →" in output

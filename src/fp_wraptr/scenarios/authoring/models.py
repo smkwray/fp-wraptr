@@ -107,7 +107,7 @@ class DeckConstantsCardSpec(BaseModel):
 class SeriesTargetSpec(BaseModel):
     """One supported output target for a series card."""
 
-    kind: Literal["include_changevar", "fmexog_override"]
+    kind: Literal["include_changevar", "fmexog_override", "load_data_file"]
     label: str = ""
     output_path: str
     attach_rule: AttachRule = Field(default_factory=AttachRule)
@@ -127,7 +127,7 @@ class SeriesCardSpec(BaseModel):
     order: int = 0
     variable: str
     input_modes: list[Literal["csv", "paste"]] = Field(default_factory=lambda: ["csv", "paste"])
-    default_target: Literal["include_changevar", "fmexog_override"] = "include_changevar"
+    default_target: Literal["include_changevar", "fmexog_override", "load_data_file"] = "include_changevar"
     targets: list[SeriesTargetSpec]
 
     @field_validator("variable")
@@ -221,7 +221,8 @@ class ScenarioDraft(BaseModel):
     forecast_start: str
     forecast_end: str
     backend: str = "fpexe"
-    fppy: dict[str, Any] = Field(default_factory=dict)
+    artifacts_root: str = "artifacts"
+    fppy: dict[str, Any] = Field(default_factory=dict)  # untyped in drafts; compiled to FPPySettings
     track_variables: list[str] = Field(default_factory=list)
     cards: list[CardInstance] = Field(default_factory=list)
     extra: dict[str, Any] = Field(default_factory=dict)
@@ -285,7 +286,8 @@ class BundleDraft(BaseModel):
     forecast_start: str
     forecast_end: str
     backend: str = "fpexe"
-    fppy: dict[str, Any] = Field(default_factory=dict)
+    artifacts_root: str = "artifacts"
+    fppy: dict[str, Any] = Field(default_factory=dict)  # untyped in drafts; compiled to FPPySettings
     track_variables: list[str] = Field(default_factory=list)
     cards: list[CardInstance] = Field(default_factory=list)
     variants: list[BundleVariantDraft] = Field(default_factory=list)

@@ -123,9 +123,8 @@ def build_tweaked_config(
     tweaked_config.name = new_name
     tweaked_config.description = description
     tweaked_config.backend = backend
-    tweaked_config.fppy = {
-        **(base_config.fppy or {}),
-        "num_threads": int(fppy_num_threads),
-    }
+    tweaked_config.fppy = base_config.fppy.model_copy(
+        update={"num_threads": int(fppy_num_threads)}
+    )
     tweaked_config.overrides = dict(overrides)
     return tweaked_config

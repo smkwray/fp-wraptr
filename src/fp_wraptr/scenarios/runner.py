@@ -24,6 +24,7 @@ from fp_wraptr.io.writer import patch_input_file, write_exogenous_override_file
 from fp_wraptr.runtime.backend import ModelBackend, RunResult
 from fp_wraptr.runtime.fairpy import FairPyBackend
 from fp_wraptr.runtime.fp_exe import FPExecutable
+from fp_wraptr.runtime.fpr import FpRBackend
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.input_tree import (
     InputTreeManifest,
@@ -69,15 +70,58 @@ def load_scenario_config(path: Path | str) -> ScenarioConfig:
         if not overlay_path.is_absolute():
             config.input_overlay_dir = (scenario_path.parent / overlay_path).resolve()
 
+    fmout_override = config.fppy.fmout_coefs_override
+    if fmout_override not in (None, ""):
+        override_path = Path(fmout_override)
+        if not override_path.is_absolute():
+            config.fppy = config.fppy.model_copy(
+                update={
+                    "fmout_coefs_override": str((scenario_path.parent / override_path).resolve())
+                }
+            )
+
+    fpr_settings = getattr(config, "fpr", {}) or {}
+    bundle_path = fpr_settings.get("bundle_path")
+    if bundle_path not in (None, ""):
+        candidate = Path(str(bundle_path))
+        if not candidate.is_absolute():
+            fpr_settings = dict(fpr_settings)
+            fpr_settings["bundle_path"] = str((scenario_path.parent / candidate).resolve())
+            config.fpr = fpr_settings
+    rscript_path = fpr_settings.get("rscript_path")
+    if rscript_path not in (None, ""):
+        candidate = Path(str(rscript_path))
+        if not candidate.is_absolute():
+            fpr_settings = dict(fpr_settings)
+            fpr_settings["rscript_path"] = str((scenario_path.parent / candidate).resolve())
+            config.fpr = fpr_settings
+    expected_csv = fpr_settings.get("expected_csv")
+    if expected_csv not in (None, ""):
+        candidate = Path(str(expected_csv))
+        if not candidate.is_absolute():
+            fpr_settings = dict(fpr_settings)
+            fpr_settings["expected_csv"] = str((scenario_path.parent / candidate).resolve())
+            config.fpr = fpr_settings
+
     return config
 
 
+_REQUIRED_MODEL_FILES = ("fminput.txt", "fmdata.txt", "fmage.txt", "fmexog.txt")
+
+
 def validate_fp_home(fp_home: Path) -> None:
-    """Validate that fp_home exists and provide actionable remediation."""
-    if not Path(fp_home).exists():
+    """Validate that fp_home exists and contains required model files."""
+    fp_home = Path(fp_home)
+    if not fp_home.exists():
         raise FileNotFoundError(
             f"fp_home path not found: {fp_home}. "
             "Check the fp_home path in your scenario YAML or --fp-home option."
+        )
+    missing = [f for f in _REQUIRED_MODEL_FILES if not (fp_home / f).exists()]
+    if missing:
+        raise FileNotFoundError(
+            f"fp_home ({fp_home}) is missing required model files: {', '.join(missing)}. "
+            "Ensure all FP data files are present before running a scenario."
         )
 
 
@@ -105,6 +149,8 @@ def run_scenario(
     config: ScenarioConfig,
     output_dir: Path | None = None,
     backend: ModelBackend | None = None,
+    *,
+    allow_stale_output: bool = False,
 ) -> ScenarioResult:
     """Execute a scenario end-to-end.
 
@@ -112,6 +158,8 @@ def run_scenario(
         config: Scenario configuration.
         output_dir: Base directory for run artifacts.
         backend: Optional execution backend (defaults to FPExecutable).
+        allow_stale_output: When True and the backend is unavailable, fall back
+            to parsing an existing fmout.txt from fp_home instead of failing.
 
     Returns:
         ScenarioResult with run outcome and parsed data.
@@ -151,27 +199,49 @@ def run_scenario(
         if backend_name in {"fpexe", "fp.exe", "fp_exe"}:
             selected_backend = FPExecutable(fp_home=config.fp_home)
         elif backend_name in {"fppy", "fairpy", "fair-py", "fp-py"}:
-            fppy_settings = getattr(config, "fppy", {}) or {}
+            fps = config.fppy
             # Default to FP-style solve semantics for direct fppy runs; callers can
             # opt out via `fppy.eq_flags_preset: default`.
-            eq_flags_preset = str(fppy_settings.get("eq_flags_preset", "parity")).strip()
+            eq_flags_preset = str(
+                fps.eq_flags_preset if fps.eq_flags_preset is not None else "parity"
+            ).strip()
             default_timeout = 2400 if eq_flags_preset.lower() == "parity" else 600
-            timeout_seconds = int(fppy_settings.get("timeout_seconds", default_timeout))
-            num_threads_raw = fppy_settings.get("num_threads")
+            timeout_seconds = (
+                int(fps.timeout_seconds) if fps.timeout_seconds is not None else default_timeout
+            )
             num_threads = (
-                int(num_threads_raw)
-                if num_threads_raw is not None and int(num_threads_raw) > 0
+                int(fps.num_threads)
+                if fps.num_threads is not None and int(fps.num_threads) > 0
                 else None
             )
-            eq_structural_read_cache = str(
-                fppy_settings.get("eq_structural_read_cache", "off") or "off"
-            ).strip()
+            eq_structural_read_cache = str(fps.eq_structural_read_cache or "off").strip()
             selected_backend = FairPyBackend(
                 fp_home=config.fp_home,
                 timeout_seconds=timeout_seconds,
                 eq_flags_preset=eq_flags_preset,
                 eq_structural_read_cache=eq_structural_read_cache,
                 num_threads=num_threads,
+                fmout_coefs_override=(
+                    Path(str(fps.fmout_coefs_override)).expanduser().resolve()
+                    if fps.fmout_coefs_override not in (None, "")
+                    else None
+                ),
+            )
+        elif backend_name in {"fpr", "fp-r", "fp_r"}:
+            fpr_settings = getattr(config, "fpr", {}) or {}
+            bundle_path_raw = fpr_settings.get("bundle_path")
+            if bundle_path_raw in (None, ""):
+                raise ValueError("backend 'fp-r' requires fpr.bundle_path")
+            rscript_path_raw = fpr_settings.get("rscript_path")
+            timeout_seconds = int(fpr_settings.get("timeout_seconds", 120))
+            selected_backend = FpRBackend(
+                bundle_path=Path(str(bundle_path_raw)).expanduser().resolve(),
+                rscript_path=(
+                    Path(str(rscript_path_raw)).expanduser().resolve()
+                    if rscript_path_raw not in (None, "")
+                    else None
+                ),
+                timeout_seconds=timeout_seconds,
             )
         elif backend_name == "both":
             from fp_wraptr.analysis.parity import run_parity
@@ -209,7 +279,7 @@ def run_scenario(
             result.backend_diagnostics = {"mode": "both", "parity": parity.to_dict()}
             return result
         else:
-            raise ValueError(f"Unknown backend: {backend_name!r} (expected fpexe|fppy|both)")
+            raise ValueError(f"Unknown backend: {backend_name!r} (expected fpexe|fppy|fp-r|both)")
 
     # Copy data files to work dir
     if isinstance(selected_backend, FPExecutable):
@@ -294,8 +364,15 @@ def run_scenario(
                 json.dumps(diagnostics, indent=2, default=str) + "\n",
                 encoding="utf-8",
             )
-        if backend is None:
+        if backend is None and allow_stale_output:
             _try_parse_existing_output(result, config)
+        elif backend is None:
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "Backend unavailable and stale output reuse is disabled. "
+                "Pass --allow-stale-output to fall back to existing fmout.txt."
+            )
         return result
 
     run_result = selected_backend.run(input_file=input_file, work_dir=work_dir)
@@ -311,6 +388,15 @@ def run_scenario(
     pacev_path = work_dir / "PACEV.TXT"
     if pacev_path.exists():
         shutil.copy2(pacev_path, run_dir / "PACEV.TXT")
+    for extra_name in (
+        "fp_r_series.csv",
+        "fp_r_diagnostics.csv",
+        "fp_r_report.txt",
+        "fp_r.runtime.json",
+    ):
+        candidate = work_dir / extra_name
+        if candidate.exists():
+            shutil.copy2(candidate, run_dir / extra_name)
 
     copied_outputs: list[Path] = []
     if input_manifest is not None and input_manifest.expected_output_files:
