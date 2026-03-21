@@ -24,7 +24,6 @@ from fp_wraptr.io.writer import patch_input_file, write_exogenous_override_file
 from fp_wraptr.runtime.backend import ModelBackend, RunResult
 from fp_wraptr.runtime.fairpy import FairPyBackend
 from fp_wraptr.runtime.fp_exe import FPExecutable
-from fp_wraptr.runtime.fpr import FpRBackend
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.input_tree import (
     InputTreeManifest,
@@ -228,6 +227,8 @@ def run_scenario(
                 ),
             )
         elif backend_name in {"fpr", "fp-r", "fp_r"}:
+            from fp_wraptr.runtime.fpr import FpRBackend
+
             fpr_settings = getattr(config, "fpr", {}) or {}
             bundle_path_raw = fpr_settings.get("bundle_path")
             if bundle_path_raw in (None, ""):
