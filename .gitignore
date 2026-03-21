@@ -123,8 +123,13 @@ tmp_*.py
 # Project-specific scenario families (not part of the toolkit)
 bundles/private_*.yaml
 examples/private_*.yaml
-examples/fp_r_real_*.yaml
 public/private-runs.spec.yaml
 public/private-runs/
 src/fp_wraptr/private_family*.py
 tests/test_private_family.py
+
+# fp-r backend (work in progress, not finished)
+examples/fp_r_real_*.yaml
+src/fp_wraptr/runtime/fpr.py
+src/fp_wraptr/analysis/fpr_compare.py
+src/fp_wraptr/analysis/shared_slice.py
