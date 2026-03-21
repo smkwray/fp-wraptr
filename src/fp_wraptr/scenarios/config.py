@@ -29,9 +29,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-__all__ = ["ScenarioConfig", "VariableOverride"]
+__all__ = ["FPPySettings", "ScenarioConfig", "VariableOverride"]
 
 
 class VariableOverride(BaseModel):
@@ -42,6 +42,36 @@ class VariableOverride(BaseModel):
         description="FP method: CHGSAMEPCT, SAMEVALUE, or CHGSAMEABS",
     )
     value: float = Field(default=0.0, description="Override value")
+
+
+class FPPySettings(BaseModel):
+    """Typed settings for the fp-py (FairPy) backend."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    eq_flags_preset: str | None = Field(
+        default=None,
+        description="EQ flags preset name (None = let the runner choose context-appropriate default)",
+    )
+    timeout_seconds: int | None = Field(
+        default=None,
+        description="Backend execution timeout (None = let the runner choose context-appropriate default)",
+    )
+    num_threads: int | None = Field(default=None, description="OMP/BLAS thread count")
+    eq_structural_read_cache: str = Field(default="off", description="Structural read cache mode")
+    fmout_coefs_override: str | None = Field(
+        default=None, description="Path to override coefficients file"
+    )
+    eq_iter_trace: bool = Field(default=False, description="Enable equation iteration tracing")
+    eq_iter_trace_period: str | None = Field(
+        default=None, description="Period for iteration tracing (e.g. 2025.4)"
+    )
+    eq_iter_trace_targets: str | None = Field(
+        default=None, description="Comma-separated variable names for tracing"
+    )
+    eq_iter_trace_max_events: int | None = Field(
+        default=None, description="Max trace events to capture"
+    )
 
 
 class ScenarioConfig(BaseModel):
@@ -63,11 +93,18 @@ class ScenarioConfig(BaseModel):
     forecast_end: str = Field(default="2029.4", description="Forecast end period (YYYY.Q)")
     backend: str = Field(
         default="fpexe",
-        description="Execution backend: fpexe, fppy, or both",
+        description="Execution backend: fpexe, fppy, fp-r, or both",
     )
-    fppy: dict[str, Any] = Field(
-        default_factory=dict,
+    fppy: FPPySettings = Field(
+        default_factory=FPPySettings,
         description="Optional fp-py backend settings (timeout_seconds, eq_flags_preset, etc)",
+    )
+    fpr: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Optional fp-r backend settings "
+            "(bundle_path, rscript_path, expected_csv, timeout_seconds)"
+        ),
     )
     overrides: dict[str, VariableOverride] = Field(
         default_factory=dict,
@@ -88,6 +125,10 @@ class ScenarioConfig(BaseModel):
     extra: dict[str, Any] = Field(
         default_factory=dict,
         description="Additional metadata",
+    )
+    artifacts_root: str = Field(
+        default="artifacts",
+        description="Default artifacts root used by managed authoring and family-local runs.",
     )
 
     @field_validator("forecast_start", "forecast_end", mode="before")
@@ -110,6 +151,7 @@ class ScenarioConfig(BaseModel):
         if isinstance(data, dict):
             for key, default in (
                 ("fppy", {}),
+                ("fpr", {}),
                 ("overrides", {}),
                 ("input_patches", {}),
                 ("track_variables", []),

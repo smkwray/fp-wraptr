@@ -20,8 +20,9 @@ from fp_wraptr.data.series_pipeline.fp_targets import (
     write_include_changevar,
 )
 from fp_wraptr.data.series_pipeline.periods import normalize_period_token
+from fp_wraptr.io.fmdata_writer import write_fmdata_file
 from fp_wraptr.scenarios.bundle import BundleConfig, VariantSpec
-from fp_wraptr.scenarios.config import ScenarioConfig
+from fp_wraptr.scenarios.config import FPPySettings, ScenarioConfig
 from fp_wraptr.scenarios.input_tree import scan_input_tree_symbols
 from fp_wraptr.scenarios.runner import load_scenario_config
 
@@ -378,7 +379,8 @@ def _compile_scenario_from_base_config(
     scenario_config.forecast_start = draft.forecast_start
     scenario_config.forecast_end = draft.forecast_end
     scenario_config.backend = draft.backend
-    scenario_config.fppy = dict(draft.fppy or {})
+    scenario_config.artifacts_root = draft.artifacts_root
+    scenario_config.fppy = FPPySettings(**(draft.fppy or {}))
     scenario_config.track_variables = list(draft.track_variables)
     scenario_config.input_overlay_dir = overlay_dir.resolve()
     scenario_config.input_file = cast(str, staged["entry_name"])
@@ -447,6 +449,7 @@ def compile_bundle_workspace(
             forecast_start=draft.forecast_start,
             forecast_end=draft.forecast_end,
             backend=draft.backend,
+            artifacts_root=draft.artifacts_root,
             fppy=dict(draft.fppy or {}),
             track_variables=list(draft.track_variables),
             cards=list(shared_cards.values()) + list(variant.cards),
@@ -479,6 +482,7 @@ def compile_bundle_workspace(
                     "forecast_start": result.scenario_config.forecast_start,
                     "forecast_end": result.scenario_config.forecast_end,
                     "backend": result.scenario_config.backend,
+                    "artifacts_root": result.scenario_config.artifacts_root,
                     "track_variables": result.scenario_config.track_variables,
                 },
             )
@@ -620,6 +624,14 @@ def _write_series_target(
             mode=target_spec.mode,
         )
         return
+    if target_spec.kind == "load_data_file":
+        write_fmdata_file(
+            output_path,
+            sample_start=start,
+            sample_end=end,
+            series={variable: values},
+        )
+        return
     write_fmexog_override(
         out_path=output_path,
         variable=variable,
@@ -690,6 +702,15 @@ def _stage_source_tree_for_compile(
         src = _find_source_path(name, search_dirs)
         if src is None:
             raise FileNotFoundError(f"Missing source include: {name}")
+        target = overlay_root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, target)
+        copied.append(target)
+        files[name.lower()] = target
+    for name in symbols.load_data_files:
+        src = _find_source_path(name, search_dirs)
+        if src is None:
+            continue
         target = overlay_root / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, target)

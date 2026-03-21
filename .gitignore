@@ -83,6 +83,7 @@ artifacts-*/
 /public/model-runs/runs/*
 !/public/model-runs/runs/.gitkeep
 /do/
+/fp-r/
 *.log
 
 # Local caches/runtime state (must not be stored in project tree)
@@ -118,3 +119,12 @@ tmp_*.py
 
 # Logo source files (optional)
 # logo/  # keep if you want branding in repo
+
+# Project-specific scenario families (not part of the toolkit)
+bundles/gender_*.yaml
+examples/gender_*.yaml
+examples/fp_r_real_*.yaml
+public/gender-runs.spec.yaml
+public/gender-runs/
+src/fp_wraptr/gender_family*.py
+tests/test_gender_family.py
