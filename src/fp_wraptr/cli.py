@@ -35,26 +35,23 @@ app = typer.Typer(
 )
 
 
-def _parity_cli_exit_code(parity_exit_code: int, *, strict: bool) -> int:
+def _parity_cli_exit_code(parity_exit_code: int, *, lenient: bool) -> int:
     """Map parity engine/gate exit codes to CLI process exit behavior."""
     code = int(parity_exit_code)
-    if strict:
+    if not lenient:
         return code
-    # Default CLI behavior is report-first: engine/fingerprint failures stay fatal,
-    # while gate/hard-fail mismatches are surfaced in the report but return 0.
+    # Lenient mode: engine/fingerprint failures stay fatal,
+    # but gate/hard-fail mismatches are surfaced in the report and return 0.
     if code in {4, 5}:
         return code
     return 0
 
 
-def _warn_if_parity_suppressed(*, parity_exit_code: int, cli_exit_code: int, strict: bool) -> None:
-    """Warn when non-strict CLI mode suppresses parity mismatches.
-
-    fp-wraptr defaults to report-first behavior: mismatches are recorded in the
-    parity report but do not fail the process unless strict mode is enabled.
-    """
-
-    if strict:
+def _warn_if_parity_suppressed(
+    *, parity_exit_code: int, cli_exit_code: int, lenient: bool
+) -> None:
+    """Warn when lenient CLI mode suppresses parity mismatches."""
+    if not lenient:
         return
     if int(cli_exit_code) != 0:
         return
@@ -63,8 +60,8 @@ def _warn_if_parity_suppressed(*, parity_exit_code: int, cli_exit_code: int, str
         return
     console.print(
         "[yellow]WARNING:[/yellow] parity reported a mismatch "
-        f"(exit_code={raw}) but strict mode is off, so the process is exiting 0. "
-        "Use `--strict` (or `--parity-strict` via `fp run --backend both`) to fail on mismatches."
+        f"(exit_code={raw}) but --lenient is active, so the process is exiting 0. "
+        "Remove --lenient to fail on mismatches."
     )
 
 
@@ -257,6 +254,9 @@ workspace_app = typer.Typer(
     help="Managed workspaces for agent-first scenario and bundle authoring.",
 )
 export_app = typer.Typer(name="export", help="Export portable public bundles and reports.")
+gender_app = typer.Typer(
+    name="gender", help="Bootstrap and manage the local gender scenario family."
+)
 app.add_typer(io_app, name="io")
 app.add_typer(viz_app, name="viz")
 app.add_typer(fred_app, name="fred")
@@ -270,6 +270,7 @@ app.add_typer(triage_app, name="triage")
 app.add_typer(packs_app, name="packs")
 app.add_typer(workspace_app, name="workspace")
 app.add_typer(export_app, name="export")
+app.add_typer(gender_app, name="gender")
 
 console = Console()
 
@@ -756,9 +757,12 @@ def workspace_compile(
 def workspace_run(
     workspace_id: Annotated[str, typer.Argument(help="Workspace id")],
     output_dir: Annotated[
-        Path,
-        typer.Option("--output-dir", help="Artifacts output directory"),
-    ] = Path("artifacts/agent_runs"),
+        Path | None,
+        typer.Option(
+            "--output-dir",
+            help="Artifacts output directory (defaults to workspace artifacts_root)",
+        ),
+    ] = None,
 ) -> None:
     """Compile and run a managed workspace."""
     from fp_wraptr.scenarios.authoring import run_workspace
@@ -767,7 +771,7 @@ def workspace_run(
         payload = run_workspace(
             repo_root=_cli_repo_root(),
             workspace_id=workspace_id,
-            output_dir=str(output_dir),
+            output_dir=str(output_dir) if output_dir is not None else "",
         )
     except (FileNotFoundError, ValueError) as exc:
         console.print(f"[red]{exc}[/red]")
@@ -837,6 +841,125 @@ def workspace_build_view(
             run_dirs=[str(item) for item in run_dirs_payload],
         )
     except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    _emit_json(payload)
+
+
+@gender_app.command("init")
+def gender_init(
+    fp_home: Annotated[
+        Path,
+        typer.Option("--fp-home", help="Local FM/fair bundle directory to bootstrap from"),
+    ] = Path("FM"),
+    force: Annotated[
+        bool,
+        typer.Option("--force", help="Overwrite previously generated family files"),
+    ] = False,
+) -> None:
+    """Bootstrap the local/private gender family from a local Fair model directory."""
+    from fp_wraptr.gender_family import initialize_gender_family
+
+    try:
+        payload = initialize_gender_family(
+            repo_root=_cli_repo_root(),
+            fp_home=fp_home,
+            force=force,
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    _emit_json(payload)
+
+
+@gender_app.command("refresh-data")
+def gender_refresh_data(
+    dataset: Annotated[
+        str,
+        typer.Option(
+            "--dataset",
+            help=(
+                "Dataset to refresh: childcare, paid-leave, caregiver-leave, "
+                "mother-share, tax-wedge, or all"
+            ),
+        ),
+    ] = "childcare",
+    force: Annotated[
+        bool,
+        typer.Option("--force", help="Re-download the selected official source when supported"),
+    ] = False,
+    source_url: Annotated[
+        str,
+        typer.Option("--source-url", help="Optional exact official source URL override"),
+    ] = "",
+) -> None:
+    """Fetch or materialize exact-source gender helper-series data into the family data area."""
+    from fp_wraptr.gender_family import refresh_gender_data
+
+    try:
+        payload = refresh_gender_data(
+            repo_root=_cli_repo_root(),
+            force=force,
+            source_url=source_url,
+            dataset=dataset,
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    _emit_json(payload)
+
+
+@gender_app.command("status")
+def gender_status_command() -> None:
+    """Report gender family bootstrap/data readiness and runnable assets."""
+    from fp_wraptr.gender_family import gender_status
+
+    _emit_json(gender_status(repo_root=_cli_repo_root()))
+
+
+@gender_app.command("refresh-mothers-override")
+def gender_refresh_mothers_override(
+    fmout_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--fmout",
+            help="Optional fmout.txt path; defaults to the latest mothers-paid-leave base artifact.",
+        ),
+    ] = None,
+) -> None:
+    """Refresh the default mothers fppy override from a canonical fp.exe fmout.txt."""
+    from fp_wraptr.gender_family import refresh_mothers_override
+
+    try:
+        payload = refresh_mothers_override(
+            repo_root=_cli_repo_root(),
+            fmout_path=fmout_path,
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    _emit_json(payload)
+
+
+@gender_app.command("analyze-mothers-fit")
+def gender_analyze_mothers_fit(
+    fmout_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--fmout",
+            help="Optional fmout.txt path; defaults to the latest mothers-paid-leave base artifact.",
+        ),
+    ] = None,
+) -> None:
+    """Compare mothers/non-mothers OLS research coefficients against fp.exe-estimated equations."""
+    from fp_wraptr.gender_family import analyze_mothers_fit
+
+    try:
+        payload = analyze_mothers_fit(
+            repo_root=_cli_repo_root(),
+            fmout_path=fmout_path,
+        )
+    except (FileNotFoundError, ValueError, RuntimeError) as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from None
     _emit_json(payload)
@@ -989,9 +1112,9 @@ def triage_loop(
             help="Shortcut for gating parity to the scenario forecast_start quarter (fast smoke check)",
         ),
     ] = False,
-    strict: Annotated[
+    lenient: Annotated[
         bool,
-        typer.Option("--strict", help="Fail process on parity gate/hard-fail mismatches"),
+        typer.Option("--lenient", help="Exit 0 even on parity gate/hard-fail mismatches"),
     ] = False,
     save_golden: Annotated[
         Path | None,
@@ -1069,11 +1192,11 @@ def triage_loop(
         f"{runtime_profile_suffix}"
     )
 
-    loop_exit_code = _parity_cli_exit_code(int(result.exit_code), strict=bool(strict))
+    loop_exit_code = _parity_cli_exit_code(int(result.exit_code), lenient=bool(lenient))
     _warn_if_parity_suppressed(
         parity_exit_code=int(result.exit_code),
         cli_exit_code=loop_exit_code,
-        strict=bool(strict),
+        lenient=bool(lenient),
     )
 
     run_dir = Path(result.run_dir)
@@ -1991,7 +2114,7 @@ def run(
         str | None,
         typer.Option(
             "--backend",
-            help="Execution backend override: fpexe, fppy, or both",
+            help="Execution backend override: fpexe, fppy, fp-r, or both",
         ),
     ] = None,
     fp_home: Annotated[
@@ -2023,9 +2146,18 @@ def run(
             help="Shortcut for gating parity to the scenario forecast_start quarter (fast smoke check)",
         ),
     ] = False,
-    parity_strict: Annotated[
+    parity_lenient: Annotated[
         bool,
-        typer.Option("--parity-strict", help="Fail on parity mismatches in --backend both mode"),
+        typer.Option(
+            "--parity-lenient", help="Exit 0 even on parity mismatches in --backend both mode"
+        ),
+    ] = False,
+    allow_stale_output: Annotated[
+        bool,
+        typer.Option(
+            "--allow-stale-output",
+            help="Fall back to existing fmout.txt when the backend is unavailable",
+        ),
     ] = False,
 ) -> None:
     """Run an FP scenario and optionally diff against a baseline."""
@@ -2079,17 +2211,17 @@ def run(
             f"{runtime_profile_suffix}"
         )
         raw_exit_code = int(parity.exit_code)
-        exit_code = _parity_cli_exit_code(raw_exit_code, strict=bool(parity_strict))
+        exit_code = _parity_cli_exit_code(raw_exit_code, lenient=bool(parity_lenient))
         _warn_if_parity_suppressed(
             parity_exit_code=raw_exit_code,
             cli_exit_code=exit_code,
-            strict=bool(parity_strict),
+            lenient=bool(parity_lenient),
         )
         raise typer.Exit(code=exit_code)
 
     config.backend = backend_choice
     console.print(f"[bold]Running scenario:[/bold] {config.name} (backend={backend_choice})")
-    result = run_scenario(config, output_dir=output_dir)
+    result = run_scenario(config, output_dir=output_dir, allow_stale_output=allow_stale_output)
 
     console.print(f"[green]Run completed.[/green] Output: {result.output_dir}")
 
@@ -2106,9 +2238,96 @@ def run(
             raise typer.Exit(code=1) from None
 
         validate_fp_home(baseline_config.fp_home)
-        baseline_result = run_scenario(baseline_config, output_dir=output_dir / "baseline")
+        baseline_result = run_scenario(
+            baseline_config,
+            output_dir=output_dir / "baseline",
+            allow_stale_output=allow_stale_output,
+        )
         summary = diff_runs(baseline_result, result)
         _print_diff_summary(summary)
+
+
+@app.command("fpr-compare")
+def fpr_compare(
+    scenario: Annotated[Path, typer.Argument(help="Path to fp-r scenario YAML config")],
+    expected: Annotated[
+        Path | None,
+        typer.Argument(help="Optional expected reduced-slice CSV, typically seeded from fppy"),
+    ] = None,
+    output_dir: Annotated[
+        Path, typer.Option("--output-dir", "-o", help="Output artifacts directory")
+    ] = Path("artifacts"),
+    atol: Annotated[
+        float,
+        typer.Option("--atol", help="Absolute comparison tolerance"),
+    ] = 1.1e-3,
+    rtol: Annotated[
+        float,
+        typer.Option("--rtol", help="Relative comparison tolerance"),
+    ] = 1e-6,
+) -> None:
+    """Run a reduced fp-r slice and compare its emitted series to a seeded expectation."""
+    from fp_wraptr.analysis.fpr_compare import (
+        compare_fp_r_series_csv,
+        write_fp_r_comparison_report,
+    )
+    from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario, validate_fp_home
+
+    try:
+        config = load_scenario_config(scenario)
+    except FileNotFoundError as exc:
+        console.print(f"[red]Scenario file not found:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+    except (ValidationError, yaml.YAMLError, ValueError) as exc:
+        _print_validation_error(exc)
+        raise typer.Exit(code=1) from None
+
+    validate_fp_home(config.fp_home)
+    config.backend = "fp-r"
+
+    expected_path = expected
+    if expected_path is None:
+        expected_raw = str((getattr(config, "fpr", {}) or {}).get("expected_csv", "")).strip()
+        if expected_raw:
+            expected_path = Path(expected_raw)
+    if expected_path is None:
+        console.print(
+            "[red]Expected CSV is required via argument or fpr.expected_csv in the scenario YAML.[/red]"
+        )
+        raise typer.Exit(code=1)
+    if not expected_path.is_absolute():
+        expected_path = (scenario.parent / expected_path).resolve()
+    if not expected_path.exists():
+        console.print(f"[red]Expected CSV not found:[/red] {expected_path}")
+        raise typer.Exit(code=1)
+
+    console.print(f"[bold]Running fp-r shared-slice compare:[/bold] {config.name}")
+    result = run_scenario(config, output_dir=output_dir)
+    run_result = result.run_result
+    if run_result is None or not run_result.success:
+        console.print("[red]fp-r run did not complete successfully.[/red]")
+        raise typer.Exit(code=1)
+
+    actual_path = result.output_dir / "fp_r_series.csv"
+    if not actual_path.exists():
+        console.print(f"[red]fp-r series output not found:[/red] {actual_path}")
+        raise typer.Exit(code=1)
+
+    comparison = compare_fp_r_series_csv(actual_path, expected_path, atol=atol, rtol=rtol)
+    report_path = write_fp_r_comparison_report(
+        comparison,
+        result.output_dir / "fp_r_compare_report.json",
+    )
+    _print_run_dir(result.output_dir)
+    console.print(
+        f"status={comparison.status} "
+        f"mismatch_count={comparison.mismatch_count} "
+        f"max_abs_diff={comparison.max_abs_diff} "
+        f"compared_periods={comparison.compared_periods} "
+        f"variables={','.join(comparison.compared_variables)}"
+    )
+    console.print(f"[green]Comparison report:[/green] {report_path}")
+    raise typer.Exit(code=0 if comparison.status == "ok" else 2)
 
 
 @app.command("parity")
@@ -2140,9 +2359,9 @@ def parity(
             help="Shortcut for gating parity to the scenario forecast_start quarter (fast smoke check)",
         ),
     ] = False,
-    strict: Annotated[
+    lenient: Annotated[
         bool,
-        typer.Option("--strict", help="Fail process on parity gate/hard-fail mismatches"),
+        typer.Option("--lenient", help="Exit 0 even on parity gate/hard-fail mismatches"),
     ] = False,
     save_golden: Annotated[
         Path | None,
@@ -2213,11 +2432,11 @@ def parity(
         f"{runtime_profile_suffix}"
     )
     raw_exit_code = int(result.exit_code)
-    exit_code = _parity_cli_exit_code(raw_exit_code, strict=bool(strict))
+    exit_code = _parity_cli_exit_code(raw_exit_code, lenient=bool(lenient))
     _warn_if_parity_suppressed(
         parity_exit_code=raw_exit_code,
         cli_exit_code=exit_code,
-        strict=bool(strict),
+        lenient=bool(lenient),
     )
 
     if save_golden is not None:

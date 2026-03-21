@@ -100,6 +100,6 @@ def test_build_tweaked_config_preserves_overlay_and_patches(tmp_path: Path) -> N
     assert tweaked.input_patches == {"old": "new"}
     assert tweaked.alerts == {"UR": {"max": 6.0}}
     assert tweaked.extra == {"family": "pse2025"}
-    assert tweaked.fppy["timeout_seconds"] == 2400
-    assert tweaked.fppy["num_threads"] == 8
+    assert tweaked.fppy.timeout_seconds == 2400
+    assert tweaked.fppy.num_threads == 8
     assert set(tweaked.overrides) == {"PCY"}

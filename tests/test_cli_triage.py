@@ -298,7 +298,7 @@ def test_fp_triage_loop_strict_failure_prints_run_dir(monkeypatch, tmp_path: Pat
 
     result = runner.invoke(
         app,
-        ["triage", "loop", str(scenario_path), "--output-dir", str(tmp_path), "--strict"],
+        ["triage", "loop", str(scenario_path), "--output-dir", str(tmp_path)],
     )
     assert result.exit_code == 2, result.stdout + "\n" + result.stderr
     output = result.stdout + result.stderr
