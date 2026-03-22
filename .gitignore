@@ -34,34 +34,12 @@ Thumbs.db
 FM/
 fm/
 
-# Local project overlays (local only by default; curated family assets below are tracked)
+# Local project overlays (local only by default)
 projects_local/*
 !projects_local/README.md
-!projects_local/scenario_catalog.yaml
 !projects_local/dictionary_overlays/
 projects_local/dictionary_overlays/*
 !projects_local/dictionary_overlays/baseline.json
-!projects_local/cards/
-projects_local/cards/*
-!projects_local/cards/pse2025/
-projects_local/cards/pse2025/*
-!projects_local/cards/pse2025/README.md
-!projects_local/cards/pse2025/*.yaml
-!projects_local/packs/
-projects_local/packs/*
-!projects_local/packs/pse2025/
-projects_local/packs/pse2025/*
-!projects_local/packs/pse2025/pack.yaml
-!projects_local/pse2008/
-projects_local/pse2008/*
-!projects_local/pse2008/README.md
-!projects_local/pse2008/*.txt
-!projects_local/pse2025/
-projects_local/pse2025/*
-!projects_local/pse2025/*.txt
-!projects_local/pse2025_20h/
-projects_local/pse2025_20h/*
-!projects_local/pse2025_20h/*.txt
 !projects_local/stock_fm/
 projects_local/stock_fm/*
 !projects_local/stock_fm/baseline_fppy_parity.yaml
@@ -121,7 +99,9 @@ tmp_*.py
 # logo/  # keep if you want branding in repo
 
 # Project-specific scenario families (not part of the toolkit)
+bundles/pse*.yaml
 bundles/gender_*.yaml
+examples/pse*.yaml
 examples/gender_*.yaml
 public/gender-runs.spec.yaml
 public/gender-runs/

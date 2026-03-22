@@ -38,7 +38,9 @@ from fp_wraptr.scenarios.authoring.workspace import (
 )
 from fp_wraptr.scenarios.bundle import run_bundle
 from fp_wraptr.scenarios.catalog import load_scenario_catalog
-from fp_wraptr.scenarios.packs import describe_pack_manifest, load_pack_manifests
+# NOTE: fp_wraptr.scenarios.packs is imported lazily inside functions that need
+# it to avoid a circular import (packs → authoring.compiler → authoring.__init__
+# → operations → packs).
 from fp_wraptr.scenarios.runner import run_scenario
 
 __all__ = [
@@ -64,6 +66,8 @@ __all__ = [
 
 
 def list_packs(*, repo_root: Path | str) -> list[dict[str, object]]:
+    from fp_wraptr.scenarios.packs import load_pack_manifests
+
     out: list[dict[str, object]] = []
     for manifest, path in load_pack_manifests(repo_root=repo_root):
         out.append({
@@ -694,6 +698,8 @@ def list_visualizations(
     repo_root = Path(repo_root).resolve()
     manifest_payload: dict[str, object] | None = None
     if pack_id.strip():
+        from fp_wraptr.scenarios.packs import describe_pack_manifest
+
         manifest_payload = describe_pack_manifest(pack_id.strip(), repo_root=repo_root)
     elif workspace_id.strip():
         draft, _path = load_workspace_draft_by_id(workspace_id, repo_root=repo_root)
@@ -901,6 +907,8 @@ def _now() -> str:
 
 
 def _pack_for_family(family: str, *, repo_root: Path) -> dict[str, object] | None:
+    from fp_wraptr.scenarios.packs import describe_pack_manifest, load_pack_manifests
+
     for manifest, _path in load_pack_manifests(repo_root=repo_root):
         if manifest.family == family:
             return describe_pack_manifest(manifest.pack_id, repo_root=repo_root)
