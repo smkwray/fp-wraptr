@@ -42,8 +42,8 @@ fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python toolin
 
 ## MCP server
 
-### Tools (44)
-run_fp_scenario, run_bundle, run_pse2025, parse_fp_output, diff_runs,
+### Tools (43)
+run_fp_scenario, run_bundle, parse_fp_output, diff_runs,
 list_output_variables, list_output_equations, describe_variable, search_dictionary,
 explain_equation, describe_variable_sources, source_map_coverage, source_map_quality,
 source_map_report, source_map_window_check, update_model_from_fred,
