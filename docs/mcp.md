@@ -51,11 +51,11 @@ Use this split when deciding what to expose to users/agents.
 |---|---|---|
 | Read-only (local files) | `get_project_info`, `validate_scenario`, `list_scenarios`, `get_run_history`, `get_latest_run`, `get_parity_report`, `parse_fp_output`, `list_output_variables`, `list_output_equations`, `describe_variable`, `search_dictionary`, `explain_equation`, `describe_variable_sources`, `source_map_coverage`, `source_map_quality`, `source_map_report`, `diff_runs`, `list_packs`, `describe_pack`, `list_workspaces`, `get_workspace`, `list_workspace_cards`, `list_visualizations`, `build_visualization_view` | No writes expected. |
 | Read-only (network) | `source_map_window_check` | Reads FRED data; needs `fredapi` and `FRED_API_KEY`. |
-| Mutating / execution | `run_fp_scenario`, `run_bundle`, `run_pse2025`, `update_model_from_fred`, `run_batch_scenarios`, `create_scenario`, `update_scenario`, `create_workspace_from_catalog`, `create_workspace_from_bundle`, `update_workspace_metadata`, `apply_workspace_card`, `import_workspace_series`, `add_bundle_variant`, `update_bundle_variant`, `clone_bundle_variant_recipe`, `remove_bundle_variant`, `compile_workspace`, `run_workspace`, `compare_workspace_runs` | Can write workspace files or run model jobs under `artifacts/`, `examples/`, or authoring directories. |
+| Mutating / execution | `run_fp_scenario`, `run_bundle`, `update_model_from_fred`, `run_batch_scenarios`, `create_scenario`, `update_scenario`, `create_workspace_from_catalog`, `create_workspace_from_bundle`, `update_workspace_metadata`, `apply_workspace_card`, `import_workspace_series`, `add_bundle_variant`, `update_bundle_variant`, `clone_bundle_variant_recipe`, `remove_bundle_variant`, `compile_workspace`, `run_workspace`, `compare_workspace_runs` | Can write workspace files or run model jobs under `artifacts/`, `examples/`, or authoring directories. |
 
-## Tool inventory (44)
+## Tool inventory (43)
 
-- Scenario + run orchestration: `run_fp_scenario`, `run_bundle`, `run_pse2025`, `run_batch_scenarios`, `get_run_history`, `get_latest_run`, `get_parity_report`
+- Scenario + run orchestration: `run_fp_scenario`, `run_bundle`, `run_batch_scenarios`, `get_run_history`, `get_latest_run`, `get_parity_report`
 - Scenario authoring/validation: `validate_scenario`, `list_scenarios`, `create_scenario`, `update_scenario`
 - Agent-first workspace authoring: `list_packs`, `describe_pack`, `list_workspaces`, `create_workspace_from_catalog`, `create_workspace_from_bundle`, `get_workspace`, `update_workspace_metadata`, `list_workspace_cards`, `apply_workspace_card`, `import_workspace_series`, `add_bundle_variant`, `update_bundle_variant`, `clone_bundle_variant_recipe`, `remove_bundle_variant`, `compile_workspace`, `run_workspace`, `compare_workspace_runs`, `list_visualizations`, `build_visualization_view`
 - Output parsing + comparison: `parse_fp_output`, `list_output_variables`, `list_output_equations`, `diff_runs`

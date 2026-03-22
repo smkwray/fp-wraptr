@@ -35,7 +35,6 @@ Source of truth: `src/fp_wraptr/mcp_server.py`.
 | `source_map_window_check` | read-only (network/FRED) |
 | `run_fp_scenario` | mutating/execution |
 | `run_bundle` | mutating/execution |
-| `run_pse2025` | mutating/execution |
 | `update_model_from_fred` | mutating/execution |
 | `run_batch_scenarios` | mutating/execution |
 | `create_scenario` | mutating (writes files) |
@@ -149,14 +148,6 @@ Source of truth: `src/fp_wraptr/mcp_server.py`.
   - `output_dir: str = "artifacts/bundles"` — Output directory root for bundle artifacts.
 - **Returns**
   - JSON summary of bundle execution plus `run_root` and `report_path`.
-
-### `run_pse2025`
-- **Parameters**
-  - `output_dir: str = "artifacts/pse2025"` — Output root for generated PSE2025 runs.
-  - `fp_home: str = "FM"` — Base model directory.
-  - `overlay_dir: str = "projects_local/pse2025"` — PSE overlay directory.
-- **Returns**
-  - JSON summary of base/low/high PSE2025 bundle run plus `run_root`, `report_path`, resolved paths.
 
 ### `update_model_from_fred`
 - **Parameters**

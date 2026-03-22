@@ -6,7 +6,6 @@ LLM-platform agnostic and runnable through stdio transport by default.
 Tools:
     run_fp_scenario        - Run a scenario from a YAML config and return summary.
     run_bundle             - Run a bundle YAML (base + variants) and return summary.
-    run_pse2025            - Convenience runner for PSE2025 base/low/high bundle.
     parse_fp_output        - Parse an FP output file into structured JSON.
     diff_runs              - Compare two FP runs and return top deltas.
     list_output_variables  - List variable metadata from a parsed FM output file.
@@ -195,7 +194,7 @@ def get_project_info() -> str:
                 },
             ],
             "backends": ["fpexe", "fppy"],
-            "tool_count": 41,
+            "tool_count": 43,
         },
         indent=2,
         sort_keys=True,
@@ -677,10 +676,22 @@ def run_fp_scenario(
 
     logger.info("Running scenario from %s (backend=%s)", scenario_yaml, backend or "default")
 
-    config = ScenarioConfig.from_yaml(Path(scenario_yaml))
+    scenario_path = Path(scenario_yaml)
+    if not scenario_path.exists():
+        return _error_payload(f"Scenario YAML not found: {scenario_path}", path=str(scenario_path))
+
+    try:
+        config = ScenarioConfig.from_yaml(scenario_path)
+    except Exception as exc:
+        return _error_payload(f"Failed to load scenario YAML: {exc}", path=str(scenario_path))
+
     if backend.strip():
         config = config.model_copy(update={"backend": backend.strip().lower()})
-    result = run_scenario(config, output_dir=Path(output_dir))
+
+    try:
+        result = run_scenario(config, output_dir=Path(output_dir))
+    except Exception as exc:
+        return _error_payload(f"Scenario run failed: {exc}", path=str(scenario_path))
 
     out_dir = result.output_dir
     fmout_path = out_dir / "fmout.txt" if out_dir else None
@@ -743,7 +754,11 @@ def run_bundle(
     run_root = Path(output_dir) / f"{bundle_name}_{timestamp}"
     run_root.mkdir(parents=True, exist_ok=True)
 
-    result = _run_bundle(bundle_config, output_dir=run_root)
+    try:
+        result = _run_bundle(bundle_config, output_dir=run_root)
+    except Exception as exc:
+        return _error_payload(f"Bundle run failed: {exc}", path=str(bundle_path))
+
     report_path = run_root / "bundle_report.json"
     report_path.write_text(
         json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str) + "\n",
@@ -755,79 +770,6 @@ def run_bundle(
     payload["report_path"] = str(report_path)
     return json.dumps(payload, indent=2, sort_keys=True)
 
-
-@mcp.tool()
-def run_pse2025(
-    output_dir: str = "artifacts/pse2025",
-    fp_home: str = "FM",
-    overlay_dir: str = "projects_local/pse2025",
-) -> str:
-    """Convenience tool: run the PSE2025 base/low/high bundle without a YAML path."""
-    from fp_wraptr.scenarios.bundle import BundleConfig
-    from fp_wraptr.scenarios.bundle import run_bundle as _run_bundle
-
-    cwd = Path.cwd()
-    fp_home_path = Path(fp_home).expanduser()
-    overlay_path = Path(overlay_dir).expanduser()
-    if not fp_home_path.is_absolute():
-        fp_home_path = (cwd / fp_home_path).resolve()
-    else:
-        fp_home_path = fp_home_path.resolve()
-    if not overlay_path.is_absolute():
-        overlay_path = (cwd / overlay_path).resolve()
-    else:
-        overlay_path = overlay_path.resolve()
-
-    bundle_config = BundleConfig(
-        base={
-            "name": "pse2025",
-            "description": "PSE2025 (Scott 2017 JG layer) — run base/low/high",
-            "fp_home": fp_home_path,
-            "input_overlay_dir": overlay_path,
-            "backend": "fpexe",
-            "forecast_start": "2025.4",
-            "forecast_end": "2029.4",
-            "input_file": "psebase.txt",
-            "track_variables": [
-                "GDPR",
-                "GDP",
-                "PCPF",
-                "PIEF",
-                "SG",
-                "RS",
-                "UR",
-                "E",
-                "JGJ",
-                "JF",
-                "WF",
-                "PF",
-            ],
-        },
-        variants=[
-            {"name": "base", "patch": {"input_file": "psebase.txt"}},
-            {"name": "low", "patch": {"input_file": "pselow.txt"}},
-            {"name": "high", "patch": {"input_file": "psehigh.txt"}},
-        ],
-        focus_variables=["GDPR", "UR", "PCPF", "SG", "RS"],
-    )
-
-    timestamp = _dt.datetime.now(_dt.UTC).strftime("%Y%m%d_%H%M%S")
-    run_root = Path(output_dir) / f"pse2025_{timestamp}"
-    run_root.mkdir(parents=True, exist_ok=True)
-
-    result = _run_bundle(bundle_config, output_dir=run_root)
-    report_path = run_root / "bundle_report.json"
-    report_path.write_text(
-        json.dumps(result.to_dict(), indent=2, sort_keys=True, default=str) + "\n",
-        encoding="utf-8",
-    )
-
-    payload = result.to_dict()
-    payload["run_root"] = str(run_root)
-    payload["report_path"] = str(report_path)
-    payload["fp_home"] = str(fp_home_path)
-    payload["input_overlay_dir"] = str(overlay_path)
-    return json.dumps(payload, indent=2, sort_keys=True)
 
 
 @mcp.tool()
