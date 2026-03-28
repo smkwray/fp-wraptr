@@ -39,8 +39,11 @@
 
       <main class="layout">
         <aside class="control-panel">
-          <section class="panel-card">
-            <h2>Runs</h2>
+          <section id="runPanel" class="panel-card">
+            <div class="panel-card-header">
+              <h2>Runs</h2>
+              <button id="runSelectToggle" type="button" class="panel-toggle-button">Expand</button>
+            </div>
             <div id="runSelect" class="checklist" aria-label="Runs"></div>
             <p class="hint">Select one or more exported runs to overlay.</p>
           </section>
@@ -111,5 +114,6 @@
         </section>
       </main>
     </div>
+    <div id="runPanelBackdrop" class="panel-backdrop" hidden></div>
   </body>
 </html>
