@@ -26,6 +26,10 @@ body {
     linear-gradient(180deg, #f6f1e8 0%, #efe7d8 100%);
 }
 
+body.panel-overlay-open {
+  overflow: hidden;
+}
+
 button,
 select,
 input {
@@ -169,6 +173,23 @@ h2 {
   padding: 18px;
 }
 
+.panel-card h2 {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-card-header h2 {
+  margin-bottom: 0;
+}
+
 .content-card {
   padding: 22px;
 }
@@ -198,6 +219,31 @@ input[type="search"] {
   background: rgba(164, 71, 36, 0.18);
 }
 
+.panel-toggle-button {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(24, 32, 27, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.panel-toggle-button:hover {
+  border-color: rgba(164, 71, 36, 0.24);
+  background: rgba(164, 71, 36, 0.08);
+  color: var(--accent);
+}
+
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 32, 27, 0.16);
+  backdrop-filter: blur(3px);
+  z-index: 20;
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -213,8 +259,135 @@ input[type="search"] {
   padding: 4px 2px;
 }
 
+.checklist-group {
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+
+.checklist-expanded {
+  max-height: min(70vh, 1100px);
+}
+
+.panel-card-expanded {
+  position: fixed;
+  top: clamp(88px, 11vh, 128px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 24;
+  width: min(88vw, 1240px);
+  max-width: calc(100vw - 32px);
+  min-height: min(78vh, 860px);
+  max-height: min(78vh, 860px);
+  padding: 22px 22px 18px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  background: rgba(255, 251, 244, 0.98);
+  box-shadow: 0 28px 60px rgba(38, 28, 18, 0.22);
+}
+
+.panel-card-expanded .checklist {
+  max-height: calc(min(78vh, 860px) - 126px);
+}
+
+.panel-card-expanded .hint {
+  margin-top: 10px;
+}
+
+.panel-card-expanded #runSelect {
+  display: grid;
+  grid-template-columns: repeat(var(--run-select-columns, 1), minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+  padding-right: 6px;
+  overflow-x: hidden;
+}
+
+.panel-card-expanded .run-group-column {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.panel-card-expanded .checklist-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .checklist-tall {
   max-height: 360px;
+}
+
+.run-group {
+  padding: 10px 0 2px;
+  border-top: 1px solid rgba(24, 32, 27, 0.08);
+}
+
+.panel-card-expanded .run-group {
+  padding: 14px 14px 12px;
+  border-top: 0;
+  border: 1px solid rgba(24, 32, 27, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.run-group:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.panel-card-expanded .run-group:first-child {
+  padding-top: 14px;
+}
+
+.run-group-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.run-group-title,
+.run-group-note {
+  margin: 0;
+}
+
+.run-group-title {
+  font-size: 0.79rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+
+.run-group-note {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.run-group-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.run-group-action {
+  padding: 4px 8px;
+  border: 1px solid rgba(24, 32, 27, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.run-group-action:hover {
+  border-color: rgba(164, 71, 36, 0.22);
+  color: var(--accent);
+  background: rgba(164, 71, 36, 0.08);
 }
 
 .check-item {
@@ -226,6 +399,11 @@ input[type="search"] {
   border: 1px solid rgba(24, 32, 27, 0.08);
   background: rgba(255, 255, 255, 0.58);
   cursor: pointer;
+}
+
+.panel-card-expanded .check-item {
+  min-height: 0;
+  padding: 12px 12px 11px;
 }
 
 .check-item input {
@@ -247,6 +425,20 @@ input[type="search"] {
 .check-note {
   color: var(--muted);
   font-size: 0.73rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.panel-card-expanded .check-note {
+  font-size: 0.79rem;
+  line-height: 1.36;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 .search-label {
@@ -571,6 +763,29 @@ input[type="search"] {
   .checklist,
   .checklist-tall {
     max-height: 260px;
+  }
+
+  .panel-card-expanded {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    min-height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .panel-card-expanded .checklist {
+    max-height: calc(100vh - 150px);
+  }
+
+  .panel-card-expanded #runSelect {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-card-expanded .run-group-column,
+  .panel-card-expanded .checklist-group {
+    grid-template-columns: 1fr;
   }
 
   .chart-surface {
