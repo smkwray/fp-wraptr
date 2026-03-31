@@ -30,6 +30,8 @@ fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.ya
 
 It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring — pick variables, tweak assumptions, run, and compare results from a chat interface or the Streamlit dashboard.
 
+It now supports three solver paths: the original `fp.exe`, the pure-Python `fppy` engine, and a bundle-backed R solver via `fp-r`.
+
 ## Meet the mascots
 
 | Mascot | Represents |
@@ -42,11 +44,13 @@ It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt
   <img src="logo/fp-py-logo.png" alt="Archie the archaeopteryx — fppy mascot" width="180">
 </p>
 
+<p align="center"><sub>Archie still flies the Python route. fp-wraptr now includes an R route too.</sub></p>
+
 ## Features
 
 - **YAML scenario configs** — human-readable definitions instead of raw `fminput.txt`
 - **Structured I/O** — parse FP inputs and outputs into Python objects and DataFrames
-- **Three backends** — run `fp.exe`, the pure-Python solver (`fppy`), or the bundle-backed R solver (`fp-r`)
+- **Three solver paths** — run `fp.exe`, the pure-Python solver (`fppy`), or the bundle-backed R solver (`fp-r`)
 - **Batch runner** — execute multiple scenarios with diff and regression testing
 - **Dependency graph** — trace "why did variable X change?" through 130+ equations
 - **Dashboard** — 12-page Streamlit app with Plotly charts for run exploration and comparison
@@ -87,7 +91,7 @@ fp-wraptr currently supports three execution backends:
 
 - **`fpexe`** — the original Fair-Parke Windows binary (`fp.exe`). Battle-hardened FORTRAN. Runs via Wine on macOS/Linux.
 - **`fppy`** — a pure-Python re-implementation of the FP solver core. No Wine, no binary blobs. Archie is learning to fly.
-- **`fp-r`** — an experimental bundle-backed R solver path. It runs prebuilt `fp-r` bundles through `Rscript` and emits the same `PABEV.TXT` / `LOADFORMAT.DAT` style artifacts consumed elsewhere in the repo.
+- **`fp-r`** — a bundle-backed R solver path. It runs prebuilt `fp-r` bundles through `Rscript` and emits the same `PABEV.TXT` / `LOADFORMAT.DAT` style artifacts consumed elsewhere in the repo.
 
 Parity mode still defaults to the two-engine `fp.exe` vs `fppy` contract:
 

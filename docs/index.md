@@ -10,6 +10,8 @@ fp-wraptr wraps [Ray Fair's US Macroeconometric Model](https://fairmodel.econ.ya
 
 It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring.
 
+It supports three solver paths: the original `fp.exe`, the pure-Python `fppy` engine, and a bundle-backed R solver via `fp-r`.
+
 <div style="text-align: center; margin: 1rem 0 1.5rem;">
   <a class="md-button" href="https://smkwray.github.io/fp-wraptr/model-runs/">Model Runs Explorer</a>
   <a class="md-button md-button--primary" href="https://github.com/smkwray/fp-wraptr">View on GitHub</a>
@@ -45,6 +47,8 @@ Then follow the [Quickstart guide](quickstart.md) to configure your model files 
 | <img src="assets/archie.png" alt="Archie" width="64"> | **Archie** (Archaeopteryx) | `fppy` — the pure-Python solver |
 | <img src="assets/logo.png" alt="Raptr" width="56"> | **Raptr** (Eagle) | Agentic features — MCP server, packs, and workspace authoring |
 
+Archie still covers the Python route. fp-wraptr now includes an R route too via `fp-r`.
+
 ## Architecture at a glance
 
 ```mermaid
@@ -69,7 +73,7 @@ graph LR
 - **Visualization** — Matplotlib charts and a 12-page Streamlit dashboard with Plotly
 - **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
 - **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
-- **Dual engines** — Run the FORTRAN binary and pure-Python solver side-by-side for parity validation
+- **Three solver paths** — Run the FORTRAN engine, the pure-Python solver, or the bundle-backed R solver
 - **Data pipelines** — FRED, BEA, and BLS data integration with safe-lane update workflows
 
 ## Documentation
