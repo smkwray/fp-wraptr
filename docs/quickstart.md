@@ -13,8 +13,8 @@
 git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
 
-# Install with all extras
-uv sync --all-extras
+# Install with all extras into the configured external venv
+scripts/uvsync --all-extras
 ```
 
 ## Set up FP model files
@@ -36,10 +36,10 @@ These files are gitignored and not included in the repository.
 
 ```bash
 # Parse to JSON
-uv run fp io parse-output FM/fmout.txt
+scripts/uvsafe fp io parse-output FM/fmout.txt
 
 # Parse to CSV
-uv run fp io parse-output FM/fmout.txt --format csv
+scripts/uvsafe fp io parse-output FM/fmout.txt --format csv
 ```
 
 ## Parse an FP input file (parser contract)
@@ -55,7 +55,7 @@ If you consume parser output directly, rely on these canonical keys.
 ## Generate a forecast chart
 
 ```bash
-uv run fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
+scripts/uvsafe fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
 ```
 
 ## Export a public run bundle
@@ -63,7 +63,7 @@ uv run fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
 Once you have curated runs under `artifacts/`, export the static GitHub Pages explorer bundle:
 
 ```bash
-fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
+scripts/uvsafe fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
 ```
 
 That command rewrites `public/model-runs/` with a portable JSON bundle and static browser app.
@@ -89,8 +89,41 @@ track_variables:
 Run it:
 
 ```bash
-uv run fp run examples/baseline.yaml
+scripts/uvsafe fp run examples/baseline.yaml
 ```
+
+## Run the self-contained `fp-r` demo
+
+This path does not require `FM/` or `fp.exe`. It uses the tracked bundle-backed
+phase-1 `fp-r` surface and only needs `Rscript` to be available.
+
+```bash
+scripts/uvsafe fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir artifacts/quickstart_fpr
+```
+
+Expected artifact layout:
+
+```text
+artifacts/quickstart_fpr/fpr_bundle_demo_<timestamp>/
+  scenario.yaml
+  PABEV.TXT
+  LOADFORMAT.DAT
+  fp_r_series.csv
+  fp_r_report.txt
+  work/
+    PABEV.TXT
+    fp_r_diagnostics.csv
+    fp_r_report.txt
+    fp_r_series.csv
+```
+
+Notes:
+- The example scenario is `examples/fpr_bundle_demo.yaml`.
+- The tracked demo bundle is `examples/fpr_bundle_demo_bundle.R`.
+- `fp-r` can participate in `fp parity` when a scenario provides both `fp_home` and `fpr.bundle_path`.
+- The tracked reduced pair example is `examples/fpr_real_stock_eq_parity.yaml`.
+- Example: `scripts/uvsafe fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient`.
+- The accepted direct stock-`fp.exe` full-FM compare for `fp-r` is already tight: about `0.0037489%` max relative diff and about `0.00449383` max absolute diff.
 
 ## Parity Quickstart
 

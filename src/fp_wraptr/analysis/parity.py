@@ -22,6 +22,22 @@ from fp_wraptr.runtime.solve_errors import scan_solution_errors
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.input_tree import InputTreeManifest
 
+_PARITY_ENGINE_ALIASES = {
+    "fpexe": "fpexe",
+    "fp.exe": "fpexe",
+    "fppy": "fppy",
+    "fp-py": "fppy",
+    "fp_py": "fppy",
+    "fp-r": "fp-r",
+    "fpr": "fp-r",
+    "fp_r": "fp-r",
+}
+_PARITY_ENGINE_LABELS = {
+    "fpexe": "fp.exe",
+    "fppy": "fp-py",
+    "fp-r": "fp-r",
+}
+
 
 def _utc_stamp() -> str:
     return _dt.datetime.now(_dt.UTC).strftime("%Y%m%d_%H%M%S")
@@ -77,7 +93,7 @@ class DriftConfig:
 
 @dataclass(frozen=True)
 class GateConfig:
-    pabev_start: str = "2025.4"
+    pabev_start: str | None = None
     pabev_end: str | None = None
     # PABEV is a floating-point export; across engines we occasionally see
     # ~1e-3 scale rounding noise in otherwise parity-correct scenarios.
@@ -107,6 +123,8 @@ class ParityResult:
     run_dir: str
     scenario_name: str
     input_fingerprint: dict[str, Any]
+    left_engine: str = "fpexe"
+    right_engine: str = "fppy"
     fingerprint_ok: bool = True
     fingerprint_message: str = "not_checked"
     engine_runs: dict[str, EngineRunSummary] = field(default_factory=dict)
@@ -133,6 +151,34 @@ def _copy_tree(src: Path, dst: Path) -> None:
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(src, dst)
+
+
+def normalize_parity_engine_name(value: str | None) -> str:
+    raw = str(value or "").strip().lower()
+    normalized = _PARITY_ENGINE_ALIASES.get(raw)
+    if normalized is None:
+        raise ValueError(
+            f"Unknown parity engine: {value!r} (expected fpexe|fppy|fp-r)"
+        )
+    return normalized
+
+
+def format_parity_engine_pair(left_engine: str, right_engine: str) -> str:
+    left = normalize_parity_engine_name(left_engine)
+    right = normalize_parity_engine_name(right_engine)
+    return f"{_PARITY_ENGINE_LABELS[left]} vs {_PARITY_ENGINE_LABELS[right]}"
+
+
+def _parity_work_dir_name(engine_name: str) -> str:
+    normalized = normalize_parity_engine_name(engine_name)
+    if normalized == "fp-r":
+        return "work_fpr"
+    return f"work_{normalized}"
+
+
+def _write_stream_artifacts(stdout_path: Path, stderr_path: Path, *, stdout: str, stderr: str) -> None:
+    stdout_path.write_text(str(stdout or ""), encoding="utf-8")
+    stderr_path.write_text(str(stderr or ""), encoding="utf-8")
 
 
 def _parity_output_candidates(work_dir: Path) -> tuple[Path, ...]:
@@ -298,6 +344,557 @@ def _drift_check_from_period_stats(
     }
 
 
+def _run_nondefault_parity_pair(
+    config_run: ScenarioConfig,
+    *,
+    output_dir: Path,
+    run_dir: Path,
+    fp_home: Path,
+    gate: GateConfig,
+    fingerprint: dict[str, Any],
+    fingerprint_ok: bool,
+    fingerprint_message: str,
+    left_engine: str,
+    right_engine: str,
+) -> ParityResult:
+    import fppy.pabev_parity as pabev_parity
+
+    from fp_wraptr.runtime.fpr import FpRBackend
+
+    pair = (normalize_parity_engine_name(left_engine), normalize_parity_engine_name(right_engine))
+    gate_start = (
+        str(gate.pabev_start).strip()
+        if gate.pabev_start not in (None, "")
+        else str(config_run.forecast_start).strip()
+    )
+    standard_engines = tuple(engine for engine in pair if engine in {"fpexe", "fppy"})
+    bundle_dir: Path | None = None
+    expected_outputs: tuple[str, ...] = ()
+    if standard_engines:
+        bundle_dir, manifest = _prepare_bundle(config_run, run_dir / "bundle")
+        expected_outputs = tuple(getattr(manifest, "expected_output_files", ()) or ())
+
+    work_dirs: dict[str, Path] = {}
+    for engine_name in pair:
+        work_dir = run_dir / _parity_work_dir_name(engine_name)
+        if engine_name in {"fpexe", "fppy"}:
+            if bundle_dir is None:
+                raise ValueError(f"Missing prepared bundle for parity engine {engine_name!r}")
+            _copy_tree(bundle_dir, work_dir)
+        else:
+            work_dir.mkdir(parents=True, exist_ok=True)
+        work_dirs[engine_name] = work_dir
+
+    engine_runs: dict[str, EngineRunSummary] = {}
+    fpexe_retry_template: dict[str, Any] = {
+        "attempted": False,
+        "trigger": "",
+        "first_return_code": None,
+        "second_return_code": None,
+    }
+    fpexe_solution_errors: list[dict[str, Any]] = []
+
+    fpexe: FPExecutable | None = None
+    fpexe_preflight_report: dict[str, Any] = {}
+    if "fpexe" in pair:
+        fpexe = FPExecutable(fp_home=fp_home, timeout_seconds=600)
+        fpexe_preflight_report = fpexe.preflight_report(
+            input_file=work_dirs["fpexe"] / config_run.input_file,
+            work_dir=work_dirs["fpexe"],
+        )
+
+    fppy: FairPyBackend | None = None
+    fppy_preset = "parity"
+    fppy_eq_iter_trace = False
+    fppy_eq_iter_trace_period: str | None = None
+    fppy_eq_iter_trace_targets: str | None = None
+    fppy_eq_iter_trace_max_events: int | None = None
+    fppy_num_threads: int | None = None
+    fppy_eq_structural_read_cache = "off"
+    if "fppy" in pair:
+        fps = getattr(config_run, "fppy", None)
+        if fps is None:
+            from fp_wraptr.scenarios.config import FPPySettings
+
+            fps = FPPySettings()
+        fppy_timeout = int(fps.timeout_seconds) if fps.timeout_seconds is not None else 2400
+        fppy_preset = str(fps.eq_flags_preset if fps.eq_flags_preset is not None else "parity")
+        fppy_eq_iter_trace = fps.eq_iter_trace
+        fppy_eq_iter_trace_period = (
+            str(fps.eq_iter_trace_period) if fps.eq_iter_trace_period is not None else None
+        )
+        fppy_eq_iter_trace_targets = (
+            str(fps.eq_iter_trace_targets) if fps.eq_iter_trace_targets is not None else None
+        )
+        fppy_eq_iter_trace_max_events = (
+            int(fps.eq_iter_trace_max_events) if fps.eq_iter_trace_max_events is not None else None
+        )
+        fppy_num_threads = (
+            int(fps.num_threads)
+            if fps.num_threads is not None and int(fps.num_threads) > 0
+            else None
+        )
+        fppy_eq_structural_read_cache = str(fps.eq_structural_read_cache or "off").strip()
+        fppy = FairPyBackend(
+            fp_home=fp_home,
+            timeout_seconds=fppy_timeout,
+            eq_flags_preset=fppy_preset,
+            eq_iter_trace=fppy_eq_iter_trace,
+            eq_iter_trace_period=fppy_eq_iter_trace_period,
+            eq_iter_trace_targets=fppy_eq_iter_trace_targets,
+            eq_iter_trace_max_events=fppy_eq_iter_trace_max_events,
+            eq_structural_read_cache=fppy_eq_structural_read_cache,
+            num_threads=fppy_num_threads,
+        )
+
+    fpr: FpRBackend | None = None
+    if "fp-r" in pair:
+        fpr_settings = getattr(config_run, "fpr", {}) or {}
+        bundle_path_raw = fpr_settings.get("bundle_path")
+        if bundle_path_raw in (None, ""):
+            raise ValueError("parity engine 'fp-r' requires fpr.bundle_path")
+        rscript_path_raw = fpr_settings.get("rscript_path")
+        fpr = FpRBackend(
+            bundle_path=Path(str(bundle_path_raw)).expanduser().resolve(),
+            rscript_path=(
+                Path(str(rscript_path_raw)).expanduser().resolve()
+                if rscript_path_raw not in (None, "")
+                else None
+            ),
+            timeout_seconds=int(fpr_settings.get("timeout_seconds", 120)),
+        )
+
+    def _run_fpexe_engine() -> dict[str, Any]:
+        if fpexe is None:
+            raise RuntimeError("fp.exe backend not configured")
+        work_dir = work_dirs["fpexe"]
+        stdout_path = work_dir / "fp-exe.stdout.txt"
+        stderr_path = work_dir / "fp-exe.stderr.txt"
+        fpexe_retry = dict(fpexe_retry_template)
+        fpexe_solution_errors_local: list[dict[str, Any]] = []
+        try:
+            rr = fpexe.run(input_file=work_dir / config_run.input_file, work_dir=work_dir)
+            _write_stream_artifacts(
+                stdout_path,
+                stderr_path,
+                stdout=rr.stdout,
+                stderr=rr.stderr,
+            )
+            if (
+                int(rr.return_code) != 0
+                and not _resolve_parity_output_path(
+                    work_dir, expected_outputs=expected_outputs
+                ).exists()
+            ):
+                fpexe_retry["attempted"] = True
+                fpexe_retry["trigger"] = "missing_parity_output_and_nonzero_return_code"
+                fpexe_retry["first_return_code"] = int(rr.return_code)
+                rr_retry = fpexe.run(input_file=work_dir / config_run.input_file, work_dir=work_dir)
+                _write_stream_artifacts(
+                    stdout_path,
+                    stderr_path,
+                    stdout=rr_retry.stdout,
+                    stderr=rr_retry.stderr,
+                )
+                fpexe_retry["second_return_code"] = int(rr_retry.return_code)
+                rr = rr_retry
+            fpexe_output = _resolve_parity_output_path(work_dir, expected_outputs=expected_outputs)
+            details: dict[str, Any] = {
+                "parity_output_file": fpexe_output.name,
+                "preflight_report": fpexe_preflight_report,
+            }
+            solution_errors = _scan_fpexe_solution_errors(work_dir)
+            if solution_errors:
+                fpexe_solution_errors_local = list(solution_errors)
+                details["solution_errors"] = solution_errors
+            return {
+                "summary": EngineRunSummary(
+                    name="fpexe",
+                    ok=bool(rr.success),
+                    return_code=int(rr.return_code),
+                    work_dir=str(work_dir),
+                    pabev_path=str(fpexe_output),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": None,
+                "fpexe_retry": fpexe_retry,
+                "fpexe_solution_errors": fpexe_solution_errors_local,
+            }
+        except Exception as exc:  # pragma: no cover
+            details = dict(getattr(exc, "details", {}) or {})
+            details.setdefault("parity_output_file", _parity_output_candidates(work_dir)[0].name)
+            details.setdefault("preflight_report", fpexe_preflight_report)
+            return {
+                "summary": EngineRunSummary(
+                    name="fpexe",
+                    ok=False,
+                    return_code=None,
+                    work_dir=str(work_dir),
+                    pabev_path=str(_parity_output_candidates(work_dir)[0]),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": f"fp.exe run failed: {type(exc).__name__}: {exc}",
+                "fpexe_details": details,
+                "fpexe_retry": fpexe_retry,
+                "fpexe_solution_errors": fpexe_solution_errors_local,
+            }
+
+    def _run_fppy_engine() -> dict[str, Any]:
+        if fppy is None:
+            raise RuntimeError("fp-py backend not configured")
+        work_dir = work_dirs["fppy"]
+        stdout_path = work_dir / "fppy.stdout.txt"
+        stderr_path = work_dir / "fppy.stderr.txt"
+        try:
+            rr = fppy.run(input_file=work_dir / config_run.input_file, work_dir=work_dir)
+            _write_stream_artifacts(stdout_path, stderr_path, stdout=rr.stdout, stderr=rr.stderr)
+            fppy_output = _resolve_parity_output_path(work_dir, expected_outputs=expected_outputs)
+            fppy_eq_iter_trace_path = work_dir / "eq_iter_trace.json"
+            details: dict[str, Any] = {
+                "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
+                "num_threads": fppy_num_threads,
+                "parity_output_file": fppy_output.name,
+                "eq_iter_trace": bool(fppy_eq_iter_trace),
+                "eq_iter_trace_period": fppy_eq_iter_trace_period,
+                "eq_iter_trace_targets": fppy_eq_iter_trace_targets,
+                "eq_iter_trace_max_events": fppy_eq_iter_trace_max_events,
+            }
+            if fppy_eq_iter_trace_path.exists():
+                details["eq_iter_trace_path"] = str(fppy_eq_iter_trace_path)
+            return {
+                "summary": EngineRunSummary(
+                    name="fppy",
+                    ok=bool(rr.success),
+                    return_code=int(rr.return_code),
+                    work_dir=str(work_dir),
+                    pabev_path=str(fppy_output),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": None,
+            }
+        except Exception as exc:  # pragma: no cover
+            details = {
+                "eq_flags_preset": str(fppy_preset),
+                "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
+                "num_threads": fppy_num_threads,
+                "eq_iter_trace": bool(fppy_eq_iter_trace),
+                "eq_iter_trace_period": fppy_eq_iter_trace_period,
+                "eq_iter_trace_targets": fppy_eq_iter_trace_targets,
+                "eq_iter_trace_max_events": fppy_eq_iter_trace_max_events,
+            }
+            return {
+                "summary": EngineRunSummary(
+                    name="fppy",
+                    ok=False,
+                    return_code=None,
+                    work_dir=str(work_dir),
+                    pabev_path=str(_parity_output_candidates(work_dir)[0]),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": f"fp-py run failed: {type(exc).__name__}: {exc}",
+                "fppy_details": details,
+            }
+
+    def _run_fpr_engine() -> dict[str, Any]:
+        if fpr is None:
+            raise RuntimeError("fp-r backend not configured")
+        work_dir = work_dirs["fp-r"]
+        stdout_path = work_dir / "fp-r.stdout.txt"
+        stderr_path = work_dir / "fp-r.stderr.txt"
+        try:
+            rr = fpr.run(work_dir=work_dir)
+            _write_stream_artifacts(stdout_path, stderr_path, stdout=rr.stdout, stderr=rr.stderr)
+            fpr_output = _resolve_parity_output_path(work_dir)
+            details: dict[str, Any] = {"parity_output_file": fpr_output.name}
+            runtime_path = work_dir / "fp_r.runtime.json"
+            if runtime_path.exists():
+                details["runtime_path"] = str(runtime_path)
+            return {
+                "summary": EngineRunSummary(
+                    name="fp-r",
+                    ok=bool(rr.success),
+                    return_code=int(rr.return_code),
+                    work_dir=str(work_dir),
+                    pabev_path=str(fpr_output),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": None,
+            }
+        except Exception as exc:  # pragma: no cover
+            details = dict(getattr(exc, "details", {}) or {})
+            details.setdefault("parity_output_file", _parity_output_candidates(work_dir)[0].name)
+            return {
+                "summary": EngineRunSummary(
+                    name="fp-r",
+                    ok=False,
+                    return_code=None,
+                    work_dir=str(work_dir),
+                    pabev_path=str(_parity_output_candidates(work_dir)[0]),
+                    stdout_path=str(stdout_path),
+                    stderr_path=str(stderr_path),
+                    details=details,
+                ),
+                "error": f"fp-r run failed: {type(exc).__name__}: {exc}",
+                "fpr_details": details,
+            }
+
+    runners = {
+        "fpexe": _run_fpexe_engine,
+        "fppy": _run_fppy_engine,
+        "fp-r": _run_fpr_engine,
+    }
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = {engine: executor.submit(runners[engine]) for engine in pair}
+        outcomes = {engine: futures[engine].result() for engine in pair}
+
+    for engine_name in pair:
+        engine_runs[engine_name] = outcomes[engine_name]["summary"]
+    if "fpexe" in outcomes:
+        fpexe_solution_errors = list(outcomes["fpexe"].get("fpexe_solution_errors") or [])
+        fpexe_retry = dict(outcomes["fpexe"].get("fpexe_retry") or fpexe_retry_template)
+    else:
+        fpexe_retry = dict(fpexe_retry_template)
+
+    errors = {
+        engine_name: str(outcomes[engine_name]["error"])
+        for engine_name in pair
+        if outcomes[engine_name].get("error")
+    }
+    warnings = (
+        ["fp.exe solution errors present; treat diffs as unreliable."]
+        if fpexe_solution_errors
+        else []
+    )
+    if errors:
+        detail: dict[str, Any] = {
+            "error": " | ".join(errors[name] for name in pair if name in errors),
+            "engine_errors": errors,
+            "warnings": warnings,
+        }
+        if "fpexe" in pair:
+            detail["fpexe_retry"] = fpexe_retry
+            detail["fpexe_solution_errors_present"] = bool(fpexe_solution_errors)
+            detail["fpexe_stdout_path"] = engine_runs["fpexe"].stdout_path
+            detail["fpexe_stderr_path"] = engine_runs["fpexe"].stderr_path
+            detail["fpexe_details"] = dict(outcomes["fpexe"].get("fpexe_details") or {})
+        result = ParityResult(
+            status="engine_failure",
+            run_dir=str(run_dir),
+            scenario_name=config_run.name,
+            input_fingerprint=fingerprint,
+            left_engine=pair[0],
+            right_engine=pair[1],
+            fingerprint_ok=fingerprint_ok,
+            fingerprint_message=fingerprint_message,
+            engine_runs=engine_runs,
+            exit_code=4,
+            pabev_detail=detail,
+        )
+        (run_dir / "parity_report.json").write_text(
+            json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8"
+        )
+        return result
+
+    output_paths: dict[str, Path] = {}
+    missing_paths: list[str] = []
+    for engine_name in pair:
+        expected = expected_outputs if engine_name in {"fpexe", "fppy"} else ()
+        pabev_path = _resolve_parity_output_path(work_dirs[engine_name], expected_outputs=expected)
+        output_paths[engine_name] = pabev_path
+        if not pabev_path.exists():
+            missing_paths.extend(
+                str(path)
+                for path in _parity_output_candidates(work_dirs[engine_name])
+                if not path.exists()
+            )
+    if missing_paths:
+        detail = {
+            "error": (
+                "Missing parity outputs after engine execution (expected PABEV.TXT or PACEV.TXT). "
+                "Check engine stdout and stderr artifacts for diagnostics."
+            ),
+            "missing_paths": missing_paths,
+            "engine_return_codes": {
+                engine_name: engine_runs[engine_name].return_code for engine_name in pair
+            },
+            "warnings": warnings,
+        }
+        if "fpexe" in pair:
+            detail["fpexe_retry"] = fpexe_retry
+            detail["fpexe_solution_errors_present"] = bool(fpexe_solution_errors)
+        result = ParityResult(
+            status="missing_output",
+            run_dir=str(run_dir),
+            scenario_name=config_run.name,
+            input_fingerprint=fingerprint,
+            left_engine=pair[0],
+            right_engine=pair[1],
+            fingerprint_ok=fingerprint_ok,
+            fingerprint_message=fingerprint_message,
+            engine_runs=engine_runs,
+            exit_code=4,
+            pabev_detail=detail,
+        )
+        (run_dir / "parity_report.json").write_text(
+            json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8"
+        )
+        return result
+
+    expected_compare_end = str(gate.pabev_end or config_run.forecast_end).strip()
+    truncated_outputs: list[dict[str, Any]] = []
+    parse_errors: list[dict[str, Any]] = []
+    try:
+        expected_end_period = pabev_parity.PabevPeriod.parse(expected_compare_end)
+    except Exception:  # pragma: no cover
+        expected_end_period = None
+    if expected_end_period is not None:
+        for engine_name in pair:
+            pabev_path = output_paths[engine_name]
+            try:
+                periods, _series = pabev_parity.parse_pabev(pabev_path)
+            except Exception as exc:
+                parse_errors.append({
+                    "engine": engine_name,
+                    "pabev_path": str(pabev_path),
+                    "error": str(exc),
+                })
+                continue
+            if expected_end_period not in periods:
+                parsed_end = str(periods[-1]) if periods else None
+                truncated_outputs.append({
+                    "engine": engine_name,
+                    "pabev_path": str(pabev_path),
+                    "parsed_end_period": parsed_end,
+                    "expected_compare_end": expected_compare_end,
+                    "work_dir": engine_runs[engine_name].work_dir,
+                    "stdout_path": engine_runs[engine_name].stdout_path,
+                    "stderr_path": engine_runs[engine_name].stderr_path,
+                })
+
+    if parse_errors or truncated_outputs:
+        detail_parts: list[str] = []
+        if parse_errors:
+            engines = ", ".join(item.get("engine", "?") for item in parse_errors)
+            detail_parts.append(f"PABEV parse failed for engine(s): {engines}.")
+        if truncated_outputs:
+            engines = ", ".join(item.get("engine", "?") for item in truncated_outputs)
+            detail_parts.append(
+                "PABEV truncated before expected compare end "
+                f"{expected_compare_end} for engine(s): {engines}."
+            )
+        result = ParityResult(
+            status="missing_output",
+            run_dir=str(run_dir),
+            scenario_name=config_run.name,
+            input_fingerprint=fingerprint,
+            left_engine=pair[0],
+            right_engine=pair[1],
+            fingerprint_ok=fingerprint_ok,
+            fingerprint_message=fingerprint_message,
+            engine_runs=engine_runs,
+            exit_code=4,
+            pabev_detail={
+                "error": " ".join(detail_parts),
+                "expected_compare_end": expected_compare_end,
+                "truncated_outputs": truncated_outputs,
+                "parse_errors": parse_errors,
+                "warnings": warnings,
+                "fpexe_retry": fpexe_retry,
+                "fpexe_solution_errors_present": bool(fpexe_solution_errors),
+            },
+        )
+        (run_dir / "parity_report.json").write_text(
+            json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8"
+        )
+        return result
+
+    left = output_paths[pair[0]]
+    right = output_paths[pair[1]]
+    compare_ok, detail = pabev_parity.toleranced_compare(
+        left,
+        right,
+        start=gate_start,
+        end=str(gate.pabev_end) if gate.pabev_end is not None else None,
+        variables=(
+            frozenset(str(v).upper() for v in (config_run.track_variables or []))
+            if Path(left).name.upper() not in {"PABEV.TXT", "PACEV.TXT"}
+            else None
+        ),
+        atol=float(gate.atol),
+        rtol=float(gate.rtol),
+        top=20,
+        missing_sentinels=frozenset(float(x) for x in gate.missing_sentinels),
+        discrete_eps=float(gate.discrete_eps),
+        signflip_eps=float(gate.signflip_eps),
+        collect_period_stats=bool(gate.drift.enabled),
+    )
+
+    drift_check = None
+    if gate.drift.enabled:
+        drift_check = _drift_check_from_period_stats(
+            detail.get("per_period_stats") or [],
+            drift=gate.drift,
+        )
+
+    hard_fail_cells = int(detail.get("hard_fail_cell_count", 0))
+    exit_code = 0
+    status = "ok"
+    if hard_fail_cells > 0:
+        exit_code = 3
+        status = "hard_fail"
+    elif not bool(compare_ok):
+        exit_code = 2
+        status = "gate_failed"
+    if drift_check is not None and drift_check.get("status") == "failed" and exit_code == 0:
+        exit_code = 2
+        status = "drift_failed"
+
+    result = ParityResult(
+        status=status,
+        run_dir=str(run_dir),
+        scenario_name=config_run.name,
+        input_fingerprint=fingerprint,
+        left_engine=pair[0],
+        right_engine=pair[1],
+        fingerprint_ok=fingerprint_ok,
+        fingerprint_message=fingerprint_message,
+        engine_runs=engine_runs,
+        pabev_compare_ok=bool(compare_ok),
+        pabev_detail={
+            **dict(detail),
+            "fpexe_retry": fpexe_retry,
+            "fpexe_solution_errors_present": bool(fpexe_solution_errors),
+            "warnings": warnings,
+        },
+        drift_check=drift_check,
+        exit_code=int(exit_code),
+    )
+    (run_dir / "parity_report.json").write_text(
+        json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8"
+    )
+    try:
+        primary = left if left.exists() else right
+        if primary.exists():
+            preserved = run_dir / primary.name
+            shutil.copy2(primary, preserved)
+            shutil.copy2(preserved, run_dir / "LOADFORMAT.DAT")
+    except Exception:
+        pass
+    return result
+
+
 def run_parity(
     config: ScenarioConfig,
     *,
@@ -305,13 +902,24 @@ def run_parity(
     fp_home_override: Path | None = None,
     gate: GateConfig | None = None,
     fingerprint_lock: Path | None = None,
+    left_engine: str = "fpexe",
+    right_engine: str = "fppy",
 ) -> ParityResult:
     import fppy.pabev_parity as pabev_parity
 
     gate = gate or GateConfig()
+    left_engine_name = normalize_parity_engine_name(left_engine)
+    right_engine_name = normalize_parity_engine_name(right_engine)
+    if left_engine_name == right_engine_name:
+        raise ValueError("parity requires two distinct engines")
     config_run = config.model_copy(deep=True)
     if fp_home_override is not None:
         config_run.fp_home = Path(fp_home_override)
+    gate_start = (
+        str(gate.pabev_start).strip()
+        if gate.pabev_start not in (None, "")
+        else str(config_run.forecast_start).strip()
+    )
 
     # `--quick` (gate.pabev_end == forecast_start) is intended to be a fast smoke
     # check. Keep the engine runtime aligned by also shrinking the deck's solve
@@ -368,6 +976,20 @@ def run_parity(
                 json.dumps(result.to_dict(), indent=2) + "\n", encoding="utf-8"
             )
             return result
+
+    if (left_engine_name, right_engine_name) != ("fpexe", "fppy"):
+        return _run_nondefault_parity_pair(
+            config_run,
+            output_dir=output_dir,
+            run_dir=run_dir,
+            fp_home=fp_home,
+            gate=gate,
+            fingerprint=fingerprint,
+            fingerprint_ok=fingerprint_ok,
+            fingerprint_message=fingerprint_message,
+            left_engine=left_engine_name,
+            right_engine=right_engine_name,
+        )
 
     bundle_dir, manifest = _prepare_bundle(config_run, run_dir / "bundle")
     work_fpexe = run_dir / "work_fpexe"
@@ -799,7 +1421,7 @@ def run_parity(
     compare_ok, detail = pabev_parity.toleranced_compare(
         left,
         right,
-        start=str(gate.pabev_start),
+        start=gate_start,
         end=str(gate.pabev_end) if gate.pabev_end is not None else None,
         variables=(
             frozenset(str(v).upper() for v in (config_run.track_variables or []))

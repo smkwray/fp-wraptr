@@ -33,6 +33,84 @@ jobs:
       - run: uv sync --all-extras
       - run: uv run pytest
 
+  fpr-release-surface:
+    runs-on: ubuntu-latest
+    env:
+      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-fpr-release-venv
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          python-version: "3.11"
+      - name: Install R
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends r-base-core
+      - name: Bootstrap supported external-venv workflow
+        run: |
+          chmod +x scripts/uvsync scripts/uvsafe
+          bash -n scripts/uvsync scripts/uvsafe
+          scripts/uvsync --all-extras
+      - name: Verify documented fp-r wrapper workflow
+        run: |
+          scripts/uvsafe fp --help
+          rm -rf /tmp/fpr-public-ci
+          scripts/uvsafe fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir /tmp/fpr-public-ci
+          latest="$(ls -td /tmp/fpr-public-ci/fpr_bundle_demo_* | head -1)"
+          test -f "$latest/PABEV.TXT"
+          test -f "$latest/LOADFORMAT.DAT"
+          test -f "$latest/fp_r_series.csv"
+          test -f "$latest/fp_r_report.txt"
+      - name: Run focused tracked fp-r tests
+        run: |
+          scripts/uvsafe python -m pytest -q tests/test_backend.py tests/test_cli.py -k "fpr or fp_r or backend_requires_fp_home"
+      - name: Run fp-r R suite
+        run: |
+          Rscript fp-r/tests/testthat.R
+      - name: Build package artifacts
+        run: |
+          rm -rf /tmp/fp-wraptr-build-ci
+          uv build -o /tmp/fp-wraptr-build-ci
+      - name: Verify fp-r runtime in wheel and sdist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          build_dir = Path("/tmp/fp-wraptr-build-ci")
+          wheel = next(build_dir.glob("*.whl"))
+          sdist = next(build_dir.glob("*.tar.gz"))
+          required_wheel = {
+              "fp-r/DESCRIPTION",
+              "fp-r/NAMESPACE",
+              "fp-r/R/000_utils.R",
+              "fp-r/R/bundle.R",
+              "fp-r/R/dependency.R",
+              "fp-r/R/equations.R",
+              "fp-r/R/expressions.R",
+              "fp-r/R/legacy_data.R",
+              "fp-r/R/mini_run.R",
+              "fp-r/R/parser.R",
+              "fp-r/R/periods.R",
+              "fp-r/R/solver.R",
+              "fp-r/R/standard_input.R",
+              "fp-r/scripts/run_backend_bundle.R",
+          }
+          with zipfile.ZipFile(wheel) as zf:
+              wheel_names = set(zf.namelist())
+          missing_wheel = sorted(required_wheel - wheel_names)
+          if missing_wheel:
+              raise SystemExit(f"wheel missing fp-r runtime files: {missing_wheel}")
+
+          required_sdist = {f"fp_wraptr-0.2.0/{name}" for name in required_wheel}
+          with tarfile.open(sdist, "r:gz") as tf:
+              sdist_names = set(tf.getnames())
+          missing_sdist = sorted(required_sdist - sdist_names)
+          if missing_sdist:
+              raise SystemExit(f"sdist missing fp-r runtime files: {missing_sdist}")
+          PY
+
   fp-integration:
     # Optional: enable only when FP assets provisioning inputs are configured.
     if: ${{ vars.FP_INTEGRATION_ENABLED == 'true' }}

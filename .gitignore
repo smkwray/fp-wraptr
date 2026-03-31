@@ -61,7 +61,16 @@ artifacts-*/
 /public/model-runs/runs/*
 !/public/model-runs/runs/.gitkeep
 /do/
-/fp-r/
+/fp-r/*
+!/fp-r/DESCRIPTION
+!/fp-r/NAMESPACE
+!/fp-r/R/
+/fp-r/R/*
+!/fp-r/R/*.R
+/fp-r/R/compare_series.R
+!/fp-r/scripts/
+/fp-r/scripts/*
+!/fp-r/scripts/run_backend_bundle.R
 *.log
 
 # Local caches/runtime state (must not be stored in project tree)
@@ -108,8 +117,6 @@ public/gender-runs/
 src/fp_wraptr/gender_family*.py
 tests/test_gender_family.py
 
-# fp-r backend (work in progress, not finished)
+# fp-r backend (phase-1 public surface stays narrow)
 examples/fp_r_real_*.yaml
-src/fp_wraptr/runtime/fpr.py
-src/fp_wraptr/analysis/fpr_compare.py
 src/fp_wraptr/analysis/shared_slice.py

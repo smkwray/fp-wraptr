@@ -23,6 +23,7 @@ Path to the FP model directory containing `fp.exe`, input files, etc.
 
 - **Type:** `Path`
 - **Default:** `FM`
+- **Note:** required for `fpexe`, `fppy`, and `both`; not required for bundle-backed `fp-r`
 
 ### `input_file` (string)
 Input file name copied/processed in each run.
@@ -47,10 +48,11 @@ Execution backend.
 
 - **Type:** `str`
 - **Default:** `"fpexe"`
-- **Allowed:** `fpexe`, `fppy`, `both`
+- **Allowed:** `fpexe`, `fppy`, `fp-r`, `both`
 - Behavior:
   - `fpexe`: run legacy `fp.exe` only.
   - `fppy`: run the vendored `fppy` backend only (module name `fp_py`).
+  - `fp-r`: run the bundle-backed R backend using `fpr.bundle_path`.
   - `both`: run both engines and emit parity artifacts (`parity_report.json` difference report + per-engine `PABEV.TXT` paths).
 
 ### `fppy` (dict)
@@ -65,6 +67,20 @@ Optional `fppy` backend settings (used when `backend: fppy` or `backend: both`; 
     - `"default"` / `"off"`: run `fppy` without EQ backfill flags (faster, less FP-faithful).
     - `"iss02_baseline"`: legacy preset (kept for compatibility).
   - Any extra keys are preserved in scenario config but ignored by current runner implementation.
+
+### `fpr` (dict)
+Optional `fp-r` backend settings (used when `backend: fp-r`).
+
+- **Type:** `dict`
+- **Default:** `{}`
+- Supported keys:
+  - `bundle_path` (string, required for `backend: fp-r`) — path to a prebuilt `fp-r` bundle
+  - `rscript_path` (string, optional) — explicit `Rscript` path; otherwise the backend searches `PATH`
+  - `timeout_seconds` (int, default `120`) — subprocess timeout for the bundle-backed run
+  - `expected_csv` (string, optional) — reference CSV used by `fp fpr-compare`
+- Notes:
+  - The phase-1 public `fp-r` surface is bundle-backed.
+  - `fp-r` can participate in `fp parity` when the scenario provides both `fp_home` and `fpr.bundle_path`.
 
 ### `overrides` (dict)
 Exogenous variable overrides keyed by variable name.
@@ -148,6 +164,19 @@ forecast_start: "2025.4"
 forecast_end: "2029.4"
 track_variables: [AA, CS, UR, PIEF]
 ```
+
+## Minimal `fp-r` example (`backend: fp-r`)
+
+```yaml
+name: r_bundle_demo
+backend: fp-r
+fpr:
+  bundle_path: fpr_bundle_demo_bundle.R
+  rscript_path: /usr/local/bin/Rscript
+```
+
+Tracked self-contained example:
+- `examples/fpr_bundle_demo.yaml`
 
 ## Vendored engine scope
 

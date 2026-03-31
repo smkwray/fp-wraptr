@@ -1,0 +1,16 @@
+# Self-contained fp-r demo.
+#
+# This example does not require FM/ or fp.exe. It runs a tiny tracked
+# bundle through the phase-1 public fp-r backend surface.
+
+name: fpr_bundle_demo
+description: "Self-contained bundle-backed fp-r demo"
+backend: fp-r
+track_variables:
+  - GDP
+  - CONS
+  - INV
+  - GOV
+  - RATE
+fpr:
+  bundle_path: fpr_bundle_demo_bundle.R

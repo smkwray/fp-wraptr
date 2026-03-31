@@ -48,5 +48,6 @@ def assert_no_forbidden_dirs(
     pretty = ", ".join(str(p) for p in present)
     raise RuntimeError(
         "Forbidden repo-local environment/prefix directories are present: "
-        f"{pretty}. Delete them and use an external venv and a Wine prefix outside the repo."
+        f"{pretty}. Delete them, keep the project venv/Wine prefix outside the repo, "
+        "run scripts/uvsync for setup, and run scripts/uvsafe for repo commands."
     )
