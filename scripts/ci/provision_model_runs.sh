@@ -20,6 +20,7 @@ dest_dir="${site_dir}/runs"
 tmp_archive="/tmp/model-runs-archive"
 base_url="${MODEL_RUNS_BASE_URL:-https://smkwray.github.io/fp-wraptr/model-runs}"
 manifest_path="${site_dir}/manifest.json"
+tracked_source_dir="${workspace}/public/model-runs-pse2026/runs"
 
 echo "Provisioning model run payloads into: ${dest_dir}"
 mkdir -p "${dest_dir}"
@@ -52,6 +53,10 @@ PY
 
 if manifest_complete; then
   echo "Using checked-in model-runs payloads already present in ${dest_dir}"
+elif [[ -d "${tracked_source_dir}" ]]; then
+  find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
+  echo "Using tracked repo payloads from ${tracked_source_dir}"
+  cp -R "${tracked_source_dir}/." "${dest_dir}/"
 elif [[ -n "${MODEL_RUNS_SOURCE_DIR:-}" ]]; then
   find "${dest_dir}" -mindepth 1 -maxdepth 1 ! -name '.gitkeep' -exec rm -rf {} +
 
