@@ -62,6 +62,13 @@ def _write_minimal_pabev(path: Path) -> None:
     )
 
 
+def _write_single_period_pabev(path: Path, *, period: str, value: float = 1.0) -> None:
+    path.write_text(
+        f"SMPL {period} {period};\nLOAD A;\n{value}\n'END'\n",
+        encoding="utf-8",
+    )
+
+
 def _write_two_period_pabev(path: Path, *, first: float, second: float) -> None:
     path.write_text(
         f"SMPL 2025.4 2026.1;\nLOAD A;\n{first} {second}\n'END'\n",
@@ -93,7 +100,7 @@ def test_run_parity_does_not_mutate_input_config_fp_home(tmp_path, monkeypatch) 
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
         assert work_dir is not None
-        _write_minimal_pabev(work_dir / "PABEV.TXT")
+        _write_single_period_pabev(work_dir / "PABEV.TXT", period="2020.1")
         (work_dir / "fp-exe.stdout.txt").write_text("", encoding="utf-8")
         (work_dir / "fp-exe.stderr.txt").write_text("", encoding="utf-8")
         return RunResult(
@@ -211,6 +218,146 @@ def test_run_parity_records_fppy_num_threads_and_structural_cache(tmp_path, monk
     report = __import__("json").loads(report_path.read_text(encoding="utf-8"))
     assert report.get("schema_version") == 1
     assert "producer_version" in report
+
+
+def test_run_parity_supports_fpexe_vs_fpr_pair(tmp_path, monkeypatch) -> None:
+    fp_home = tmp_path / "fp_home"
+    fp_home.mkdir()
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("# fake fp-r bundle\n", encoding="utf-8")
+    config = ScenarioConfig(
+        name="fpr_pair",
+        fp_home=fp_home,
+        forecast_end="2025.4",
+        fpr={"bundle_path": str(bundle_path)},
+    )
+
+    def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
+        assert work_dir is not None
+        _write_minimal_pabev(work_dir / "PABEV.TXT")
+        (work_dir / "fp-exe.stdout.txt").write_text("", encoding="utf-8")
+        (work_dir / "fp-exe.stderr.txt").write_text("", encoding="utf-8")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
+            output_file=work_dir / "fmout.txt",
+            duration_seconds=0.0,
+        )
+
+    def fake_fpr_run(self, input_file=None, work_dir=None, extra_env=None):
+        _ = self, input_file, extra_env
+        assert work_dir is not None
+        _write_minimal_pabev(work_dir / "PACEV.TXT")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=bundle_path,
+            output_file=work_dir / "PACEV.TXT",
+            duration_seconds=0.0,
+        )
+
+    def fake_compare(*args, **kwargs):
+        return True, {
+            "status": "ok",
+            "hard_fail_cell_count": 0,
+            "diff_variable_count": 0,
+            "top_first_diffs": [],
+            "missing_left": [],
+            "missing_right": [],
+            "hard_fail_cells": [],
+        }
+
+    monkeypatch.setattr("fp_wraptr.analysis.parity.FPExecutable.run", fake_fpexe_run)
+    monkeypatch.setattr("fp_wraptr.runtime.fpr.FpRBackend.run", fake_fpr_run)
+    monkeypatch.setattr("fppy.pabev_parity.toleranced_compare", fake_compare)
+
+    result = run_parity(
+        config,
+        output_dir=tmp_path / "artifacts",
+        left_engine="fpexe",
+        right_engine="fp-r",
+    )
+
+    assert result.status == "ok"
+    assert result.left_engine == "fpexe"
+    assert result.right_engine == "fp-r"
+    assert set(result.engine_runs) == {"fpexe", "fp-r"}
+    assert result.engine_runs["fp-r"].pabev_path.endswith("/work_fpr/PACEV.TXT")
+
+
+def test_run_parity_defaults_compare_start_to_scenario_forecast_start(tmp_path, monkeypatch) -> None:
+    fp_home = tmp_path / "fp_home"
+    fp_home.mkdir()
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("# fake fp-r bundle\n", encoding="utf-8")
+    config = ScenarioConfig(
+        name="fpr_pair_start_window",
+        fp_home=fp_home,
+        forecast_start="2020.1",
+        forecast_end="2020.1",
+        fpr={"bundle_path": str(bundle_path)},
+    )
+    observed: dict[str, str] = {}
+
+    def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
+        assert work_dir is not None
+        _write_single_period_pabev(work_dir / "PABEV.TXT", period="2020.1")
+        (work_dir / "fp-exe.stdout.txt").write_text("", encoding="utf-8")
+        (work_dir / "fp-exe.stderr.txt").write_text("", encoding="utf-8")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
+            output_file=work_dir / "fmout.txt",
+            duration_seconds=0.0,
+        )
+
+    def fake_fpr_run(self, input_file=None, work_dir=None, extra_env=None):
+        _ = self, input_file, extra_env
+        assert work_dir is not None
+        _write_single_period_pabev(work_dir / "PACEV.TXT", period="2020.1")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=bundle_path,
+            output_file=work_dir / "PACEV.TXT",
+            duration_seconds=0.0,
+        )
+
+    def fake_compare(*args, **kwargs):
+        observed["start"] = str(kwargs.get("start"))
+        return True, {
+            "status": "ok",
+            "hard_fail_cell_count": 0,
+            "diff_variable_count": 0,
+            "top_first_diffs": [],
+            "missing_left": [],
+            "missing_right": [],
+            "hard_fail_cells": [],
+        }
+
+    monkeypatch.setattr("fp_wraptr.analysis.parity.FPExecutable.run", fake_fpexe_run)
+    monkeypatch.setattr("fp_wraptr.runtime.fpr.FpRBackend.run", fake_fpr_run)
+    monkeypatch.setattr("fppy.pabev_parity.toleranced_compare", fake_compare)
+
+    result = run_parity(
+        config,
+        output_dir=tmp_path / "artifacts",
+        left_engine="fpexe",
+        right_engine="fp-r",
+    )
+
+    assert result.status == "ok"
+    assert observed["start"] == "2020.1"
 
 
 def test_run_parity_retries_fpexe_once_on_missing_pabev_nonzero_return(

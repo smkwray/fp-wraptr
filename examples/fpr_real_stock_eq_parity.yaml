@@ -1,0 +1,12 @@
+name: fpr_real_stock_eq_parity
+description: "Real stock-equation parity fixture for fpexe vs fp-r"
+fp_home: ../FM
+input_overlay_dir: .
+input_file: rseq.txt
+forecast_start: "2020.1"
+forecast_end: "2021.4"
+track_variables:
+  - LDF1
+  - LCURZ
+fpr:
+  bundle_path: fpr_real_stock_eq_parity_bundle.R

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -11,8 +12,9 @@ import pytest
 from fp_wraptr.runtime.backend import BackendInfo, ModelBackend, RunResult
 from fp_wraptr.runtime.fairpy import FairPyBackend, FairPyBackendError
 from fp_wraptr.runtime.fp_exe import FPExecutable, FPExecutableError, FPRunResult
+from fp_wraptr.runtime.fpr import FpRBackend, FpRBackendError
 from fp_wraptr.scenarios.config import ScenarioConfig
-from fp_wraptr.scenarios.runner import run_scenario
+from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario
 
 
 def test_run_result_success(tmp_path):
@@ -74,6 +76,123 @@ def test_fairpy_backend_info():
     info = backend.info()
     assert info.name == "fair-py"
     assert info.available is True
+
+
+def test_fpr_backend_is_model_backend(tmp_path):
+    assert isinstance(FpRBackend(bundle_path=tmp_path / "bundle.R"), ModelBackend)
+
+
+def test_fpr_backend_run_accepts_pacev_output(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_backend_bundle.R").write_text("# stub\n", encoding="utf-8")
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+
+    def fake_run(*args, **kwargs):
+        command = args[0]
+        cwd = Path(kwargs["cwd"])
+        (cwd / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(bundle_path=bundle_path, fp_r_home=fp_r_home, rscript_path=rscript_path)
+    result = backend.run(work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert result.output_file == work_dir / "PACEV.TXT"
+
+
+def test_fpr_backend_run_requires_public_artifacts_on_success(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_backend_bundle.R").write_text("# stub\n", encoding="utf-8")
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+
+    def fake_run(*args, **kwargs):
+        command = args[0]
+        cwd = Path(kwargs["cwd"])
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(bundle_path=bundle_path, fp_r_home=fp_r_home, rscript_path=rscript_path)
+    with pytest.raises(FpRBackendError, match="required artifacts"):
+        backend.run(work_dir=work_dir)
+
+
+def test_run_scenario_fp_r_bundle_does_not_require_fp_home_and_copies_artifacts(
+    tmp_path, monkeypatch
+):
+    config = ScenarioConfig(
+        name="fpr_bundle",
+        fp_home=tmp_path / "missing-fm",
+        backend="fp-r",
+        fpr={"bundle_path": str(tmp_path / "bundle.R"), "rscript_path": str(tmp_path / "Rscript")},
+    )
+    bundle_path = Path(str(config.fpr["bundle_path"]))
+    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    Path(str(config.fpr["rscript_path"])).write_text("", encoding="utf-8")
+
+    monkeypatch.setattr(FpRBackend, "check_available", lambda self: True)
+
+    def fake_run(self, input_file=None, work_dir=None, extra_env=None):
+        _ = self, input_file, extra_env
+        assert work_dir is not None
+        work_dir.mkdir(parents=True, exist_ok=True)
+        (work_dir / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
+        (work_dir / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (work_dir / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        (work_dir / "fp_r_diagnostics.csv").write_text("period,iters\n2025.1,1\n", encoding="utf-8")
+        return RunResult(
+            return_code=0,
+            stdout="ok",
+            stderr="",
+            working_dir=work_dir,
+            input_file=bundle_path,
+            output_file=work_dir / "PACEV.TXT",
+            duration_seconds=0.1,
+        )
+
+    monkeypatch.setattr(FpRBackend, "run", fake_run)
+
+    result = run_scenario(config, output_dir=tmp_path / "artifacts")
+
+    assert result.success is True
+    assert (result.output_dir / "PACEV.TXT").exists()
+    assert (result.output_dir / "LOADFORMAT.DAT").read_text(encoding="utf-8") == "pacev\n"
+    assert (result.output_dir / "fp_r_series.csv").exists()
+    assert (result.output_dir / "fp_r_report.txt").exists()
+
+
+def test_fpr_public_example_runs_when_rscript_is_available(tmp_path):
+    if shutil.which("Rscript") is None:
+        pytest.skip("Rscript not available")
+
+    repo_root = Path(__file__).resolve().parents[1]
+    scenario_path = repo_root / "examples" / "fpr_bundle_demo.yaml"
+    config = load_scenario_config(scenario_path)
+
+    result = run_scenario(config, output_dir=tmp_path / "artifacts")
+
+    assert result.success is True
+    assert (result.output_dir / "PABEV.TXT").exists()
+    assert (result.output_dir / "LOADFORMAT.DAT").exists()
+    assert (result.output_dir / "fp_r_series.csv").exists()
+    assert (result.output_dir / "fp_r_report.txt").exists()
 
 
 def test_fairpy_backend_default_preset_has_no_extra_eq_flags(tmp_path):

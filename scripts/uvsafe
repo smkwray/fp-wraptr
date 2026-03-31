@@ -26,7 +26,7 @@ project_env_load_files "$ROOT"
 
 if [[ -d "$ROOT/.venv" ]]; then
   echo "ERROR: forbidden repo-local .venv exists: $ROOT/.venv" >&2
-  echo "Delete it and use the project-configured external venv + uv run --active." >&2
+  echo "Delete it, run scripts/uvsync for setup, then rerun scripts/uvsafe." >&2
   exit 2
 fi
 

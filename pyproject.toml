@@ -57,10 +57,40 @@ build-backend = "hatchling.build"
 packages = ["src/fp_wraptr", "src/fppy"]
 include = ["src/fp_wraptr/py.typed"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"fp-r/DESCRIPTION" = "fp-r/DESCRIPTION"
+"fp-r/NAMESPACE" = "fp-r/NAMESPACE"
+"fp-r/R/000_utils.R" = "fp-r/R/000_utils.R"
+"fp-r/R/bundle.R" = "fp-r/R/bundle.R"
+"fp-r/R/dependency.R" = "fp-r/R/dependency.R"
+"fp-r/R/equations.R" = "fp-r/R/equations.R"
+"fp-r/R/expressions.R" = "fp-r/R/expressions.R"
+"fp-r/R/legacy_data.R" = "fp-r/R/legacy_data.R"
+"fp-r/R/mini_run.R" = "fp-r/R/mini_run.R"
+"fp-r/R/parser.R" = "fp-r/R/parser.R"
+"fp-r/R/periods.R" = "fp-r/R/periods.R"
+"fp-r/R/solver.R" = "fp-r/R/solver.R"
+"fp-r/R/standard_input.R" = "fp-r/R/standard_input.R"
+"fp-r/scripts/run_backend_bundle.R" = "fp-r/scripts/run_backend_bundle.R"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "/src/fp_wraptr",
     "/src/fppy",
+    "/fp-r/DESCRIPTION",
+    "/fp-r/NAMESPACE",
+    "/fp-r/R/000_utils.R",
+    "/fp-r/R/bundle.R",
+    "/fp-r/R/dependency.R",
+    "/fp-r/R/equations.R",
+    "/fp-r/R/expressions.R",
+    "/fp-r/R/legacy_data.R",
+    "/fp-r/R/mini_run.R",
+    "/fp-r/R/parser.R",
+    "/fp-r/R/periods.R",
+    "/fp-r/R/solver.R",
+    "/fp-r/R/standard_input.R",
+    "/fp-r/scripts/run_backend_bundle.R",
     "/scripts/assets/install_fp_exe.py",
     "/README.md",
     "/LICENSE",

@@ -24,7 +24,7 @@ It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt
 - **Compare scenarios** — Diff two runs side-by-side, identify top-moving variables, export deltas to CSV
 - **Update data from FRED** — Pull the latest economic data from FRED, BEA, and BLS directly into the model
 - **Explore equations** — Build dependency graphs, trace how variables flow through 130+ equations
-- **Validate with parity** — Run the original FORTRAN engine and a pure-Python solver head-to-head to verify results
+- **Validate with parity** — Run `fp.exe` and `fppy` head-to-head by default, or select an explicit parity pair such as `fpexe` vs `fp-r`
 - **Use AI agents** — An MCP server with 44 tools lets LLMs author scenarios, run models, and interpret results
 
 ## Getting started
@@ -32,7 +32,7 @@ It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt
 ```bash
 git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
-uv sync --all-extras
+scripts/uvsync --all-extras
 ```
 
 Then follow the [Quickstart guide](quickstart.md) to configure your model files and run your first scenario.
