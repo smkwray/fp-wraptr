@@ -81,3 +81,50 @@ def test_triage_parity_hardfails_recomputes_full_set(tmp_path: Path) -> None:
     assert out_csv.exists()
     assert out_json.exists()
     assert "HF" in out_csv.read_text(encoding="utf-8")
+
+
+def test_triage_parity_hardfails_supports_fpr_pair(tmp_path: Path) -> None:
+    run_dir = tmp_path / "baseline_fpr_20260301_000001"
+    run_dir.mkdir(parents=True)
+
+    left = run_dir / "work_fpexe" / "PABEV.TXT"
+    right = run_dir / "work_fpr" / "PACEV.TXT"
+    fixture_root = Path(__file__).resolve().parent / "fixtures" / "pabev"
+    left.parent.mkdir(parents=True, exist_ok=True)
+    right.parent.mkdir(parents=True, exist_ok=True)
+    left.write_text(
+        (fixture_root / "golden_fpexe.pabev").read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    right.write_text(
+        (fixture_root / "current_new_hardfail_fppy.pabev").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    (run_dir / "parity_report.json").write_text(
+        json.dumps({
+            "left_engine": "fpexe",
+            "right_engine": "fp-r",
+            "pabev_detail": {
+                "start": "2025.4",
+                "atol": 1e-3,
+                "rtol": 1e-6,
+                "missing_sentinels": [-99.0],
+                "discrete_eps": 1e-12,
+                "signflip_eps": 1e-3,
+            },
+            "engine_runs": {
+                "fpexe": {"pabev_path": str(left)},
+                "fp-r": {"pabev_path": str(right)},
+            },
+        })
+        + "\n",
+        encoding="utf-8",
+    )
+
+    out_csv, out_json = triage_parity_hardfails(run_dir)
+    summary = json.loads(out_json.read_text(encoding="utf-8"))
+
+    assert out_csv.exists()
+    assert summary["left_engine"] == "fpexe"
+    assert summary["right_engine"] == "fp-r"
+    assert summary["hard_fail_cell_count"] == 1

@@ -3,7 +3,7 @@
 Install `fp-wraptr` and use the `fp` command:
 
 ```bash
-pip install fp-wraptr
+scripts/uvsync --all-extras
 ```
 
 ## No Repo-Local Envs/Prefixes
@@ -22,6 +22,13 @@ PYTHONDONTWRITEBYTECODE=1
 PYTHONPYCACHEPREFIX=/tmp/<project-name>-pycache
 UV_CACHE_DIR=/tmp/uv-cache-<project-name>
 RUFF_CACHE_DIR=/tmp/ruff-cache-<project-name>
+```
+
+Supported local workflow in this repo:
+
+```bash
+scripts/uvsync --all-extras
+scripts/uvsafe fp --help
 ```
 
 ## Global options
@@ -181,8 +188,8 @@ Run a single scenario config.
   - `scenario` (`Path`) — scenario YAML path
 - Options:
   - `--baseline`, `-b` (`Path | None`) — baseline scenario YAML to run and diff
-  - `--backend` (`str | None`) — backend override: `fpexe`, `fppy`, or `both`
-  - `--fp-home` (`Path | None`, env: `FP_HOME`) — path containing `fp.exe`
+  - `--backend` (`str | None`) — backend override: `fpexe`, `fppy`, `fp-r`, or `both`
+  - `--fp-home` (`Path | None`, env: `FP_HOME`) — path containing `fp.exe` and FP model files; not required for bundle-backed `fp-r`
   - `--output-dir`, `-o` (`Path`, default `artifacts`) — run output root
   - `--fingerprint-lock` (`Path | None`) — optional fingerprint lockfile for parity mode
   - `--with-drift` (`bool`) — enable drift guardrails (parity mode only)
@@ -193,21 +200,48 @@ Example:
 ```bash
 fp run examples/baseline.yaml --output-dir artifacts
 fp run examples/baseline.yaml --backend fppy
+fp run examples/fpr_bundle_demo.yaml --backend fp-r
 fp run examples/baseline.yaml --backend both --with-drift
 fp run examples/baseline.yaml --backend both --with-drift --parity-quick
 ```
 
 Notes:
+- `--backend fp-r` runs the bundle-backed R backend. The scenario should provide `fpr.bundle_path` and may provide `fpr.rscript_path`.
+- `examples/fpr_bundle_demo.yaml` is the tracked self-contained `fp-r` example.
 - `--backend both` runs parity mode (`fp.exe` + `fppy`) and writes `parity_report.json` (difference report).
 - `--baseline` is not supported with `--backend both`.
 
+## `fp fpr-compare <scenario.yaml> [expected.csv]`
+
+Run a reduced `fp-r` slice and compare its emitted `fp_r_series.csv` against a seeded expected CSV.
+
+- Positional:
+  - `scenario` (`Path`) — scenario YAML path for the `fp-r` run
+  - `expected` (`Path | None`) — optional expected CSV; may also come from `fpr.expected_csv` in the scenario YAML
+- Options:
+  - `--output-dir`, `-o` (`Path`, default `artifacts`) — output root
+  - `--atol` (`float`, default `1.1e-3`) — absolute comparison tolerance
+  - `--rtol` (`float`, default `1e-6`) — relative comparison tolerance
+
+Example:
+
+```bash
+fp fpr-compare path/to/fpr.yaml path/to/expected.csv
+```
+
+Notes:
+- This is a diagnostic/helper command for reduced `fp-r` slices.
+- It is not the main public `fp-r` workflow; the main phase-1 public path is `fp run ... --backend fp-r`.
+
 ## `fp parity <scenario.yaml>`
 
-Run parity explicitly (both engines) and emit a machine-readable report.
+Run parity explicitly for an engine pair and emit a machine-readable report.
 
 - Positional:
   - `scenario` (`Path`) — scenario YAML path
 - Options:
+  - `--left` (`str`, default `fpexe`) — left comparison engine: `fpexe`, `fppy`, or `fp-r`
+  - `--right` (`str`, default `fppy`) — right comparison engine: `fpexe`, `fppy`, or `fp-r`
   - `--fp-home` (`Path | None`, env: `FP_HOME`) — path containing `fp.exe`
   - `--output-dir`, `-o` (`Path`, default `artifacts`) — parity output root
   - `--fingerprint-lock` (`Path | None`) — optional scenario/input fingerprint lock
@@ -220,6 +254,7 @@ Example:
 
 ```bash
 fp parity examples/baseline.yaml --with-drift
+fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient
 fp parity examples/baseline.yaml --with-drift --save-golden artifacts/parity-golden
 fp parity examples/baseline.yaml --with-drift --regression artifacts/parity-golden
 fp parity examples/baseline.yaml --with-drift --quick
@@ -228,6 +263,10 @@ fp parity examples/baseline.yaml --with-drift --quick
 Preset note:
 - `fp parity` uses `fppy.eq_flags_preset=parity` by default; opt out with `fppy.eq_flags_preset: default` in scenario YAML.
 - See [`docs/parity.md`](parity.md#eq_flags_presetparity-default-and-opt-out) for behavior details.
+- `fp-r` parity requires a scenario that includes both the usual FP assets (`fp_home`) and `fpr.bundle_path`.
+- A tracked `fpexe` vs `fp-r` example is included at `examples/fpr_real_stock_eq_parity.yaml`.
+- The default parity compare window now starts at the scenario `forecast_start` unless the caller overrides it.
+- `--save-golden` and `--regression` work for explicit pairs too; `fppy`-specific triage artifacts still only exist when `fppy` is one side of the run.
 
 Primary artifact:
 - `artifacts/<scenario>_<timestamp>/parity_report.json`

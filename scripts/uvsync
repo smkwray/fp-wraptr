@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# uvsync: bootstrap or reuse the project-configured external virtualenv, then
+# sync dependencies into it without creating a repo-local `.venv/`.
+#
+# Usage:
+#   scripts/uvsync --all-extras
+#   scripts/uvsync --extra dev
+
+root_dir() {
+  local d
+  d="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  while [[ "$d" != "/" ]]; do
+    if [[ -f "$d/pyproject.toml" ]]; then
+      echo "$d"
+      return 0
+    fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+
+ROOT="$(root_dir)"
+source "$ROOT/scripts/project_env_lib.sh"
+project_env_load_files "$ROOT"
+
+if [[ -d "$ROOT/.venv" ]]; then
+  echo "ERROR: forbidden repo-local .venv exists: $ROOT/.venv" >&2
+  echo "Delete it, then rerun scripts/uvsync to use the configured external venv." >&2
+  exit 2
+fi
+
+VENV_ROOT="$(project_env_resolve_venv_root "$ROOT" || true)"
+if [[ -z "$VENV_ROOT" ]]; then
+  echo "ERROR: no external project virtualenv configured." >&2
+  echo "Set PROJECT_VENV_ROOT or UV_PROJECT_ENVIRONMENT in $ROOT/.env or your shell." >&2
+  exit 2
+fi
+project_env_assert_outside_repo "$ROOT" "$VENV_ROOT" "PROJECT_VENV_ROOT" || exit 2
+
+if [[ ! -x "$VENV_ROOT/bin/python" ]]; then
+  mkdir -p "$(dirname "$VENV_ROOT")"
+  uv venv "$VENV_ROOT"
+fi
+
+project_env_activate_exports "$ROOT" "$VENV_ROOT"
+exec uv sync --active "$@"

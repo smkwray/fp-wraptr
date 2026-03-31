@@ -2161,7 +2161,12 @@ def run(
     ] = False,
 ) -> None:
     """Run an FP scenario and optionally diff against a baseline."""
-    from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario, validate_fp_home
+    from fp_wraptr.scenarios.runner import (
+        backend_requires_fp_home,
+        load_scenario_config,
+        run_scenario,
+        validate_fp_home,
+    )
 
     try:
         config = load_scenario_config(scenario)
@@ -2172,11 +2177,12 @@ def run(
         _print_validation_error(exc)
         raise typer.Exit(code=1) from None
 
+    backend_choice = str(backend or getattr(config, "backend", "fpexe") or "fpexe").strip().lower()
     if fp_home:
         config.fp_home = fp_home
-    validate_fp_home(config.fp_home)
+    if backend_requires_fp_home(backend_choice):
+        validate_fp_home(config.fp_home)
 
-    backend_choice = str(backend or getattr(config, "backend", "fpexe") or "fpexe").strip().lower()
     if backend_choice == "both":
         if baseline is not None:
             console.print("[red]--baseline is not supported with --backend both[/red]")
@@ -2237,7 +2243,8 @@ def run(
             _print_validation_error(exc)
             raise typer.Exit(code=1) from None
 
-        validate_fp_home(baseline_config.fp_home)
+        if backend_requires_fp_home(getattr(baseline_config, "backend", "fpexe")):
+            validate_fp_home(baseline_config.fp_home)
         baseline_result = run_scenario(
             baseline_config,
             output_dir=output_dir / "baseline",
@@ -2271,7 +2278,7 @@ def fpr_compare(
         compare_fp_r_series_csv,
         write_fp_r_comparison_report,
     )
-    from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario, validate_fp_home
+    from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario
 
     try:
         config = load_scenario_config(scenario)
@@ -2282,7 +2289,6 @@ def fpr_compare(
         _print_validation_error(exc)
         raise typer.Exit(code=1) from None
 
-    validate_fp_home(config.fp_home)
     config.backend = "fp-r"
 
     expected_path = expected
@@ -2333,6 +2339,14 @@ def fpr_compare(
 @app.command("parity")
 def parity(
     scenario: Annotated[Path, typer.Argument(help="Path to scenario YAML config")],
+    left: Annotated[
+        str,
+        typer.Option("--left", help="Left comparison engine: fpexe, fppy, or fp-r"),
+    ] = "fpexe",
+    right: Annotated[
+        str,
+        typer.Option("--right", help="Right comparison engine: fpexe, fppy, or fp-r"),
+    ] = "fppy",
     fp_home: Annotated[
         Path | None,
         typer.Option("--fp-home", envvar="FP_HOME", help="Directory containing fp.exe"),
@@ -2378,14 +2392,24 @@ def parity(
         ),
     ] = None,
 ) -> None:
-    """Run both engines (fp.exe + fp-py) and write a parity report."""
-    from fp_wraptr.analysis.parity import DriftConfig, GateConfig, run_parity
+    """Run two engines and write a parity report."""
+    from fp_wraptr.analysis.parity import (
+        DriftConfig,
+        GateConfig,
+        format_parity_engine_pair,
+        normalize_parity_engine_name,
+        run_parity,
+    )
     from fp_wraptr.analysis.parity_regression import (
         compare_parity_to_golden,
         save_parity_golden,
         write_regression_report,
     )
-    from fp_wraptr.scenarios.runner import load_scenario_config, validate_fp_home
+    from fp_wraptr.scenarios.runner import (
+        backend_requires_fp_home,
+        load_scenario_config,
+        validate_fp_home,
+    )
 
     if save_golden is not None and regression is not None:
         console.print(
@@ -2402,21 +2426,42 @@ def parity(
         _print_validation_error(exc)
         raise typer.Exit(code=1) from None
 
+    try:
+        left_engine = normalize_parity_engine_name(left)
+        right_engine = normalize_parity_engine_name(right)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    if left_engine == right_engine:
+        console.print("[red]Parity requires two distinct engines.[/red]")
+        raise typer.Exit(code=1)
+    default_pair = (left_engine, right_engine) == ("fpexe", "fppy")
+
     if fp_home:
         config.fp_home = fp_home
-    validate_fp_home(config.fp_home)
+    if any(backend_requires_fp_home(name) for name in (left_engine, right_engine)):
+        validate_fp_home(config.fp_home)
 
     effective_gate_end = gate_pabev_end
     if effective_gate_end is None and quick:
         effective_gate_end = str(config.forecast_start)
     gate = GateConfig(pabev_end=effective_gate_end, drift=DriftConfig(enabled=bool(with_drift)))
-    console.print(f"[bold]Running parity (fp.exe vs fp-py):[/bold] {config.name}")
+    console.print(
+        f"[bold]Running parity ({format_parity_engine_pair(left_engine, right_engine)}):[/bold] "
+        f"{config.name}"
+    )
+    run_parity_kwargs: dict[str, Any] = {
+        "config": config,
+        "output_dir": output_dir,
+        "fp_home_override": config.fp_home,
+        "gate": gate,
+        "fingerprint_lock": fingerprint_lock,
+    }
+    if not default_pair:
+        run_parity_kwargs["left_engine"] = left_engine
+        run_parity_kwargs["right_engine"] = right_engine
     result = run_parity(
-        config,
-        output_dir=output_dir,
-        fp_home_override=config.fp_home,
-        gate=gate,
-        fingerprint_lock=fingerprint_lock,
+        **run_parity_kwargs,
     )
     console.print(f"[green]Parity completed.[/green] Output: {result.run_dir}")
     _print_run_dir(result.run_dir)

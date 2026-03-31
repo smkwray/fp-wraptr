@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from fppy.pabev_parity import toleranced_compare
+from fp_wraptr.analysis.parity_regression import _pabev_paths, _parity_pair_from_report
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -50,26 +51,8 @@ def triage_parity_hardfails(run_dir: Path) -> tuple[Path, Path]:
 
     report = _read_json(report_path)
     detail = report.get("pabev_detail") if isinstance(report.get("pabev_detail"), dict) else {}
-
-    left_path = run_dir / "work_fpexe" / "PABEV.TXT"
-    right_path = run_dir / "work_fppy" / "PABEV.TXT"
-    engine_runs = report.get("engine_runs")
-    if isinstance(engine_runs, dict):
-        fpexe = engine_runs.get("fpexe")
-        fppy = engine_runs.get("fppy")
-        if isinstance(fpexe, dict):
-            left = fpexe.get("pabev_path")
-            if isinstance(left, str) and left:
-                left_path = Path(left)
-        if isinstance(fppy, dict):
-            right = fppy.get("pabev_path")
-            if isinstance(right, str) and right:
-                right_path = Path(right)
-
-    if not left_path.exists():
-        raise FileNotFoundError(f"Missing fp.exe PABEV artifact: {left_path}")
-    if not right_path.exists():
-        raise FileNotFoundError(f"Missing fp-py PABEV artifact: {right_path}")
+    left_engine, right_engine = _parity_pair_from_report(report)
+    left_path, right_path = _pabev_paths(run_dir)
 
     compare_ok, recomputed = toleranced_compare(
         left_path,
@@ -146,6 +129,8 @@ def triage_parity_hardfails(run_dir: Path) -> tuple[Path, Path]:
         json.dumps(
             {
                 "run_dir": str(run_dir),
+                "left_engine": left_engine,
+                "right_engine": right_engine,
                 "left_pabev": str(left_path),
                 "right_pabev": str(right_path),
                 "compare_ok": bool(compare_ok),

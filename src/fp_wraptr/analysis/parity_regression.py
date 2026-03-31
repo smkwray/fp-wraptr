@@ -12,6 +12,7 @@ from typing import Any
 from fppy.pabev_parity import (
     toleranced_compare,
 )
+from fp_wraptr.analysis.parity import normalize_parity_engine_name
 
 _SCHEMA_VERSION = 1
 
@@ -95,6 +96,63 @@ def _load_report(run_dir: Path) -> dict[str, Any]:
     return _read_json(report_path)
 
 
+def _parity_pair_from_report(report: dict[str, Any]) -> tuple[str, str]:
+    left_raw = report.get("left_engine", "fpexe")
+    right_raw = report.get("right_engine", "fppy")
+    return normalize_parity_engine_name(str(left_raw)), normalize_parity_engine_name(str(right_raw))
+
+
+def _work_dir_name_for_engine(engine_name: str) -> str:
+    normalized = normalize_parity_engine_name(engine_name)
+    if normalized == "fp-r":
+        return "work_fpr"
+    return f"work_{normalized}"
+
+
+def _resolve_candidate_path(run_dir: Path, value: object) -> Path | None:
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+    candidate = Path(raw)
+    candidates: list[Path] = []
+    if candidate.is_absolute():
+        candidates.append(candidate)
+    else:
+        candidates.append(run_dir / candidate)
+        candidates.append(Path.cwd() / candidate)
+        candidates.append(candidate)
+    for path in candidates:
+        if path.exists():
+            return path
+    return None
+
+
+def _report_engine_meta(report: dict[str, Any], engine_name: str) -> dict[str, Any]:
+    engine_runs = report.get("engine_runs")
+    if not isinstance(engine_runs, dict):
+        return {}
+    engine_meta = engine_runs.get(engine_name)
+    return dict(engine_meta) if isinstance(engine_meta, dict) else {}
+
+
+def _default_engine_pabev_path(run_dir: Path, engine_name: str) -> Path:
+    work_dir = run_dir / _work_dir_name_for_engine(engine_name)
+    for filename in ("PABEV.TXT", "PACEV.TXT"):
+        candidate = work_dir / filename
+        if candidate.exists():
+            return candidate
+    return work_dir / "PABEV.TXT"
+
+
+def _golden_output_name(path: Path) -> str:
+    name = path.name.upper()
+    if name in {"PABEV.TXT", "PACEV.TXT"}:
+        return path.name
+    return "PABEV.TXT"
+
+
 def _gate_from_report(report: dict[str, Any]) -> RegressionGate:
     detail = report.get("pabev_detail")
     if not isinstance(detail, dict):
@@ -142,59 +200,35 @@ def _load_gate(golden_scenario_dir: Path, fallback_report: dict[str, Any]) -> Re
 
 def _pabev_paths(run_dir: Path) -> tuple[Path, Path]:
     run_dir = Path(run_dir)
-    left_default = run_dir / "work_fpexe" / "PABEV.TXT"
-    right_default = run_dir / "work_fppy" / "PABEV.TXT"
-    if left_default.exists() and right_default.exists():
-        return left_default, right_default
-
     report_path = run_dir / "parity_report.json"
-    report: dict[str, Any] | None = None
+    report: dict[str, Any] = {}
     if report_path.exists():
         try:
             report = _read_json(report_path)
         except Exception:
-            report = None
+            report = {}
 
-    engine_runs = report.get("engine_runs") if isinstance(report, dict) else None
-    if not isinstance(engine_runs, dict):
-        engine_runs = {}
+    left_engine, right_engine = _parity_pair_from_report(report)
+    left_default = _default_engine_pabev_path(run_dir, left_engine)
+    right_default = _default_engine_pabev_path(run_dir, right_engine)
+    if left_default.exists() and right_default.exists():
+        return left_default, right_default
 
-    def _resolve_candidate(value: object) -> Path | None:
-        if not isinstance(value, str):
-            return None
-        raw = value.strip()
-        if not raw:
-            return None
-        candidate = Path(raw)
-        candidates: list[Path] = []
-        if candidate.is_absolute():
-            candidates.append(candidate)
-        else:
-            candidates.append(run_dir / candidate)
-            candidates.append(Path.cwd() / candidate)
-            candidates.append(candidate)
-        for path in candidates:
-            if path.exists():
-                return path
-        return None
-
-    left_report = _resolve_candidate(
-        (engine_runs.get("fpexe") or {}).get("pabev_path")
-        if isinstance(engine_runs.get("fpexe"), dict)
-        else None
+    left_report = _resolve_candidate_path(
+        run_dir,
+        _report_engine_meta(report, left_engine).get("pabev_path"),
     )
-    right_report = _resolve_candidate(
-        (engine_runs.get("fppy") or {}).get("pabev_path")
-        if isinstance(engine_runs.get("fppy"), dict)
-        else None
+    right_report = _resolve_candidate_path(
+        run_dir,
+        _report_engine_meta(report, right_engine).get("pabev_path"),
     )
     if left_report is not None and right_report is not None:
         return left_report, right_report
 
     if not left_default.exists():
-        raise FileNotFoundError(f"Missing fp.exe PABEV artifact: {left_default}")
+        raise FileNotFoundError(f"Missing {left_engine} parity artifact: {left_default}")
     if not right_default.exists():
-        raise FileNotFoundError(f"Missing fp-py PABEV artifact: {right_default}")
+        raise FileNotFoundError(f"Missing {right_engine} parity artifact: {right_default}")
     return left_default, right_default
 
 
@@ -272,18 +306,41 @@ def save_parity_golden(
     scenario = _scenario_name_from(run_dir, report, scenario_name)
     target_dir = golden_dir / scenario
     target_dir.mkdir(parents=True, exist_ok=True)
-
-    shutil.copy2(run_dir / "parity_report.json", target_dir / "parity_report.json")
-
+    left_engine, right_engine = _parity_pair_from_report(report)
     left, right = _pabev_paths(run_dir)
-    (target_dir / "work_fpexe").mkdir(parents=True, exist_ok=True)
-    (target_dir / "work_fppy").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(left, target_dir / "work_fpexe" / "PABEV.TXT")
-    shutil.copy2(right, target_dir / "work_fppy" / "PABEV.TXT")
+    left_target_dir = target_dir / _work_dir_name_for_engine(left_engine)
+    right_target_dir = target_dir / _work_dir_name_for_engine(right_engine)
+    left_target_dir.mkdir(parents=True, exist_ok=True)
+    right_target_dir.mkdir(parents=True, exist_ok=True)
+    left_target = left_target_dir / _golden_output_name(left)
+    right_target = right_target_dir / _golden_output_name(right)
+    shutil.copy2(left, left_target)
+    shutil.copy2(right, right_target)
+
+    saved_report = dict(report)
+    saved_report["left_engine"] = left_engine
+    saved_report["right_engine"] = right_engine
+    engine_runs = dict(saved_report.get("engine_runs") or {})
+    for engine_name, target_path, target_work_dir in (
+        (left_engine, left_target, left_target_dir),
+        (right_engine, right_target, right_target_dir),
+    ):
+        meta = dict(engine_runs.get(engine_name) or {})
+        meta["pabev_path"] = str(target_path.relative_to(target_dir))
+        meta["work_dir"] = str(target_work_dir.relative_to(target_dir))
+        engine_runs[engine_name] = meta
+    saved_report["engine_runs"] = engine_runs
+    (target_dir / "parity_report.json").write_text(
+        json.dumps(saved_report, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
     gate = _gate_from_report(report)
+    gate_payload = gate.to_dict()
+    gate_payload["left_engine"] = left_engine
+    gate_payload["right_engine"] = right_engine
     (target_dir / "gate.json").write_text(
-        json.dumps(gate.to_dict(), indent=2, sort_keys=True) + "\n",
+        json.dumps(gate_payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     return target_dir
@@ -307,6 +364,44 @@ def compare_parity_to_golden(
     if not golden_report_path.exists():
         raise FileNotFoundError(f"Missing golden parity report: {golden_report_path}")
     golden_report = _read_json(golden_report_path)
+    current_pair = _parity_pair_from_report(current_report)
+    golden_pair = _parity_pair_from_report(golden_report)
+    if current_pair != golden_pair:
+        return _with_schema({
+            "status": "failed",
+            "reason": "engine_pair_mismatch",
+            "error": "Current parity run and golden baseline use different engine pairs",
+            "scenario_name": scenario,
+            "gate": _load_gate(golden_scenario_dir, golden_report).to_dict(),
+            "golden_dir": str(golden_scenario_dir),
+            "run_dir": str(run_dir),
+            "engine_pairs": {
+                "current": {"left": current_pair[0], "right": current_pair[1]},
+                "golden": {"left": golden_pair[0], "right": golden_pair[1]},
+            },
+            "new_findings": {
+                "missing_left": [],
+                "missing_right": [],
+                "hard_fail_cells": [],
+                "diff_variables": [],
+            },
+            "resolved_findings": {
+                "missing_left": [],
+                "missing_right": [],
+                "hard_fail_cells": [],
+                "diff_variables": [],
+            },
+            "counts": {
+                "new_missing_left": 0,
+                "new_missing_right": 0,
+                "new_hard_fail_cells": 0,
+                "new_diff_variables": 0,
+                "resolved_missing_left": 0,
+                "resolved_missing_right": 0,
+                "resolved_hard_fail_cells": 0,
+                "resolved_diff_variables": 0,
+            },
+        })
 
     gate = _load_gate(golden_scenario_dir, golden_report)
 

@@ -14,6 +14,8 @@ def _write_parity_report(run_dir: Path, *, scenario_name: str = "baseline") -> N
         "scenario_name": scenario_name,
         "status": "ok",
         "exit_code": 0,
+        "left_engine": "fpexe",
+        "right_engine": "fppy",
         "pabev_detail": {
             "start": "2025.4",
             "atol": 1e-3,
@@ -233,3 +235,57 @@ def test_compare_parity_to_golden_uses_full_hard_fail_set_not_sampled(tmp_path: 
     assert payload["status"] == "failed"
     assert payload["counts"]["new_hard_fail_cells"] == 13
     assert len(payload["new_findings"]["hard_fail_cells"]) == 13
+
+
+def test_save_parity_golden_supports_fpr_pair(tmp_path: Path) -> None:
+    run_dir = tmp_path / "run_fpr"
+    (run_dir / "work_fpexe").mkdir(parents=True)
+    (run_dir / "work_fpr").mkdir(parents=True)
+    shutil.copy2(FIXTURE_DIR / "golden_fpexe.pabev", run_dir / "work_fpexe" / "PABEV.TXT")
+    shutil.copy2(FIXTURE_DIR / "golden_fppy.pabev", run_dir / "work_fpr" / "PACEV.TXT")
+    _write_parity_report(run_dir, scenario_name="baseline")
+    payload = json.loads((run_dir / "parity_report.json").read_text(encoding="utf-8"))
+    payload["left_engine"] = "fpexe"
+    payload["right_engine"] = "fp-r"
+    payload["engine_runs"] = {
+        "fpexe": {"pabev_path": "work_fpexe/PABEV.TXT", "work_dir": "work_fpexe"},
+        "fp-r": {"pabev_path": "work_fpr/PACEV.TXT", "work_dir": "work_fpr"},
+    }
+    (run_dir / "parity_report.json").write_text(
+        json.dumps(payload, indent=2) + "\n", encoding="utf-8"
+    )
+
+    golden_root = tmp_path / "golden"
+    saved_dir = save_parity_golden(run_dir, golden_root)
+
+    assert (saved_dir / "work_fpexe" / "PABEV.TXT").exists()
+    assert (saved_dir / "work_fpr" / "PACEV.TXT").exists()
+    saved_report = json.loads((saved_dir / "parity_report.json").read_text(encoding="utf-8"))
+    assert saved_report["left_engine"] == "fpexe"
+    assert saved_report["right_engine"] == "fp-r"
+    assert saved_report["engine_runs"]["fp-r"]["pabev_path"] == "work_fpr/PACEV.TXT"
+
+    compare_payload = compare_parity_to_golden(run_dir, golden_root)
+    assert compare_payload["status"] == "ok"
+
+
+def test_compare_parity_to_golden_fails_on_engine_pair_mismatch(tmp_path: Path) -> None:
+    golden_run = _make_run(tmp_path, "golden_run")
+    golden_root = tmp_path / "golden"
+    save_parity_golden(golden_run, golden_root)
+
+    current_run = _make_run(tmp_path, "current_run")
+    current_payload = json.loads((current_run / "parity_report.json").read_text(encoding="utf-8"))
+    current_payload["right_engine"] = "fp-r"
+    current_payload["engine_runs"] = {
+        "fpexe": {"pabev_path": str(current_run / "work_fpexe" / "PABEV.TXT")},
+        "fp-r": {"pabev_path": str(current_run / "work_fppy" / "PABEV.TXT")},
+    }
+    (current_run / "parity_report.json").write_text(
+        json.dumps(current_payload, indent=2) + "\n", encoding="utf-8"
+    )
+
+    payload = compare_parity_to_golden(current_run, golden_root)
+
+    assert payload["status"] == "failed"
+    assert payload["reason"] == "engine_pair_mismatch"
