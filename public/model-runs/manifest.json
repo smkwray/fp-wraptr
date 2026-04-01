@@ -526,11 +526,11 @@
   ],
   "default_run_ids": [
     "pse2025_base",
-    "pse2025_high",
-    "pse2025_low"
+    "pse2025_high_20h_3pct",
+    "pse2025_low_20h_3pct"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-03-27T23:00:53Z",
+  "generated_at": "2026-04-01T10:02:31Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -544,14 +544,14 @@
       "label": "Stock FM 2/2026",
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
+      "summary": "Stock model reference run.",
       "timestamp": "20260327_132322"
     },
     {
       "data_path": "runs/pse2025_base.json",
       "details": [
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0.",
-        "UBGH=0.5 for consistency with the replacement family.",
-        "JGW=0.020 and JGCOLA=0."
+        "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
+        "UBGH=0.5 for consistency with the replacement family."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
@@ -563,405 +563,132 @@
       "timestamp": "20260327_134341"
     },
     {
-      "data_path": "runs/pse2025_high.json",
+      "data_path": "runs/pse2025_high_20h_3pct.json",
       "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
-        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
-        "JGW starts at 0.020 and JGCOLA ramps to a $25/hour endpoint over 4 quarters."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "label": "PSE2026.2 High $25/h",
-      "run_id": "pse2025_high",
-      "scenario_name": "pse2025_high",
-      "summary": "High take-up with a wage ramp from $20/hour to $25/hour.",
-      "timestamp": "20260327_134352"
-    },
-    {
-      "data_path": "runs/pse2025_low.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
-        "JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.",
-        "JGW starts at 0.020 and JGCOLA ramps to a $25/hour endpoint over 4 quarters."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "label": "PSE2026.2 Low $25/h",
-      "run_id": "pse2025_low",
-      "scenario_name": "pse2025_low",
-      "summary": "Low take-up with a wage ramp from $20/hour to $25/hour.",
-      "timestamp": "20260327_134401"
-    },
-    {
-      "data_path": "runs/high_15h.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
         "JGPHASE keeps the standard 5-step ramp.",
-        "JGW=0.015 and JGCOLA=0 throughout the run."
+        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "Standard 2026",
-      "label": "PSE2026.2 $15/h High",
-      "run_id": "high_15h",
-      "scenario_name": "high_15h",
-      "summary": "High take-up with a flat $15/hour wage.",
-      "timestamp": "20260327_134411"
+      "label": "PSE2026.2 High $20/h 3%",
+      "run_id": "pse2025_high_20h_3pct",
+      "scenario_name": "pse2025_high_20h_3pct",
+      "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
+      "timestamp": "20260401_095927"
     },
     {
-      "data_path": "runs/low_15h.json",
+      "data_path": "runs/pse2025_low_20h_3pct.json",
       "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
         "JGPHASE keeps the standard 5-step ramp.",
-        "JGW=0.015 and JGCOLA=0 throughout the run."
+        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "Standard 2026",
-      "label": "PSE2026.2 $15/h Low",
-      "run_id": "low_15h",
-      "scenario_name": "low_15h",
-      "summary": "Low take-up with a flat $15/hour wage.",
-      "timestamp": "20260327_134421"
+      "label": "PSE2026.2 Low $20/h 3%",
+      "run_id": "pse2025_low_20h_3pct",
+      "scenario_name": "pse2025_low_20h_3pct",
+      "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
+      "timestamp": "20260401_095952"
     },
     {
-      "data_path": "runs/pse2025_high_20h.json",
+      "data_path": "runs/pse2025_high_15h_3pct.json",
       "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
         "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.015 and JGCOLA ramps to a $20/hour endpoint over 4 quarters."
+        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "Standard 2026",
-      "label": "PSE2026.2 $20/h High",
-      "run_id": "pse2025_high_20h",
-      "scenario_name": "pse2025_high_20h",
-      "summary": "High take-up with a wage ramp from $15/hour to $20/hour.",
-      "timestamp": "20260327_134431"
+      "label": "PSE2026.2 High $15/h 3%",
+      "run_id": "pse2025_high_15h_3pct",
+      "scenario_name": "pse2025_high_15h_3pct",
+      "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
+      "timestamp": "20260401_100004"
     },
     {
-      "data_path": "runs/pse2025_low_20h.json",
+      "data_path": "runs/pse2025_low_15h_3pct.json",
       "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
         "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.015 and JGCOLA ramps to a $20/hour endpoint over 4 quarters."
+        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "Standard 2026",
-      "label": "PSE2026.2 $20/h Low",
-      "run_id": "pse2025_low_20h",
-      "scenario_name": "pse2025_low_20h",
-      "summary": "Low take-up with a wage ramp from $15/hour to $20/hour.",
-      "timestamp": "20260327_134440"
+      "label": "PSE2026.2 Low $15/h 3%",
+      "run_id": "pse2025_low_15h_3pct",
+      "scenario_name": "pse2025_low_15h_3pct",
+      "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
+      "timestamp": "20260401_100016"
     },
     {
-      "data_path": "runs/pse2025_high_23h_3y.json",
+      "data_path": "runs/pse2025_high_20h_3pct_rsexog.json",
       "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
-        "JGW starts at 0.015.",
-        "JGCOLA runs for 12 quarters, then returns to 0."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "3Y Slow Ramp",
-      "label": "PSE2026.2 $23/h High 3Y",
-      "run_id": "pse2025_high_23h_3y",
-      "scenario_name": "pse2025_high_23h_3y",
-      "summary": "High take-up with a slow wage ramp from $15/hour to $23/hour over 3 years.",
-      "timestamp": "20260327_134450"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_3y.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
-        "JGW starts at 0.015.",
-        "JGCOLA runs for 12 quarters, then returns to 0."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "3Y Slow Ramp",
-      "label": "PSE2026.2 $23/h Low 3Y",
-      "run_id": "pse2025_low_23h_3y",
-      "scenario_name": "pse2025_low_23h_3y",
-      "summary": "Low take-up with a slow wage ramp from $15/hour to $23/hour over 3 years.",
-      "timestamp": "20260327_134500"
-    },
-    {
-      "data_path": "runs/pse2025_base_rsexog.json",
-      "details": [
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.",
-        "RS is made exogenous using the exported baseline 2025.4-2029.4 path.",
-        "This is a closure comparison against the endogenous baseline, not a new rate-level scenario."
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
+        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
+        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "RS Exogenous",
-      "label": "PSE2026.2 Base RS Exog",
-      "run_id": "pse2025_base_rsexog",
-      "scenario_name": "pse2025_base_rsexog",
-      "summary": "No-JG baseline with RS held exogenous at the baseline forecast path.",
-      "timestamp": "20260327_230020"
+      "label": "PSE2026.2 High $20/h 3% RS Exog",
+      "run_id": "pse2025_high_20h_3pct_rsexog",
+      "scenario_name": "pse2025_high_20h_3pct_rsexog",
+      "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
+      "timestamp": "20260401_100028"
     },
     {
-      "data_path": "runs/pse2025_high_23h_3y_rsexog.json",
+      "data_path": "runs/pse2025_low_20h_3pct_rsexog.json",
       "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
-        "RS is made exogenous using the exported baseline 2025.4-2029.4 path.",
-        "The wage path remains the standard 3Y $15-to-$23 slow ramp."
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
+        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
+        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "RS Exogenous",
-      "label": "PSE2026.2 $23/h High 3Y RS Exog",
-      "run_id": "pse2025_high_23h_3y_rsexog",
-      "scenario_name": "pse2025_high_23h_3y_rsexog",
-      "summary": "High take-up 3Y slow-ramp run with RS held exogenous at the baseline forecast path.",
-      "timestamp": "20260327_230020"
+      "label": "PSE2026.2 Low $20/h 3% RS Exog",
+      "run_id": "pse2025_low_20h_3pct_rsexog",
+      "scenario_name": "pse2025_low_20h_3pct_rsexog",
+      "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
+      "timestamp": "20260401_100040"
     },
     {
-      "data_path": "runs/pse2025_low_23h_3y_rsexog.json",
+      "data_path": "runs/pse2025_high_15h_3pct_rsexog.json",
       "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
-        "RS is made exogenous using the exported baseline 2025.4-2029.4 path.",
-        "The wage path remains the standard 3Y $15-to-$23 slow ramp."
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
+        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
+        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "RS Exogenous",
-      "label": "PSE2026.2 $23/h Low 3Y RS Exog",
-      "run_id": "pse2025_low_23h_3y_rsexog",
-      "scenario_name": "pse2025_low_23h_3y_rsexog",
-      "summary": "Low take-up 3Y slow-ramp run with RS held exogenous at the baseline forecast path.",
-      "timestamp": "20260327_230020"
+      "label": "PSE2026.2 High $15/h 3% RS Exog",
+      "run_id": "pse2025_high_15h_3pct_rsexog",
+      "scenario_name": "pse2025_high_15h_3pct_rsexog",
+      "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
+      "timestamp": "20260401_100052"
     },
     {
-      "data_path": "runs/pse2025_high_23h_5y.json",
+      "data_path": "runs/pse2025_low_15h_3pct_rsexog.json",
       "details": [
-        "JGSWITCH=1, JGHILO=1, UBGH=0.5.",
-        "Forecast stays in the stable 2025.4 to 2029.4 window.",
-        "JGW starts at 0.015 and JGCOLA uses a slower extended-ramp pace than the 3Y case."
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
+        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
+        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "5Y Slow Ramp",
-      "label": "PSE2026.2 $23/h High 5Y",
-      "run_id": "pse2025_high_23h_5y",
-      "scenario_name": "pse2025_high_23h_5y",
-      "summary": "High take-up with a slower extended wage ramp from $15/hour toward $23/hour.",
-      "timestamp": "20260327_204020"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_5y.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=0, UBGH=0.5.",
-        "Forecast stays in the stable 2025.4 to 2029.4 window.",
-        "JGW starts at 0.015 and JGCOLA uses a slower extended-ramp pace than the 3Y case."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "5Y Slow Ramp",
-      "label": "PSE2026.2 $23/h Low 5Y",
-      "run_id": "pse2025_low_23h_5y",
-      "scenario_name": "pse2025_low_23h_5y",
-      "summary": "Low take-up with a slower extended wage ramp from $15/hour toward $23/hour.",
-      "timestamp": "20260327_204032"
-    },
-    {
-      "data_path": "runs/pse2025_high_23h_3y_2008shock.json",
-      "details": [
-        "Forecast 2025.4 to 2028.4 via fppy.",
-        "Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.",
-        "AR(1)-style residual carry remains active after those two 2026 shock quarters."
-      ],
-      "forecast_end": "2028.4",
-      "forecast_start": "2025.4",
-      "group": "2008 Shock",
-      "label": "PSE2026.2 $23/h High 3Y 2008 Shock",
-      "run_id": "pse2025_high_23h_3y_2008shock",
-      "scenario_name": "pse2025_high_23h_3y_2008shock",
-      "summary": "High take-up slow-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.",
-      "timestamp": "20260327_171038"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_3y_2008shock.json",
-      "details": [
-        "Forecast 2025.4 to 2028.4 via fppy.",
-        "Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.",
-        "AR(1)-style residual carry remains active after those two 2026 shock quarters."
-      ],
-      "forecast_end": "2028.4",
-      "forecast_start": "2025.4",
-      "group": "2008 Shock",
-      "label": "PSE2026.2 $23/h Low 3Y 2008 Shock",
-      "run_id": "pse2025_low_23h_3y_2008shock",
-      "scenario_name": "pse2025_low_23h_3y_2008shock",
-      "summary": "Low take-up slow-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.",
-      "timestamp": "20260327_171426"
-    },
-    {
-      "data_path": "runs/pse2025_high_23h_5y_2008shock.json",
-      "details": [
-        "Forecast 2025.4 to 2028.4 via fppy.",
-        "Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.",
-        "The wage path keeps the slower extended-ramp COLA schedule inside the 3-year shock window."
-      ],
-      "forecast_end": "2028.4",
-      "forecast_start": "2025.4",
-      "group": "2008 Shock",
-      "label": "PSE2026.2 $23/h High 5Y 2008 Shock",
-      "run_id": "pse2025_high_23h_5y_2008shock",
-      "scenario_name": "pse2025_high_23h_5y_2008shock",
-      "summary": "High take-up extended-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.",
-      "timestamp": "20260327_204554"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_5y_2008shock.json",
-      "details": [
-        "Forecast 2025.4 to 2028.4 via fppy.",
-        "Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.",
-        "The wage path keeps the slower extended-ramp COLA schedule inside the 3-year shock window."
-      ],
-      "forecast_end": "2028.4",
-      "forecast_start": "2025.4",
-      "group": "2008 Shock",
-      "label": "PSE2026.2 $23/h Low 5Y 2008 Shock",
-      "run_id": "pse2025_low_23h_5y_2008shock",
-      "scenario_name": "pse2025_low_23h_5y_2008shock",
-      "summary": "Low take-up extended-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.",
-      "timestamp": "20260327_204937"
-    },
-    {
-      "data_path": "runs/pse2025_base_2008shock.json",
-      "details": [
-        "Forecast 2025.4 to 2028.4 via fppy.",
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.",
-        "Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2."
-      ],
-      "forecast_end": "2028.4",
-      "forecast_start": "2025.4",
-      "group": "2008 Shock",
-      "label": "PSE2026.2 Base 2008 Shock",
-      "run_id": "pse2025_base_2008shock",
-      "scenario_name": "pse2025_base_2008shock",
-      "summary": "No-JG baseline with 2008.4 and 2009.1 shocks transplanted into 2026.",
-      "timestamp": "20260327_211055"
-    },
-    {
-      "data_path": "runs/pse2025_high_23h_3y_pimx2.json",
-      "details": [
-        "Forecast 2025.4 to 2029.4.",
-        "PIM is overridden at +100% relative to the baseline path.",
-        "The wage path follows the 3-year $15-to-$23 slow ramp."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "PIM x2",
-      "label": "PSE2026.2 $23/h High 3Y PIMx2",
-      "run_id": "pse2025_high_23h_3y_pimx2",
-      "scenario_name": "pse2025_high_23h_3y_pimx2",
-      "summary": "High take-up slow-ramp run with a full-window doubling of PIM.",
-      "timestamp": "20260327_185759"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_3y_pimx2.json",
-      "details": [
-        "Forecast 2025.4 to 2029.4.",
-        "PIM is overridden at +100% relative to the baseline path.",
-        "The wage path follows the 3-year $15-to-$23 slow ramp."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "PIM x2",
-      "label": "PSE2026.2 $23/h Low 3Y PIMx2",
-      "run_id": "pse2025_low_23h_3y_pimx2",
-      "scenario_name": "pse2025_low_23h_3y_pimx2",
-      "summary": "Low take-up slow-ramp run with a full-window doubling of PIM.",
-      "timestamp": "20260327_185809"
-    },
-    {
-      "data_path": "runs/pse2025_high_23h_5y_pimx2.json",
-      "details": [
-        "Forecast 2025.4 to 2029.4.",
-        "PIM is overridden at +100% relative to the baseline path.",
-        "The wage path follows the slower extended-ramp $15-to-$23 path."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "PIM x2",
-      "label": "PSE2026.2 $23/h High 5Y PIMx2",
-      "run_id": "pse2025_high_23h_5y_pimx2",
-      "scenario_name": "pse2025_high_23h_5y_pimx2",
-      "summary": "High take-up extended-ramp run with a full-window doubling of PIM.",
-      "timestamp": "20260327_204041"
-    },
-    {
-      "data_path": "runs/pse2025_low_23h_5y_pimx2.json",
-      "details": [
-        "Forecast 2025.4 to 2029.4.",
-        "PIM is overridden at +100% relative to the baseline path.",
-        "The wage path follows the slower extended-ramp $15-to-$23 path."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "PIM x2",
-      "label": "PSE2026.2 $23/h Low 5Y PIMx2",
-      "run_id": "pse2025_low_23h_5y_pimx2",
-      "scenario_name": "pse2025_low_23h_5y_pimx2",
-      "summary": "Low take-up extended-ramp run with a full-window doubling of PIM.",
-      "timestamp": "20260327_204051"
-    },
-    {
-      "data_path": "runs/pse2025_base_pimx2.json",
-      "details": [
-        "Forecast 2025.4 to 2029.4.",
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.",
-        "PIM is overridden at +100% relative to the baseline path."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "PIM x2",
-      "label": "PSE2026.2 Base PIMx2",
-      "run_id": "pse2025_base_pimx2",
-      "scenario_name": "pse2025_base_pimx2",
-      "summary": "No-JG comparison run with a full-window doubling of PIM.",
-      "timestamp": "20260327_185749"
-    },
-    {
-      "data_path": "runs/pse2005_base_backcast.json",
-      "details": [
-        "Forecast 2005.1 to 2015.4 via fppy.",
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.",
-        "Residual replay keeps the observed business-cycle/error structure in the 2005.1-2015.4 window."
-      ],
-      "forecast_end": "2015.4",
-      "forecast_start": "2005.1",
-      "group": "2005 Backcast",
-      "label": "PSE2005 Base Backcast",
-      "run_id": "pse2005_base_backcast",
-      "scenario_name": "pse2005_base_backcast",
-      "summary": "Backcast baseline from 2005 with the Job Guarantee switched off.",
-      "timestamp": "20260327_205900"
-    },
-    {
-      "data_path": "runs/pse2005_low_20h_backcast_3pct.json",
-      "details": [
-        "Forecast 2005.1 to 2015.4 via fppy.",
-        "JGPHASE ramps over eight quarters from 2005.1 through 2006.4.",
-        "JGW starts near $11.07/hour in 2005 and grows at 3% annualized inside the 2005.1-2015.4 comparison window.",
-        "Residual replay keeps the observed business-cycle/error structure in the 2005.1-2015.4 window."
-      ],
-      "forecast_end": "2015.4",
-      "forecast_start": "2005.1",
-      "group": "2005 Backcast",
-      "label": "PSE2005 JG Low Backcast",
-      "run_id": "pse2005_low_20h_backcast_3pct",
-      "scenario_name": "pse2005_low_20h_backcast_3pct",
-      "summary": "Low take-up backcast from 2005 with a historically plausible JG wage path growing at 3% per year.",
-      "timestamp": "20260327_204525"
+      "group": "RS Exogenous",
+      "label": "PSE2026.2 Low $15/h 3% RS Exog",
+      "run_id": "pse2025_low_15h_3pct_rsexog",
+      "scenario_name": "pse2025_low_15h_3pct_rsexog",
+      "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
+      "timestamp": "20260401_100104"
     }
   ],
   "schema_version": 1,
