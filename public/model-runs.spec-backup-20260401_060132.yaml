@@ -1,0 +1,282 @@
+version: 1
+title: FP-Wraptr Runs Explorer
+site_subpath: model-runs
+runs:
+- run_id: stock_fm_baseline
+  label: Stock FM 2/2026
+  group: Reference
+  scenario_name: stock_fm_baseline
+  summary: ''
+  details:
+  - Forecast 2025.4 to 2029.4 using the stock FM input deck.
+- run_id: pse2025_base
+  label: PSE2026.2 Base
+  group: Standard 2026
+  scenario_name: pse2025_base
+  summary: Baseline with the Job Guarantee switched off.
+  details:
+  - JGSWITCH=0, JGPHASE=0, JGHILO=0.
+  - UBGH=0.5 for consistency with the replacement family.
+  - JGW=0.020 and JGCOLA=0.
+- run_id: pse2025_high
+  label: PSE2026.2 High $25/h
+  group: Standard 2026
+  scenario_name: pse2025_high
+  summary: High take-up with a wage ramp from $20/hour to $25/hour.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.
+  - JGW starts at 0.020 and JGCOLA ramps to a $25/hour endpoint over 4 quarters.
+- run_id: pse2025_low
+  label: PSE2026.2 Low $25/h
+  group: Standard 2026
+  scenario_name: pse2025_low
+  summary: Low take-up with a wage ramp from $20/hour to $25/hour.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - JGPHASE ramps 0.2, 0.4, 0.6, 0.8, then 1.0.
+  - JGW starts at 0.020 and JGCOLA ramps to a $25/hour endpoint over 4 quarters.
+- run_id: high_15h
+  label: PSE2026.2 $15/h High
+  group: Standard 2026
+  scenario_name: high_15h
+  summary: High take-up with a flat $15/hour wage.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - JGPHASE keeps the standard 5-step ramp.
+  - JGW=0.015 and JGCOLA=0 throughout the run.
+- run_id: low_15h
+  label: PSE2026.2 $15/h Low
+  group: Standard 2026
+  scenario_name: low_15h
+  summary: Low take-up with a flat $15/hour wage.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - JGPHASE keeps the standard 5-step ramp.
+  - JGW=0.015 and JGCOLA=0 throughout the run.
+- run_id: pse2025_high_20h
+  label: PSE2026.2 $20/h High
+  group: Standard 2026
+  scenario_name: pse2025_high_20h
+  summary: High take-up with a wage ramp from $15/hour to $20/hour.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - JGPHASE keeps the standard 5-step ramp.
+  - JGW starts at 0.015 and JGCOLA ramps to a $20/hour endpoint over 4 quarters.
+- run_id: pse2025_low_20h
+  label: PSE2026.2 $20/h Low
+  group: Standard 2026
+  scenario_name: pse2025_low_20h
+  summary: Low take-up with a wage ramp from $15/hour to $20/hour.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - JGPHASE keeps the standard 5-step ramp.
+  - JGW starts at 0.015 and JGCOLA ramps to a $20/hour endpoint over 4 quarters.
+- run_id: pse2025_high_23h_3y
+  label: PSE2026.2 $23/h High 3Y
+  group: 3Y Slow Ramp
+  scenario_name: pse2025_high_23h_3y
+  summary: High take-up with a slow wage ramp from $15/hour to $23/hour over 3 years.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - JGW starts at 0.015.
+  - JGCOLA runs for 12 quarters, then returns to 0.
+- run_id: pse2025_low_23h_3y
+  label: PSE2026.2 $23/h Low 3Y
+  group: 3Y Slow Ramp
+  scenario_name: pse2025_low_23h_3y
+  summary: Low take-up with a slow wage ramp from $15/hour to $23/hour over 3 years.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - JGW starts at 0.015.
+  - JGCOLA runs for 12 quarters, then returns to 0.
+- run_id: pse2025_base_rsexog
+  label: PSE2026.2 Base RS Exog
+  group: RS Exogenous
+  scenario_name: pse2025_base_rsexog
+  summary: No-JG baseline with RS held exogenous at the baseline forecast path.
+  details:
+  - JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.
+  - RS is made exogenous using the exported baseline 2025.4-2029.4 path.
+  - This is a closure comparison against the endogenous baseline, not a new rate-level scenario.
+- run_id: pse2025_high_23h_3y_rsexog
+  label: PSE2026.2 $23/h High 3Y RS Exog
+  group: RS Exogenous
+  scenario_name: pse2025_high_23h_3y_rsexog
+  summary: High take-up 3Y slow-ramp run with RS held exogenous at the baseline forecast path.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - RS is made exogenous using the exported baseline 2025.4-2029.4 path.
+  - The wage path remains the standard 3Y $15-to-$23 slow ramp.
+- run_id: pse2025_low_23h_3y_rsexog
+  label: PSE2026.2 $23/h Low 3Y RS Exog
+  group: RS Exogenous
+  scenario_name: pse2025_low_23h_3y_rsexog
+  summary: Low take-up 3Y slow-ramp run with RS held exogenous at the baseline forecast path.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - RS is made exogenous using the exported baseline 2025.4-2029.4 path.
+  - The wage path remains the standard 3Y $15-to-$23 slow ramp.
+- run_id: pse2025_high_23h_5y
+  label: PSE2026.2 $23/h High 5Y
+  group: 5Y Slow Ramp
+  scenario_name: pse2025_high_23h_5y
+  summary: High take-up with a slower extended wage ramp from $15/hour toward $23/hour.
+  details:
+  - JGSWITCH=1, JGHILO=1, UBGH=0.5.
+  - Forecast stays in the stable 2025.4 to 2029.4 window.
+  - JGW starts at 0.015 and JGCOLA uses a slower extended-ramp pace than the 3Y case.
+- run_id: pse2025_low_23h_5y
+  label: PSE2026.2 $23/h Low 5Y
+  group: 5Y Slow Ramp
+  scenario_name: pse2025_low_23h_5y
+  summary: Low take-up with a slower extended wage ramp from $15/hour toward $23/hour.
+  details:
+  - JGSWITCH=1, JGHILO=0, UBGH=0.5.
+  - Forecast stays in the stable 2025.4 to 2029.4 window.
+  - JGW starts at 0.015 and JGCOLA uses a slower extended-ramp pace than the 3Y case.
+- run_id: pse2025_high_23h_3y_2008shock
+  label: PSE2026.2 $23/h High 3Y 2008 Shock
+  group: 2008 Shock
+  scenario_name: pse2025_high_23h_3y_2008shock
+  summary: High take-up slow-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.
+  details:
+  - Forecast 2025.4 to 2028.4 via fppy.
+  - Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.
+  - AR(1)-style residual carry remains active after those two 2026 shock quarters.
+- run_id: pse2025_low_23h_3y_2008shock
+  label: PSE2026.2 $23/h Low 3Y 2008 Shock
+  group: 2008 Shock
+  scenario_name: pse2025_low_23h_3y_2008shock
+  summary: Low take-up slow-ramp run with 2008.4 and 2009.1 shocks transplanted into 2026.
+  details:
+  - Forecast 2025.4 to 2028.4 via fppy.
+  - Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.
+  - AR(1)-style residual carry remains active after those two 2026 shock quarters.
+- run_id: pse2025_high_23h_5y_2008shock
+  label: PSE2026.2 $23/h High 5Y 2008 Shock
+  group: 2008 Shock
+  scenario_name: pse2025_high_23h_5y_2008shock
+  summary: High take-up extended-ramp run with 2008.4 and 2009.1 shocks transplanted
+    into 2026.
+  details:
+  - Forecast 2025.4 to 2028.4 via fppy.
+  - Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.
+  - The wage path keeps the slower extended-ramp COLA schedule inside the 3-year shock window.
+- run_id: pse2025_low_23h_5y_2008shock
+  label: PSE2026.2 $23/h Low 5Y 2008 Shock
+  group: 2008 Shock
+  scenario_name: pse2025_low_23h_5y_2008shock
+  summary: Low take-up extended-ramp run with 2008.4 and 2009.1 shocks transplanted
+    into 2026.
+  details:
+  - Forecast 2025.4 to 2028.4 via fppy.
+  - Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.
+  - The wage path keeps the slower extended-ramp COLA schedule inside the 3-year shock window.
+- run_id: pse2025_base_2008shock
+  label: PSE2026.2 Base 2008 Shock
+  group: 2008 Shock
+  scenario_name: pse2025_base_2008shock
+  summary: No-JG baseline with 2008.4 and 2009.1 shocks transplanted into 2026.
+  details:
+  - Forecast 2025.4 to 2028.4 via fppy.
+  - JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.
+  - Residual replay transplants 2008.4 into 2026.1 and 2009.1 into 2026.2.
+- run_id: pse2025_high_23h_3y_pimx2
+  label: PSE2026.2 $23/h High 3Y PIMx2
+  group: PIM x2
+  scenario_name: pse2025_high_23h_3y_pimx2
+  summary: High take-up slow-ramp run with a full-window doubling of PIM.
+  details:
+  - Forecast 2025.4 to 2029.4.
+  - PIM is overridden at +100% relative to the baseline path.
+  - The wage path follows the 3-year $15-to-$23 slow ramp.
+- run_id: pse2025_low_23h_3y_pimx2
+  label: PSE2026.2 $23/h Low 3Y PIMx2
+  group: PIM x2
+  scenario_name: pse2025_low_23h_3y_pimx2
+  summary: Low take-up slow-ramp run with a full-window doubling of PIM.
+  details:
+  - Forecast 2025.4 to 2029.4.
+  - PIM is overridden at +100% relative to the baseline path.
+  - The wage path follows the 3-year $15-to-$23 slow ramp.
+- run_id: pse2025_high_23h_5y_pimx2
+  label: PSE2026.2 $23/h High 5Y PIMx2
+  group: PIM x2
+  scenario_name: pse2025_high_23h_5y_pimx2
+  summary: High take-up extended-ramp run with a full-window doubling of PIM.
+  details:
+  - Forecast 2025.4 to 2029.4.
+  - PIM is overridden at +100% relative to the baseline path.
+  - The wage path follows the slower extended-ramp $15-to-$23 path.
+- run_id: pse2025_low_23h_5y_pimx2
+  label: PSE2026.2 $23/h Low 5Y PIMx2
+  group: PIM x2
+  scenario_name: pse2025_low_23h_5y_pimx2
+  summary: Low take-up extended-ramp run with a full-window doubling of PIM.
+  details:
+  - Forecast 2025.4 to 2029.4.
+  - PIM is overridden at +100% relative to the baseline path.
+  - The wage path follows the slower extended-ramp $15-to-$23 path.
+- run_id: pse2025_base_pimx2
+  label: PSE2026.2 Base PIMx2
+  group: PIM x2
+  scenario_name: pse2025_base_pimx2
+  summary: No-JG comparison run with a full-window doubling of PIM.
+  details:
+  - Forecast 2025.4 to 2029.4.
+  - JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.
+  - PIM is overridden at +100% relative to the baseline path.
+- run_id: pse2005_base_backcast
+  label: PSE2005 Base Backcast
+  group: 2005 Backcast
+  scenario_name: pse2005_base_backcast
+  summary: Backcast baseline from 2005 with the Job Guarantee switched off.
+  details:
+  - Forecast 2005.1 to 2015.4 via fppy.
+  - JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5.
+  - Residual replay keeps the observed business-cycle/error structure in the 2005.1-2015.4 window.
+- run_id: pse2005_low_20h_backcast_3pct
+  label: PSE2005 JG Low Backcast
+  group: 2005 Backcast
+  scenario_name: pse2005_low_20h_backcast_3pct
+  summary: Low take-up backcast from 2005 with a historically plausible JG wage path growing at 3% per year.
+  details:
+  - Forecast 2005.1 to 2015.4 via fppy.
+  - JGPHASE ramps over eight quarters from 2005.1 through 2006.4.
+  - JGW starts near $11.07/hour in 2005 and grows at 3% annualized inside the 2005.1-2015.4 comparison window.
+  - Residual replay keeps the observed business-cycle/error structure in the 2005.1-2015.4 window.
+default_run_ids:
+- pse2025_base
+- pse2025_high
+- pse2025_low
+presets:
+- id: pse-economy
+  label: Economy
+  variables:
+  - GDPR
+  - GDP
+  - PCPF
+  - PIEF
+  - SG
+  - RS
+- id: pse-employment-wages
+  label: PSE Employment
+  variables:
+  - UR
+  - E
+  - JGJ
+  - JF
+  - WF
+  - WR
+- id: households-demand
+  label: Households & Demand
+  variables:
+  - YD
+  - SH
+  - CN
+  - CS
+  - CD
+  - AH
+default_preset_ids:
+- pse-economy
