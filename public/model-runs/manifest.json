@@ -530,7 +530,7 @@
     "pse2025_low_20h_3pct"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-03T00:18:54Z",
+  "generated_at": "2026-04-01T12:28:07Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -538,8 +538,13 @@
       "details": [
         "Forecast 2025.4 to 2029.4 using the stock FM input deck."
       ],
+      "family_id": "stock_fm_baseline",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Reference",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "Stock FM 2/2026",
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
@@ -552,8 +557,13 @@
         "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
         "UBGH=0.5 for consistency with the replacement family."
       ],
+      "family_id": "pse2025_base",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 Base",
       "run_id": "pse2025_base",
       "scenario_name": "pse2025_base",
@@ -566,13 +576,18 @@
         "Exact 10-year extension of the published 5-year base run.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_base",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 Base",
       "run_id": "pse2025_base_10y",
       "scenario_name": "pse2025_base_10y",
       "summary": "Baseline with the Job Guarantee switched off.",
-      "timestamp": "20260401_114341"
+      "timestamp": "20260401_122236"
     },
     {
       "data_path": "runs/pse2025_high_20h_3pct.json",
@@ -581,8 +596,13 @@
         "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
+      "family_id": "pse2025_high_20h_3pct",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 High $20/h 3%",
       "run_id": "pse2025_high_20h_3pct",
       "scenario_name": "pse2025_high_20h_3pct",
@@ -595,13 +615,18 @@
         "Exact 10-year extension of the published 5-year high $20/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_high_20h_3pct",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 High $20/h 3%",
       "run_id": "pse2025_high_20h_3pct_10y",
       "scenario_name": "pse2025_high_20h_3pct_10y",
       "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_114448"
+      "timestamp": "20260401_122316"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct.json",
@@ -610,8 +635,13 @@
         "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
+      "family_id": "pse2025_low_20h_3pct",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h 3%",
       "run_id": "pse2025_low_20h_3pct",
       "scenario_name": "pse2025_low_20h_3pct",
@@ -624,13 +654,18 @@
         "Exact 10-year extension of the published 5-year low $20/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_low_20h_3pct",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h 3%",
       "run_id": "pse2025_low_20h_3pct_10y",
       "scenario_name": "pse2025_low_20h_3pct_10y",
       "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_114448"
+      "timestamp": "20260401_122405"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct.json",
@@ -639,8 +674,13 @@
         "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
+      "family_id": "pse2025_high_15h_3pct",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 High $15/h 3%",
       "run_id": "pse2025_high_15h_3pct",
       "scenario_name": "pse2025_high_15h_3pct",
@@ -653,13 +693,18 @@
         "Exact 10-year extension of the published 5-year high $15/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_high_15h_3pct",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 High $15/h 3%",
       "run_id": "pse2025_high_15h_3pct_10y",
       "scenario_name": "pse2025_high_15h_3pct_10y",
       "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_114448"
+      "timestamp": "20260401_122251"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct.json",
@@ -668,8 +713,13 @@
         "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
       ],
+      "family_id": "pse2025_low_15h_3pct",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h 3%",
       "run_id": "pse2025_low_15h_3pct",
       "scenario_name": "pse2025_low_15h_3pct",
@@ -682,27 +732,18 @@
         "Exact 10-year extension of the published 5-year low $15/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_low_15h_3pct",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "Standard 2026",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h 3%",
       "run_id": "pse2025_low_15h_3pct_10y",
       "scenario_name": "pse2025_low_15h_3pct_10y",
       "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_114448"
-    },
-    {
-      "data_path": "runs/pse2025_base_rsexog.json",
-      "details": [
-        "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
-      ],
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "label": "PSE2026.2 Base RS Exog",
-      "run_id": "pse2025_base_rsexog",
-      "scenario_name": "pse2025_base_rsexog",
-      "summary": "Baseline (JG off) with an exogenous RS descent to 2%.",
-      "timestamp": "20260402_200805"
+      "timestamp": "20260401_122340"
     },
     {
       "data_path": "runs/pse2025_high_20h_3pct_rsexog.json",
@@ -711,8 +752,13 @@
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
         "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
+      "family_id": "pse2025_high_20h_3pct_rsexog",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 High $20/h 3% RS Exog",
       "run_id": "pse2025_high_20h_3pct_rsexog",
       "scenario_name": "pse2025_high_20h_3pct_rsexog",
@@ -725,13 +771,18 @@
         "Exact 10-year extension of the published 5-year RS-exogenous high $20/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_high_20h_3pct_rsexog",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 High $20/h 3% RS Exog",
       "run_id": "pse2025_high_20h_3pct_rsexog_10y",
       "scenario_name": "pse2025_high_20h_3pct_rsexog_10y",
       "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_114510"
+      "timestamp": "20260401_122328"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct_rsexog.json",
@@ -740,8 +791,13 @@
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
         "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
+      "family_id": "pse2025_low_20h_3pct_rsexog",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h 3% RS Exog",
       "run_id": "pse2025_low_20h_3pct_rsexog",
       "scenario_name": "pse2025_low_20h_3pct_rsexog",
@@ -754,13 +810,18 @@
         "Exact 10-year extension of the published 5-year RS-exogenous low $20/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_low_20h_3pct_rsexog",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h 3% RS Exog",
       "run_id": "pse2025_low_20h_3pct_rsexog_10y",
       "scenario_name": "pse2025_low_20h_3pct_rsexog_10y",
       "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_114510"
+      "timestamp": "20260401_122417"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct_rsexog.json",
@@ -769,8 +830,13 @@
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
         "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
+      "family_id": "pse2025_high_15h_3pct_rsexog",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 High $15/h 3% RS Exog",
       "run_id": "pse2025_high_15h_3pct_rsexog",
       "scenario_name": "pse2025_high_15h_3pct_rsexog",
@@ -783,13 +849,18 @@
         "Exact 10-year extension of the published 5-year RS-exogenous high $15/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_high_15h_3pct_rsexog",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 High $15/h 3% RS Exog",
       "run_id": "pse2025_high_15h_3pct_rsexog_10y",
       "scenario_name": "pse2025_high_15h_3pct_rsexog_10y",
       "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_114510"
+      "timestamp": "20260401_122303"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct_rsexog.json",
@@ -798,8 +869,13 @@
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
         "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
       ],
+      "family_id": "pse2025_low_15h_3pct_rsexog",
       "forecast_end": "2029.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h 3% RS Exog",
       "run_id": "pse2025_low_15h_3pct_rsexog",
       "scenario_name": "pse2025_low_15h_3pct_rsexog",
@@ -812,13 +888,18 @@
         "Exact 10-year extension of the published 5-year RS-exogenous low $15/hour scenario.",
         "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
       ],
+      "family_id": "pse2025_low_15h_3pct_rsexog",
       "forecast_end": "2034.4",
-      "forecast_start": "1952.1",
+      "forecast_start": "2025.4",
+      "group": "RS Exogenous",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h 3% RS Exog",
       "run_id": "pse2025_low_15h_3pct_rsexog_10y",
       "scenario_name": "pse2025_low_15h_3pct_rsexog_10y",
       "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_114510"
+      "timestamp": "20260401_122352"
     }
   ],
   "schema_version": 1,
