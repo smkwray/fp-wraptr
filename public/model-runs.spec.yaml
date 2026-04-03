@@ -137,6 +137,30 @@ runs:
   details:
   - Exact 10-year extension of the published 5-year low $15/hour scenario.
   - The first 2025.4 to 2029.4 path matches the 5-year public run exactly.
+- run_id: pse2025_base_rsexog
+  label: PSE2026.2 Base RS Exog
+  group: RS Exogenous
+  family_id: pse2025_base_rsexog
+  horizon_id: 5y
+  horizon_label: 5Y
+  horizon_years: 5
+  scenario_name: pse2025_base_rsexog
+  summary: Baseline with the Job Guarantee switched off and an exogenous RS descent to 2%.
+  details:
+  - JGSWITCH=0, JGPHASE=0, and JGHILO=0.
+  - RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0.
+- run_id: pse2025_base_rsexog_10y
+  label: PSE2026.2 Base RS Exog
+  group: RS Exogenous
+  family_id: pse2025_base_rsexog
+  horizon_id: 10y
+  horizon_label: 10Y
+  horizon_years: 10
+  scenario_name: pse2025_base_rsexog_10y
+  summary: Baseline with the Job Guarantee switched off and an exogenous RS descent to 2%.
+  details:
+  - Exact 10-year extension of the published 5-year base RS-exogenous scenario.
+  - The first 2025.4 to 2029.4 path matches the 5-year public run exactly.
 - run_id: pse2025_high_20h_3pct_rsexog
   label: PSE2026.2 High $20/h 3% RS Exog
   group: RS Exogenous
