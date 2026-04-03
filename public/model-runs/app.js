@@ -125,7 +125,6 @@ const state = {
   dictionary: new Map(),
   equationCatalog: new Map(),
   runMeta: [],
-  groupHorizons: {},
   selectedRunIds: [],
   selectedPresetIds: [],
   selectedVariables: [],
@@ -160,62 +159,7 @@ const dom = {
   dictionaryResults: document.querySelector("#dictionaryResults"),
   equationSearch: document.querySelector("#equationSearch"),
   equationExplorerResults: document.querySelector("#equationExplorerResults"),
-  themeToggle: document.querySelector("#themeToggle"),
 };
-
-/* ── Theme toggle ─────────────────────────────────────────────── */
-
-const THEME_KEY = "rptr-theme";
-
-const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-
-function isLightMode() {
-  return document.documentElement.getAttribute("data-theme") === "light";
-}
-
-function getPlotlyTheme() {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: style.getPropertyValue("--plot-bg").trim(),
-    font: { family: "IBM Plex Sans, sans-serif", color: style.getPropertyValue("--plot-text").trim() },
-    gridcolor: style.getPropertyValue("--plot-grid").trim(),
-    zerolinecolor: style.getPropertyValue("--plot-zero").trim(),
-  };
-}
-
-function relayoutAllCharts() {
-  const theme = getPlotlyTheme();
-  const surfaces = document.querySelectorAll(".chart-surface");
-  for (const el of surfaces) {
-    if (el.data) {
-      Plotly.relayout(el, {
-        paper_bgcolor: theme.paper_bgcolor,
-        plot_bgcolor: theme.plot_bgcolor,
-        font: theme.font,
-        "yaxis.gridcolor": theme.gridcolor,
-        "yaxis.zerolinecolor": theme.zerolinecolor,
-      });
-    }
-  }
-}
-
-function syncThemeIcon() {
-  if (!dom.themeToggle) return;
-  dom.themeToggle.innerHTML = isLightMode() ? ICON_MOON : ICON_SUN;
-  dom.themeToggle.setAttribute("aria-label", isLightMode() ? "Switch to dark mode" : "Switch to light mode");
-}
-
-function toggleTheme() {
-  const next = isLightMode() ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem(THEME_KEY, next);
-  syncThemeIcon();
-  relayoutAllCharts();
-}
-
-syncThemeIcon();
 
 function resolveAssetUrl(relativePath) {
   return new URL(relativePath, window.location.href).toString();
@@ -266,99 +210,19 @@ function getRunGroupLabel(run) {
   return `${run?.group || ""}`.trim() || "Other";
 }
 
-function getRunFamilyId(run) {
-  return `${run?.family_id || run?.run_id || ""}`.trim();
-}
-
-function getRunHorizonId(run) {
-  return `${run?.horizon_id || ""}`.trim();
-}
-
-function getRunHorizonLabel(run) {
-  const label = `${run?.horizon_label || ""}`.trim();
-  if (label) {
-    return label;
-  }
-  const horizonId = getRunHorizonId(run);
-  return horizonId ? horizonId.toUpperCase() : "";
-}
-
-function resolveGroupActiveHorizon(groupLabel, toggleHorizonIds) {
-  const saved = `${state.groupHorizons[groupLabel] || ""}`.trim();
-  if (toggleHorizonIds.includes(saved)) {
-    return saved;
-  }
-  if (toggleHorizonIds.includes("5y")) {
-    return "5y";
-  }
-  return toggleHorizonIds[0] || "";
-}
-
 function buildRunGroups(runs) {
   const ordered = [];
   const byLabel = new Map();
   for (const run of runs) {
     const label = getRunGroupLabel(run);
     if (!byLabel.has(label)) {
-      const group = { label, allRuns: [], runs: [], familyOrder: [], families: new Map() };
+      const group = { label, runs: [] };
       byLabel.set(label, group);
       ordered.push(group);
     }
-    const group = byLabel.get(label);
-    group.allRuns.push(run);
-    const familyId = getRunFamilyId(run);
-    if (!group.families.has(familyId)) {
-      group.families.set(familyId, []);
-      group.familyOrder.push(familyId);
-    }
-    group.families.get(familyId).push(run);
-  }
-
-  for (const group of ordered) {
-    const horizonOrder = [];
-    const horizonLabels = new Map();
-    for (const familyId of group.familyOrder) {
-      const familyRuns = group.families.get(familyId) || [];
-      const byHorizon = new Map();
-      for (const run of familyRuns) {
-        const horizonId = getRunHorizonId(run);
-        if (horizonId && !horizonOrder.includes(horizonId)) {
-          horizonOrder.push(horizonId);
-        }
-        if (horizonId && !horizonLabels.has(horizonId)) {
-          horizonLabels.set(horizonId, getRunHorizonLabel(run));
-        }
-        if (!byHorizon.has(horizonId)) {
-          byHorizon.set(horizonId, run);
-        }
-      }
-      group.families.set(familyId, byHorizon);
-    }
-    const toggleHorizonIds = horizonOrder.filter(
-      (horizonId) => horizonId && group.familyOrder.every((familyId) => group.families.get(familyId)?.has(horizonId)),
-    );
-    group.toggleHorizons = toggleHorizonIds.map((horizonId) => ({
-      id: horizonId,
-      label: horizonLabels.get(horizonId) || horizonId.toUpperCase(),
-    }));
-    group.activeHorizonId = group.toggleHorizons.length >= 2
-      ? resolveGroupActiveHorizon(group.label, toggleHorizonIds)
-      : "";
-    if (group.toggleHorizons.length >= 2) {
-      state.groupHorizons[group.label] = group.activeHorizonId;
-      group.runs = group.familyOrder
-        .map((familyId) => group.families.get(familyId)?.get(group.activeHorizonId))
-        .filter(Boolean);
-    } else {
-      delete state.groupHorizons[group.label];
-      group.runs = group.allRuns;
-    }
+    byLabel.get(label).runs.push(run);
   }
   return ordered;
-}
-
-function getActiveRunMeta() {
-  return buildRunGroups(state.runMeta).flatMap((group) => group.runs);
 }
 
 async function ensureRunsLoaded(runIds) {
@@ -608,29 +472,6 @@ function createRunGroupSection(group) {
 
   const actions = document.createElement("div");
   actions.className = "run-group-actions";
-  if (group.toggleHorizons?.length >= 2) {
-    const toggle = document.createElement("div");
-    toggle.className = "run-horizon-toggle";
-    toggle.setAttribute("role", "group");
-    toggle.setAttribute("aria-label", `${group.label} horizon`);
-    for (const option of group.toggleHorizons) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "run-horizon-button";
-      if (option.id === group.activeHorizonId) {
-        button.classList.add("is-active");
-      }
-      button.textContent = option.label;
-      button.addEventListener("click", async () => {
-        if (option.id === group.activeHorizonId) {
-          return;
-        }
-        await applyGroupHorizon(group.label, option.id);
-      });
-      toggle.appendChild(button);
-    }
-    actions.appendChild(toggle);
-  }
   for (const [label, mode] of [["All", "all"], ["None", "none"]]) {
     const button = document.createElement("button");
     button.type = "button";
@@ -707,8 +548,7 @@ function collapseRunSelect() {
 }
 
 async function applyRunSelection(selected) {
-  const activeRuns = getActiveRunMeta();
-  state.selectedRunIds = activeRuns
+  state.selectedRunIds = state.runMeta
     .map((item) => item.run_id)
     .filter((runId) => selected.has(runId));
   await ensureRunsLoaded(state.selectedRunIds);
@@ -718,60 +558,9 @@ async function applyRunSelection(selected) {
   for (const equation of state.equations) {
     sanitizeEquationConfig(equation.id, state.equationConfigs.get(equation.id));
   }
-  if (!activeRuns.some((run) => run.run_id === state.selectedRunInfoId)) {
-    state.selectedRunInfoId = state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
+  if (!state.selectedRunIds.includes(state.selectedRunInfoId)) {
+    state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
   }
-  syncRunSelect();
-  syncRunInfoSelect();
-  renderCharts();
-  renderEquationCharts();
-  renderRunInfo();
-}
-
-async function applyGroupHorizon(groupLabel, horizonId) {
-  state.groupHorizons[groupLabel] = horizonId;
-  const groups = buildRunGroups(state.runMeta);
-  const activeRuns = groups.flatMap((group) => group.runs);
-  const visibleByGroupFamily = new Map();
-  for (const group of groups) {
-    for (const run of group.runs) {
-      visibleByGroupFamily.set(`${group.label}::${getRunFamilyId(run)}`, run);
-    }
-  }
-
-  const nextSelected = new Set();
-  for (const runId of state.selectedRunIds) {
-    const run = getRunMeta(runId);
-    if (!run) {
-      continue;
-    }
-    const replacement = visibleByGroupFamily.get(`${getRunGroupLabel(run)}::${getRunFamilyId(run)}`);
-    if (replacement) {
-      nextSelected.add(replacement.run_id);
-    }
-  }
-
-  state.selectedRunIds = activeRuns
-    .map((run) => run.run_id)
-    .filter((runId) => nextSelected.has(runId));
-  await ensureRunsLoaded(state.selectedRunIds);
-  for (const variable of state.selectedVariables) {
-    sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
-  }
-  for (const equation of state.equations) {
-    sanitizeEquationConfig(equation.id, state.equationConfigs.get(equation.id));
-  }
-
-  const currentInfoRun = getRunMeta(state.selectedRunInfoId);
-  if (currentInfoRun) {
-    const nextInfoRun = visibleByGroupFamily.get(
-      `${getRunGroupLabel(currentInfoRun)}::${getRunFamilyId(currentInfoRun)}`,
-    );
-    state.selectedRunInfoId = nextInfoRun?.run_id || state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
-  } else {
-    state.selectedRunInfoId = state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
-  }
-
   syncRunSelect();
   syncRunInfoSelect();
   renderCharts();
@@ -993,7 +782,7 @@ function createChartControls({ seriesKey, cfg, onConfigChange, onRender }) {
         label: "Ref",
         value: cfg.referenceRunId,
         variable: seriesKey,
-        options: getActiveRunMeta().map((run) => ({
+        options: state.runMeta.map((run) => ({
           value: run.run_id,
           label: run.label,
         })),
@@ -1029,7 +818,6 @@ function renderRunInfo() {
   card.innerHTML = `
     <p class="run-info-title">${run.label}</p>
     ${run.group ? `<p class="run-info-text">Group: ${run.group}</p>` : ""}
-    ${run.horizon_label ? `<p class="run-info-text">Horizon: ${run.horizon_label}</p>` : ""}
     <p class="run-info-text">Scenario: ${run.scenario_name || "Unknown"}</p>
     <p class="run-info-text">Forecast: ${run.forecast_start || "?"} to ${run.forecast_end || "?"}</p>
     ${run.summary ? `<p class="run-info-text">${run.summary}</p>` : ""}
@@ -1264,23 +1052,22 @@ function renderCharts() {
     card.appendChild(controls);
     dom.charts.appendChild(card);
 
-    const pt = getPlotlyTheme();
     Plotly.newPlot(
       chart,
       traces,
       {
         margin: { t: 30, r: 12, b: 46, l: 54 },
-        paper_bgcolor: pt.paper_bgcolor,
-        plot_bgcolor: pt.plot_bgcolor,
-        font: pt.font,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.72)",
+        font: { family: "IBM Plex Sans, sans-serif", color: "#18201b" },
         xaxis: {
           title: { text: "Period" },
           automargin: true,
         },
         yaxis: {
           title: { text: titleMeta.units || variable },
-          zerolinecolor: pt.zerolinecolor,
-          gridcolor: pt.gridcolor,
+          zerolinecolor: "rgba(24,32,27,0.16)",
+          gridcolor: "rgba(24,32,27,0.08)",
           automargin: true,
         },
         legend: {
@@ -1825,20 +1612,19 @@ function renderEquationCharts() {
     card.appendChild(eqControls);
     dom.equationCharts.appendChild(card);
 
-    const pt2 = getPlotlyTheme();
     Plotly.newPlot(
       chart,
       traces,
       {
         margin: { t: 30, r: 12, b: 46, l: 54 },
-        paper_bgcolor: pt2.paper_bgcolor,
-        plot_bgcolor: pt2.plot_bgcolor,
-        font: pt2.font,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.72)",
+        font: { family: "IBM Plex Sans, sans-serif", color: "#18201b" },
         xaxis: { title: { text: "Period" }, automargin: true },
         yaxis: {
           title: { text: titleMeta.units || eq.expression },
-          zerolinecolor: pt2.zerolinecolor,
-          gridcolor: pt2.gridcolor,
+          zerolinecolor: "rgba(24,32,27,0.16)",
+          gridcolor: "rgba(24,32,27,0.08)",
           automargin: true,
         },
         legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "left", x: 0 },
@@ -1950,10 +1736,6 @@ dom.equationSearch.addEventListener("input", () => {
 dom.equationPlotButton.addEventListener("click", () => {
   addEquation(dom.equationInput.value);
 });
-
-if (dom.themeToggle) {
-  dom.themeToggle.addEventListener("click", toggleTheme);
-}
 
 dom.equationInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
