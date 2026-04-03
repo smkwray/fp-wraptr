@@ -530,7 +530,7 @@
     "pse2025_low_20h_3pct"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-03T00:23:36Z",
+  "generated_at": "2026-04-01T12:28:07Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -744,21 +744,6 @@
       "scenario_name": "pse2025_low_15h_3pct_10y",
       "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
       "timestamp": "20260401_122340"
-    },
-    {
-      "run_id": "pse2025_base_rsexog",
-      "label": "PSE2026.2 Base RS Exog",
-      "scenario_name": "pse2025_base_rsexog",
-      "timestamp": "20260402_200805",
-      "forecast_start": "2025.4",
-      "forecast_end": "2029.4",
-      "data_path": "runs/pse2025_base_rsexog.json",
-      "group": "RS Exogenous",
-      "summary": "Baseline (JG off) with an exogenous RS descent to 2%.",
-      "details": [
-        "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
-      ]
     },
     {
       "data_path": "runs/pse2025_high_20h_3pct_rsexog.json",
