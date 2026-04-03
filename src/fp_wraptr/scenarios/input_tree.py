@@ -48,6 +48,7 @@ class InputTreeSymbols:
     entry_input_file: str
     files_scanned: tuple[str, ...]
     include_files: tuple[str, ...]
+    load_data_files: tuple[str, ...]
     variables: tuple[str, ...]
     equations: tuple[dict[str, Any], ...]
 
@@ -159,6 +160,7 @@ def scan_input_tree_symbols(
     queue: list[str] = [str(entry_input_file)]
     files_scanned: list[str] = []
     include_files: set[str] = set()
+    load_data_files: set[str] = set()
     variables: set[str] = set()
     equations: list[dict[str, Any]] = []
 
@@ -200,10 +202,19 @@ def scan_input_tree_symbols(
             include_files.add(include)
             queue.append(include)
 
+        for raw_name in parsed.get("load_data", []) or []:
+            if not isinstance(raw_name, str):
+                continue
+            dep_name = _clean_filename(raw_name)
+            if not dep_name:
+                continue
+            load_data_files.add(dep_name)
+
     return InputTreeSymbols(
         entry_input_file=str(entry_input_file),
         files_scanned=tuple(files_scanned),
         include_files=tuple(sorted(include_files)),
+        load_data_files=tuple(sorted(load_data_files)),
         variables=tuple(sorted(variables)),
         equations=tuple(equations),
     )
@@ -245,6 +256,7 @@ def prepare_work_dir_for_fp_run(
     include_files: set[str] = set()
     load_data_files: set[str] = set()
     expected_output_files: set[str] = set()
+    entry_norm = entry_input.name.lower()
 
     while queue:
         name = _clean_filename(queue.pop(0))
@@ -256,7 +268,9 @@ def prepare_work_dir_for_fp_run(
         visited.add(norm)
 
         target = work_dir / name
-        if not target.exists():
+        # Preserve the already-staged entry deck, but for nested includes always
+        # re-resolve from overlay_dir/fp_home so overlay files win over base files.
+        if norm != entry_norm or not target.exists():
             src = _find_source_path(name, search_dirs)
             if src is None:
                 searched = ", ".join(str(d / name) for d in search_dirs)

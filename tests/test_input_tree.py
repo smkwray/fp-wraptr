@@ -107,3 +107,35 @@ def test_repo_pse2008_input_tree_copies_expected_family_includes(tmp_path: Path)
     assert set(manifest.include_files) >= {"pse_common.txt", "ptcoef.txt", "intgadj.txt"}
     assert set(manifest.load_data_files) >= {"fmage.txt", "fmdata.txt"}
     assert set(manifest.expected_output_files) >= {"OUT_PSEBASE.DAT"}
+
+
+def test_prepare_work_dir_for_fp_run_overwrites_existing_include_with_overlay_copy(
+    tmp_path: Path,
+) -> None:
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    overlay = tmp_path / "overlay"
+    overlay.mkdir()
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+
+    (work_dir / "psebase.txt").write_text("INPUT FILE=pse_common.txt;\n", encoding="utf-8")
+    (fp_home / "pse_common.txt").write_text("PRINTVAR FILEOUT=OUT_BASE.DAT GDP;\n", encoding="utf-8")
+    (overlay / "pse_common.txt").write_text(
+        "PRINTVAR FILEOUT=OUT_OVERLAY.DAT UR;\n", encoding="utf-8"
+    )
+
+    # Simulate a previously staged base include that must be replaced by the overlay copy.
+    (work_dir / "pse_common.txt").write_text("PRINTVAR FILEOUT=OUT_STALE.DAT WF;\n", encoding="utf-8")
+
+    manifest = prepare_work_dir_for_fp_run(
+        entry_input=work_dir / "psebase.txt",
+        work_dir=work_dir,
+        overlay_dir=overlay,
+        fp_home=fp_home,
+    )
+
+    assert (work_dir / "pse_common.txt").read_text(encoding="utf-8") == (
+        overlay / "pse_common.txt"
+    ).read_text(encoding="utf-8")
+    assert "OUT_OVERLAY.DAT" in manifest.expected_output_files

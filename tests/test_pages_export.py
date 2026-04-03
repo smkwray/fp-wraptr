@@ -373,7 +373,7 @@ def test_export_pages_bundle_includes_run_input_equations_for_scenario_variables
     assert genr_record["rhs_variables"] == ["JGPART", "JGNOTLF", "JGU"]
 
 
-def test_export_pages_bundle_prefers_overlay_fmexog_series_for_authored_controls(
+def test_export_pages_bundle_rejects_mismatched_overlay_fmexog_series_for_authored_controls(
     tmp_path: Path,
 ) -> None:
     overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
@@ -442,6 +442,72 @@ def test_export_pages_bundle_prefers_overlay_fmexog_series_for_authored_controls
     spec_path.parent.mkdir(parents=True, exist_ok=True)
     spec_path.write_text(yaml.safe_dump(spec_payload, sort_keys=False), encoding="utf-8")
 
+    with pytest.raises(PagesExportError) as excinfo:
+        export_pages_bundle(
+            spec_path=spec_path,
+            artifacts_dir=tmp_path / "artifacts",
+            out_dir=tmp_path / "public" / "model-runs",
+        )
+
+    message = str(excinfo.value)
+    assert "JGCOLA" in message
+    assert "overlay" in message
+
+
+def test_export_pages_bundle_ignores_fmexog_pct_change_cards_when_validating_overlay_series(
+    tmp_path: Path,
+) -> None:
+    overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
+    overlay_dir.mkdir(parents=True, exist_ok=True)
+    (overlay_dir / "fmexog.txt").write_text(
+        "\n".join(
+            [
+                "SMPL 2025.1 2025.4;",
+                "CHANGEVAR;",
+                "CCGQ CHGSAMEPCT",
+                "0.007417072",
+                ";",
+                "RETURN;",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    _write_run(
+        tmp_path,
+        scenario_name="scenario",
+        timestamp="20260306_130000",
+        input_overlay_dir=overlay_dir,
+        extra_series={
+            "CCGQ": [81.0, 82.0, 83.0, 84.0],
+        },
+    )
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    spec_payload = {
+        "version": 1,
+        "title": "Fixture Explorer",
+        "site_subpath": "model-runs",
+        "runs": [
+            {
+                "run_id": "fixture-run",
+                "label": "Fixture Run",
+                "scenario_name": "scenario",
+            }
+        ],
+        "default_run_ids": ["fixture-run"],
+        "presets": [
+            {
+                "id": "fixture-preset",
+                "label": "Fixture Preset",
+                "variables": ["GDP", "CCGQ"],
+            }
+        ],
+        "default_preset_ids": ["fixture-preset"],
+    }
+    spec_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_path.write_text(yaml.safe_dump(spec_payload, sort_keys=False), encoding="utf-8")
+
     export_pages_bundle(
         spec_path=spec_path,
         artifacts_dir=tmp_path / "artifacts",
@@ -453,12 +519,7 @@ def test_export_pages_bundle_prefers_overlay_fmexog_series_for_authored_controls
             encoding="utf-8"
         )
     )
-    assert run_payload["series"]["JGCOLA"] == [
-        0.0,
-        0.007417071777732875,
-        0.007417071777732875,
-        0.007417071777732875,
-    ]
+    assert run_payload["series"]["CCGQ"] == [81.0, 82.0, 83.0, 84.0]
 
 
 def test_export_pages_bundle_rejects_absolute_path_strings(tmp_path: Path) -> None:
