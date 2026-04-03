@@ -754,10 +754,6 @@
       "forecast_end": "2029.4",
       "data_path": "runs/pse2025_base_rsexog.json",
       "group": "RS Exogenous",
-      "family_id": "pse2025_base_rsexog",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
       "summary": "Baseline (JG off) with an exogenous RS descent to 2%.",
       "details": [
         "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
