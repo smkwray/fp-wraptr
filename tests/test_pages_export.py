@@ -373,6 +373,94 @@ def test_export_pages_bundle_includes_run_input_equations_for_scenario_variables
     assert genr_record["rhs_variables"] == ["JGPART", "JGNOTLF", "JGU"]
 
 
+def test_export_pages_bundle_prefers_overlay_fmexog_series_for_authored_controls(
+    tmp_path: Path,
+) -> None:
+    overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
+    overlay_dir.mkdir(parents=True, exist_ok=True)
+    (overlay_dir / "fmexog.txt").write_text(
+        "\n".join(
+            [
+                "SMPL 2025.1 2025.1;",
+                "CHANGEVAR;",
+                "JGCOLA ADDDIFABS",
+                "0.0",
+                ";",
+                "SMPL 2025.2 2025.2;",
+                "CHANGEVAR;",
+                "JGCOLA ADDDIFABS",
+                "0.007417071777732875",
+                ";",
+                "SMPL 2025.3 2025.3;",
+                "CHANGEVAR;",
+                "JGCOLA ADDDIFABS",
+                "0.007417071777732875",
+                ";",
+                "SMPL 2025.4 2025.4;",
+                "CHANGEVAR;",
+                "JGCOLA ADDDIFABS",
+                "0.007417071777732875",
+                ";",
+                "RETURN;",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    _write_run(
+        tmp_path,
+        scenario_name="scenario",
+        timestamp="20260306_130000",
+        input_overlay_dir=overlay_dir,
+        extra_series={
+            "JGCOLA": [0.0, 0.064788335218, 0.064788335218, 0.15575850733],
+        },
+    )
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    spec_payload = {
+        "version": 1,
+        "title": "Fixture Explorer",
+        "site_subpath": "model-runs",
+        "runs": [
+            {
+                "run_id": "fixture-run",
+                "label": "Fixture Run",
+                "scenario_name": "scenario",
+            }
+        ],
+        "default_run_ids": ["fixture-run"],
+        "presets": [
+            {
+                "id": "fixture-preset",
+                "label": "Fixture Preset",
+                "variables": ["GDP", "JGCOLA"],
+            }
+        ],
+        "default_preset_ids": ["fixture-preset"],
+    }
+    spec_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_path.write_text(yaml.safe_dump(spec_payload, sort_keys=False), encoding="utf-8")
+
+    export_pages_bundle(
+        spec_path=spec_path,
+        artifacts_dir=tmp_path / "artifacts",
+        out_dir=tmp_path / "public" / "model-runs",
+    )
+
+    run_payload = json.loads(
+        (tmp_path / "public" / "model-runs" / "runs" / "fixture-run.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert run_payload["series"]["JGCOLA"] == [
+        0.0,
+        0.007417071777732875,
+        0.007417071777732875,
+        0.007417071777732875,
+    ]
+
+
 def test_export_pages_bundle_rejects_absolute_path_strings(tmp_path: Path) -> None:
     _write_run(tmp_path, scenario_name="scenario", timestamp="20260306_130000")
     spec_path = tmp_path / "public" / "model-runs.spec.yaml"

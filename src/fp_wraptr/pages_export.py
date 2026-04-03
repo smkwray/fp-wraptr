@@ -22,7 +22,7 @@ from fp_wraptr.dashboard.mini_dash_helpers import (
 )
 from fp_wraptr.data.dictionary_overlays import load_dictionary_with_overlays
 from fp_wraptr.hygiene import find_project_root
-from fp_wraptr.io.input_parser import parse_fp_input
+from fp_wraptr.io.input_parser import parse_fmexog_text, parse_fp_input
 from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
 
 SCHEMA_VERSION = 1
@@ -375,6 +375,11 @@ def _build_run_payload(item: _SelectedRun) -> dict[str, Any]:
         forecast_start=start or None,
         forecast_end=end or None,
     )
+    _apply_overlay_exogenous_series(
+        run=run,
+        period_tokens=sliced_periods,
+        series=sliced_series,
+    )
     payload = {
         "schema_version": SCHEMA_VERSION,
         "run_id": item.spec.run_id,
@@ -435,6 +440,66 @@ def _build_dictionary_payload(
         "variables": variables,
         "equations": equations,
     }
+
+
+def _apply_overlay_exogenous_series(
+    *,
+    run: RunArtifact,
+    period_tokens: list[str],
+    series: dict[str, list[float]],
+) -> None:
+    overlay_series = _overlay_exogenous_series_for_run(run)
+    if not overlay_series or not period_tokens:
+        return
+    period_index = {period: idx for idx, period in enumerate(period_tokens)}
+    for variable, values_by_period in overlay_series.items():
+        if variable not in series:
+            series[variable] = [math.nan] * len(period_tokens)
+        target = list(series.get(variable) or [])
+        if len(target) < len(period_tokens):
+            target.extend([math.nan] * (len(period_tokens) - len(target)))
+        for period, value in values_by_period.items():
+            idx = period_index.get(period)
+            if idx is None:
+                continue
+            target[idx] = float(value)
+        series[variable] = target
+
+
+def _overlay_exogenous_series_for_run(run: RunArtifact) -> dict[str, dict[str, float]]:
+    config = getattr(run, "config", None)
+    if config is None:
+        return {}
+    overlay_dir = getattr(config, "input_overlay_dir", None)
+    if overlay_dir in (None, ""):
+        return {}
+    fmexog_path = Path(str(overlay_dir)) / "fmexog.txt"
+    if not fmexog_path.exists():
+        return {}
+    parsed = parse_fmexog_text(fmexog_path.read_text(encoding="utf-8", errors="replace"))
+    out: dict[str, dict[str, float]] = {}
+    for change in parsed.get("changes", []) or []:
+        if not isinstance(change, dict):
+            continue
+        variable = str(change.get("variable", "") or "").strip().upper()
+        values = [float(value) for value in list(change.get("values") or [])]
+        start = str(change.get("sample_start", "") or "").strip()
+        end = str(change.get("sample_end", "") or "").strip()
+        if not variable or not values or not start or not end:
+            continue
+        periods = _period_range(start, end)
+        if not periods:
+            continue
+        if len(values) == 1:
+            expanded = [values[0]] * len(periods)
+        elif len(values) == len(periods):
+            expanded = values
+        else:
+            continue
+        target = out.setdefault(variable, {})
+        for period, value in zip(periods, expanded, strict=False):
+            target[period] = float(value)
+    return out
 
 
 def _input_paths_for_run(run: RunArtifact) -> list[Path]:
@@ -620,18 +685,43 @@ def _slice_bounds(
     return start_idx, end_idx
 
 
-def _period_index(token: str | None) -> int | None:
+def _period_range(start: str, end: str) -> list[str]:
+    start_key = _period_parts(start)
+    end_key = _period_parts(end)
+    if start_key is None or end_key is None:
+        return []
+    periods: list[str] = []
+    year, sub = start_key
+    end_year, end_sub = end_key
+    while (year, sub) <= (end_year, end_sub):
+        periods.append(f"{year:04d}.{sub}")
+        year, sub = _next_period(year, sub)
+    return periods
+
+
+def _period_parts(token: str | None) -> tuple[int, int] | None:
     raw = str(token or "").strip()
-    if not raw:
-        return None
     match = _PERIOD_TOKEN_RE.match(raw)
     if not match:
         return None
     try:
-        year = int(match.group("year"))
-        sub = int(match.group("sub"))
+        return int(match.group("year")), int(match.group("sub"))
     except (TypeError, ValueError):
         return None
+
+
+def _next_period(year: int, sub: int) -> tuple[int, int]:
+    next_sub = int(sub) + 1
+    if next_sub <= 4:
+        return int(year), next_sub
+    return int(year) + 1, 1
+
+
+def _period_index(token: str | None) -> int | None:
+    parts = _period_parts(token)
+    if parts is None:
+        return None
+    year, sub = parts
     return year * 10 + sub
 
 
