@@ -530,7 +530,7 @@
     "pse2025_low_20h_3pct"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-01T12:28:07Z",
+  "generated_at": "2026-04-03T14:17:19Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -744,6 +744,196 @@
       "scenario_name": "pse2025_low_15h_3pct_10y",
       "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
       "timestamp": "20260402_211700"
+    },
+    {
+      "data_path": "runs/pse2025_base_intgadj04.json",
+      "details": [
+        "Matches the standard 2026 base setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
+        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5 remain unchanged."
+      ],
+      "family_id": "pse2025_base_intgadj04",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 Base INTGADJ 0.4",
+      "run_id": "pse2025_base_intgadj04",
+      "scenario_name": "pse2025_base_intgadj04",
+      "summary": "Standard 2026 baseline with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_134728"
+    },
+    {
+      "data_path": "runs/pse2025_base_intgadj04_10y.json",
+      "details": [
+        "Exact 10-year extension of the INTGADJ 0.4 base variant.",
+        "INTGADJ is overridden to 0.4 in every forecast quarter."
+      ],
+      "family_id": "pse2025_base_intgadj04",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 Base INTGADJ 0.4",
+      "run_id": "pse2025_base_intgadj04_10y",
+      "scenario_name": "pse2025_base_intgadj04_10y",
+      "summary": "Standard 2026 baseline with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_141549"
+    },
+    {
+      "data_path": "runs/pse2025_high_20h_3pct_intgadj04.json",
+      "details": [
+        "Matches the standard 2026 high $20/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5 remain unchanged."
+      ],
+      "family_id": "pse2025_high_20h_3pct_intgadj04",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 High $20/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_high_20h_3pct_intgadj04",
+      "scenario_name": "pse2025_high_20h_3pct_intgadj04",
+      "summary": "Standard high $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_134741"
+    },
+    {
+      "data_path": "runs/pse2025_high_20h_3pct_intgadj04_10y.json",
+      "details": [
+        "Exact 10-year extension of the INTGADJ 0.4 high $20/hour 3% variant.",
+        "INTGADJ is overridden to 0.4 in every forecast quarter."
+      ],
+      "family_id": "pse2025_high_20h_3pct_intgadj04",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 High $20/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_high_20h_3pct_intgadj04_10y",
+      "scenario_name": "pse2025_high_20h_3pct_intgadj04_10y",
+      "summary": "Standard high $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_141611"
+    },
+    {
+      "data_path": "runs/pse2025_low_20h_3pct_intgadj04.json",
+      "details": [
+        "Matches the standard 2026 low $20/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5 remain unchanged."
+      ],
+      "family_id": "pse2025_low_20h_3pct_intgadj04",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 Low $20/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_low_20h_3pct_intgadj04",
+      "scenario_name": "pse2025_low_20h_3pct_intgadj04",
+      "summary": "Standard low $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_134751"
+    },
+    {
+      "data_path": "runs/pse2025_low_20h_3pct_intgadj04_10y.json",
+      "details": [
+        "Exact 10-year extension of the INTGADJ 0.4 low $20/hour 3% variant.",
+        "INTGADJ is overridden to 0.4 in every forecast quarter."
+      ],
+      "family_id": "pse2025_low_20h_3pct_intgadj04",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 Low $20/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_low_20h_3pct_intgadj04_10y",
+      "scenario_name": "pse2025_low_20h_3pct_intgadj04_10y",
+      "summary": "Standard low $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_141630"
+    },
+    {
+      "data_path": "runs/pse2025_high_15h_3pct_intgadj04.json",
+      "details": [
+        "Matches the standard 2026 high $15/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
+        "JGSWITCH=1, JGHILO=1, and UBGH=0.5 remain unchanged."
+      ],
+      "family_id": "pse2025_high_15h_3pct_intgadj04",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 High $15/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_high_15h_3pct_intgadj04",
+      "scenario_name": "pse2025_high_15h_3pct_intgadj04",
+      "summary": "Standard high $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_134800"
+    },
+    {
+      "data_path": "runs/pse2025_high_15h_3pct_intgadj04_10y.json",
+      "details": [
+        "Exact 10-year extension of the INTGADJ 0.4 high $15/hour 3% variant.",
+        "INTGADJ is overridden to 0.4 in every forecast quarter."
+      ],
+      "family_id": "pse2025_high_15h_3pct_intgadj04",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 High $15/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_high_15h_3pct_intgadj04_10y",
+      "scenario_name": "pse2025_high_15h_3pct_intgadj04_10y",
+      "summary": "Standard high $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_141601"
+    },
+    {
+      "data_path": "runs/pse2025_low_15h_3pct_intgadj04.json",
+      "details": [
+        "Matches the standard 2026 low $15/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
+        "JGSWITCH=1, JGHILO=0, and UBGH=0.5 remain unchanged."
+      ],
+      "family_id": "pse2025_low_15h_3pct_intgadj04",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 Low $15/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_low_15h_3pct_intgadj04",
+      "scenario_name": "pse2025_low_15h_3pct_intgadj04",
+      "summary": "Standard low $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_134810"
+    },
+    {
+      "data_path": "runs/pse2025_low_15h_3pct_intgadj04_10y.json",
+      "details": [
+        "Exact 10-year extension of the INTGADJ 0.4 low $15/hour 3% variant.",
+        "INTGADJ is overridden to 0.4 in every forecast quarter."
+      ],
+      "family_id": "pse2025_low_15h_3pct_intgadj04",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "2026 INTGADJ 0.4",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 Low $15/h 3% INTGADJ 0.4",
+      "run_id": "pse2025_low_15h_3pct_intgadj04_10y",
+      "scenario_name": "pse2025_low_15h_3pct_intgadj04_10y",
+      "summary": "Standard low $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
+      "timestamp": "20260403_141620"
     },
     {
       "data_path": "runs/pse2025_base_rsexog.json",
