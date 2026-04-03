@@ -32,6 +32,17 @@ _RUN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 _PERIOD_TOKEN_RE = re.compile(r"^(?P<year>\d{4})\.(?P<sub>\d+)$")
 _INPUT_VAR_RE = re.compile(r"\b([A-Z][A-Z0-9_]{1,})\b")
+_DIRECT_OVERLAY_CONTROL_VARIABLES = {
+    "INTF",
+    "INTS",
+    "IVA",
+    "JGCOLA",
+    "JGHILO",
+    "JGPHASE",
+    "JGSWITCH",
+    "STAT",
+    "UBGH",
+}
 
 __all__ = [
     "DEFAULT_SPEC_PATH",
@@ -375,7 +386,7 @@ def _build_run_payload(item: _SelectedRun) -> dict[str, Any]:
         forecast_start=start or None,
         forecast_end=end or None,
     )
-    _apply_overlay_exogenous_series(
+    _validate_or_fill_overlay_exogenous_series(
         run=run,
         period_tokens=sliced_periods,
         series=sliced_series,
@@ -442,7 +453,7 @@ def _build_dictionary_payload(
     }
 
 
-def _apply_overlay_exogenous_series(
+def _validate_or_fill_overlay_exogenous_series(
     *,
     run: RunArtifact,
     period_tokens: list[str],
@@ -462,7 +473,19 @@ def _apply_overlay_exogenous_series(
             idx = period_index.get(period)
             if idx is None:
                 continue
-            target[idx] = float(value)
+            solved_value = target[idx]
+            overlay_value = float(value)
+            if (
+                isinstance(solved_value, (int, float))
+                and math.isfinite(float(solved_value))
+                and abs(float(solved_value) - overlay_value) > 1e-9
+            ):
+                raise PagesExportError(
+                    "Solved series disagrees with authored overlay control "
+                    f"for scenario '{run.scenario_name}', variable '{variable}', period "
+                    f"'{period}': loadformat={float(solved_value)!r} overlay={overlay_value!r}"
+                )
+            target[idx] = overlay_value
         series[variable] = target
 
 
@@ -481,7 +504,12 @@ def _overlay_exogenous_series_for_run(run: RunArtifact) -> dict[str, dict[str, f
     for change in parsed.get("changes", []) or []:
         if not isinstance(change, dict):
             continue
+        method = str(change.get("method", "") or "").strip().upper() or None
         variable = str(change.get("variable", "") or "").strip().upper()
+        if variable not in _DIRECT_OVERLAY_CONTROL_VARIABLES:
+            continue
+        if method in {"CHGSAMEPCT", "CHGSAMEABS"}:
+            continue
         values = [float(value) for value in list(change.get("values") or [])]
         start = str(change.get("sample_start", "") or "").strip()
         end = str(change.get("sample_end", "") or "").strip()
