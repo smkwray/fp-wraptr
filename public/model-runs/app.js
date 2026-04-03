@@ -1,4 +1,4 @@
-const APP_VERSION = "2026.04.03.0059";
+const const APP_VERSION = "2026.04.02.2117";
 
 const TRANSFORM_LEVEL = "level";
 const TRANSFORM_PCT_OF = "pct_of";
