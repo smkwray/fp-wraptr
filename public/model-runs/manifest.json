@@ -607,7 +607,7 @@
       "run_id": "pse2025_high_20h_3pct",
       "scenario_name": "pse2025_high_20h_3pct",
       "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_095927"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_20h_3pct_10y.json",
@@ -626,7 +626,7 @@
       "run_id": "pse2025_high_20h_3pct_10y",
       "scenario_name": "pse2025_high_20h_3pct_10y",
       "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_122316"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct.json",
@@ -646,7 +646,7 @@
       "run_id": "pse2025_low_20h_3pct",
       "scenario_name": "pse2025_low_20h_3pct",
       "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_095952"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct_10y.json",
@@ -665,7 +665,7 @@
       "run_id": "pse2025_low_20h_3pct_10y",
       "scenario_name": "pse2025_low_20h_3pct_10y",
       "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_122405"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct.json",
@@ -685,7 +685,7 @@
       "run_id": "pse2025_high_15h_3pct",
       "scenario_name": "pse2025_high_15h_3pct",
       "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_100004"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct_10y.json",
@@ -704,7 +704,7 @@
       "run_id": "pse2025_high_15h_3pct_10y",
       "scenario_name": "pse2025_high_15h_3pct_10y",
       "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_122251"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct.json",
@@ -724,7 +724,7 @@
       "run_id": "pse2025_low_15h_3pct",
       "scenario_name": "pse2025_low_15h_3pct",
       "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_100016"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct_10y.json",
@@ -743,7 +743,7 @@
       "run_id": "pse2025_low_15h_3pct_10y",
       "scenario_name": "pse2025_low_15h_3pct_10y",
       "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260401_122340"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_base_rsexog.json",
@@ -801,7 +801,7 @@
       "run_id": "pse2025_high_20h_3pct_rsexog",
       "scenario_name": "pse2025_high_20h_3pct_rsexog",
       "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_100028"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_20h_3pct_rsexog_10y.json",
@@ -820,7 +820,7 @@
       "run_id": "pse2025_high_20h_3pct_rsexog_10y",
       "scenario_name": "pse2025_high_20h_3pct_rsexog_10y",
       "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_122328"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct_rsexog.json",
@@ -840,7 +840,7 @@
       "run_id": "pse2025_low_20h_3pct_rsexog",
       "scenario_name": "pse2025_low_20h_3pct_rsexog",
       "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_100040"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_20h_3pct_rsexog_10y.json",
@@ -859,7 +859,7 @@
       "run_id": "pse2025_low_20h_3pct_rsexog_10y",
       "scenario_name": "pse2025_low_20h_3pct_rsexog_10y",
       "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_122417"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct_rsexog.json",
@@ -879,7 +879,7 @@
       "run_id": "pse2025_high_15h_3pct_rsexog",
       "scenario_name": "pse2025_high_15h_3pct_rsexog",
       "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_100052"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_high_15h_3pct_rsexog_10y.json",
@@ -898,7 +898,7 @@
       "run_id": "pse2025_high_15h_3pct_rsexog_10y",
       "scenario_name": "pse2025_high_15h_3pct_rsexog_10y",
       "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_122303"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct_rsexog.json",
@@ -918,7 +918,7 @@
       "run_id": "pse2025_low_15h_3pct_rsexog",
       "scenario_name": "pse2025_low_15h_3pct_rsexog",
       "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_100104"
+      "timestamp": "20260402_211700"
     },
     {
       "data_path": "runs/pse2025_low_15h_3pct_rsexog_10y.json",
@@ -937,7 +937,7 @@
       "run_id": "pse2025_low_15h_3pct_rsexog_10y",
       "scenario_name": "pse2025_low_15h_3pct_rsexog_10y",
       "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260401_122352"
+      "timestamp": "20260402_211700"
     }
   ],
   "schema_version": 1,
