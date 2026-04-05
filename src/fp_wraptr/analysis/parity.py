@@ -18,6 +18,7 @@ from typing import Any
 
 from fp_wraptr.runtime.fairpy import FairPyBackend
 from fp_wraptr.runtime.fp_exe import FPExecutable
+from fp_wraptr.runtime.semantics import get_backend_semantics_profile
 from fp_wraptr.runtime.solve_errors import scan_solution_errors
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.input_tree import InputTreeManifest
@@ -219,23 +220,30 @@ def _prepare_bundle(config: ScenarioConfig, bundle_dir: Path) -> tuple[Path, Inp
     from fp_wraptr.scenarios.input_tree import InputTreeManifest, prepare_work_dir_for_fp_run
 
     bundle_dir.mkdir(parents=True, exist_ok=True)
+    overlay_dir = getattr(config, "input_overlay_dir", None)
+    overlay_path = Path(overlay_dir) if overlay_dir is not None else None
+
+    def _copy_with_overlay_precedence(name: str) -> None:
+        src = config.fp_home / name
+        if src.exists():
+            shutil.copy2(src, bundle_dir / name)
+        if overlay_path is not None:
+            overlay_src = overlay_path / name
+            if overlay_src.exists():
+                shutil.copy2(overlay_src, bundle_dir / name)
 
     # Copy base model inputs
-    for fname in ("fmdata.txt", "fmage.txt", "fmexog.txt", "fminput.txt"):
-        src = config.fp_home / fname
-        if src.exists():
-            shutil.copy2(src, bundle_dir / fname)
+    for fname in ("fmdata.txt", "fmage.txt", "fmexog.txt", "fminput.txt", "fmout.txt"):
+        _copy_with_overlay_precedence(fname)
 
     # Copy the scenario input file (may be non-default).
+    if overlay_path is not None:
+        overlay_src = overlay_path / config.input_file
+        if overlay_src.exists():
+            shutil.copy2(overlay_src, bundle_dir / config.input_file)
     src_input = config.fp_home / config.input_file
-    if src_input.exists():
+    if not (bundle_dir / config.input_file).exists() and src_input.exists():
         shutil.copy2(src_input, bundle_dir / config.input_file)
-    else:
-        overlay_dir = getattr(config, "input_overlay_dir", None)
-        if overlay_dir is not None:
-            overlay_src = Path(overlay_dir) / config.input_file
-            if overlay_src.exists():
-                shutil.copy2(overlay_src, bundle_dir / config.input_file)
 
     input_path = bundle_dir / config.input_file
     if not input_path.exists():
@@ -362,6 +370,9 @@ def _run_nondefault_parity_pair(
     from fp_wraptr.runtime.fpr import FpRBackend
 
     pair = (normalize_parity_engine_name(left_engine), normalize_parity_engine_name(right_engine))
+    semantics_profile = get_backend_semantics_profile(
+        getattr(config_run, "semantics_profile", None)
+    )
     gate_start = (
         str(gate.pabev_start).strip()
         if gate.pabev_start not in (None, "")
@@ -370,14 +381,14 @@ def _run_nondefault_parity_pair(
     standard_engines = tuple(engine for engine in pair if engine in {"fpexe", "fppy"})
     bundle_dir: Path | None = None
     expected_outputs: tuple[str, ...] = ()
-    if standard_engines:
+    if any(engine in {"fpexe", "fppy", "fp-r"} for engine in pair):
         bundle_dir, manifest = _prepare_bundle(config_run, run_dir / "bundle")
         expected_outputs = tuple(getattr(manifest, "expected_output_files", ()) or ())
 
     work_dirs: dict[str, Path] = {}
     for engine_name in pair:
         work_dir = run_dir / _parity_work_dir_name(engine_name)
-        if engine_name in {"fpexe", "fppy"}:
+        if engine_name in {"fpexe", "fppy", "fp-r"}:
             if bundle_dir is None:
                 raise ValueError(f"Missing prepared bundle for parity engine {engine_name!r}")
             _copy_tree(bundle_dir, work_dir)
@@ -445,23 +456,28 @@ def _run_nondefault_parity_pair(
             eq_iter_trace_max_events=fppy_eq_iter_trace_max_events,
             eq_structural_read_cache=fppy_eq_structural_read_cache,
             num_threads=fppy_num_threads,
+            semantics_profile=semantics_profile.name,
         )
 
     fpr: FpRBackend | None = None
     if "fp-r" in pair:
         fpr_settings = getattr(config_run, "fpr", {}) or {}
         bundle_path_raw = fpr_settings.get("bundle_path")
-        if bundle_path_raw in (None, ""):
-            raise ValueError("parity engine 'fp-r' requires fpr.bundle_path")
         rscript_path_raw = fpr_settings.get("rscript_path")
         fpr = FpRBackend(
-            bundle_path=Path(str(bundle_path_raw)).expanduser().resolve(),
+            bundle_path=(
+                Path(str(bundle_path_raw)).expanduser().resolve()
+                if bundle_path_raw not in (None, "")
+                else None
+            ),
+            fp_home=fp_home,
             rscript_path=(
                 Path(str(rscript_path_raw)).expanduser().resolve()
                 if rscript_path_raw not in (None, "")
                 else None
             ),
-            timeout_seconds=int(fpr_settings.get("timeout_seconds", 120)),
+            timeout_seconds=int(fpr_settings.get("timeout_seconds", 1200)),
+            semantics_profile=semantics_profile.name,
         )
 
     def _run_fpexe_engine() -> dict[str, Any]:
@@ -558,6 +574,7 @@ def _run_nondefault_parity_pair(
                 "eq_flags_preset": str(fppy_preset),
                 "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "num_threads": fppy_num_threads,
+                "semantics_profile": semantics_profile.name,
                 "parity_output_file": fppy_output.name,
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
                 "eq_iter_trace_period": fppy_eq_iter_trace_period,
@@ -584,6 +601,7 @@ def _run_nondefault_parity_pair(
                 "eq_flags_preset": str(fppy_preset),
                 "eq_structural_read_cache": str(fppy_eq_structural_read_cache).strip().lower(),
                 "num_threads": fppy_num_threads,
+                "semantics_profile": semantics_profile.name,
                 "eq_iter_trace": bool(fppy_eq_iter_trace),
                 "eq_iter_trace_period": fppy_eq_iter_trace_period,
                 "eq_iter_trace_targets": fppy_eq_iter_trace_targets,
@@ -611,10 +629,11 @@ def _run_nondefault_parity_pair(
         stdout_path = work_dir / "fp-r.stdout.txt"
         stderr_path = work_dir / "fp-r.stderr.txt"
         try:
-            rr = fpr.run(work_dir=work_dir)
+            rr = fpr.run(input_file=work_dir / config_run.input_file, work_dir=work_dir)
             _write_stream_artifacts(stdout_path, stderr_path, stdout=rr.stdout, stderr=rr.stderr)
             fpr_output = _resolve_parity_output_path(work_dir)
             details: dict[str, Any] = {"parity_output_file": fpr_output.name}
+            details["semantics_profile"] = semantics_profile.name
             runtime_path = work_dir / "fp_r.runtime.json"
             if runtime_path.exists():
                 details["runtime_path"] = str(runtime_path)

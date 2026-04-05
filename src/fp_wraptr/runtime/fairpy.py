@@ -21,6 +21,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from fp_wraptr.runtime.backend import BackendInfo, RunResult
+from fp_wraptr.runtime.semantics import (
+    get_backend_semantics_profile,
+    write_semantics_manifest,
+)
 
 _INPUT_FILE_RE = re.compile(r"\bFILE\s*=\s*(?P<name>[^\s]+)", re.IGNORECASE)
 
@@ -45,6 +49,8 @@ class FairPyBackend:
     eq_iter_trace_max_events: int | None = None
     eq_structural_read_cache: str = "off"
     num_threads: int | None = None
+    fmout_coefs_override: Path | None = None
+    semantics_profile: str = "compat"
 
     def check_available(self) -> bool:
         try:
@@ -83,7 +89,10 @@ class FairPyBackend:
         return config_path
 
     def _eq_args(self, *, fmout_coefs: Path) -> list[str]:
+        profile = get_backend_semantics_profile(self.semantics_profile)
         preset = str(self.eq_flags_preset or "").strip().lower()
+        if preset in {"", "default", "none", "off"}:
+            preset = str(profile.fairpy_eq_flags_preset or "").strip().lower()
         if preset in {"", "default", "none", "off"}:
             return []
         if preset not in {"iss02_baseline", "parity"}:
@@ -473,7 +482,11 @@ class FairPyBackend:
         self._require_file(fmexog_path, label="fmexog (or fmexog_override).txt")
 
         # Coefficient baseline for EQ solve
-        fmout_src = self.fp_home / "fmout.txt"
+        fmout_src = (
+            Path(self.fmout_coefs_override).expanduser().resolve()
+            if self.fmout_coefs_override is not None
+            else (self.fp_home / "fmout.txt")
+        )
         self._require_file(fmout_src, label="fmout.txt (coefficient baseline) in fp_home")
         fmout_coefs = work_dir / "fmout_coefs.txt"
         shutil.copy2(fmout_src, fmout_coefs)
@@ -541,6 +554,11 @@ class FairPyBackend:
         stdout_path = work_dir / "fppy.stdout.txt"
         stderr_path = work_dir / "fppy.stderr.txt"
         runtime_path = work_dir / "fppy.runtime.json"
+        manifest_path, manifest, manifest_hash = write_semantics_manifest(
+            work_dir=work_dir,
+            semantics_profile=self.semantics_profile,
+            entry_input=expected_input,
+        )
 
         def _write_runtime(status: str, **extra: object) -> None:
             payload: dict[str, object] = {
@@ -556,6 +574,10 @@ class FairPyBackend:
                     else None
                 ),
                 "thread_env_overrides": dict(thread_env),
+                "semantics_profile": get_backend_semantics_profile(self.semantics_profile).name,
+                "semantics_manifest_path": str(manifest_path),
+                "semantics_manifest_hash": manifest_hash,
+                "semantics_manifest": manifest,
             }
             payload.update(extra)
             runtime_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -649,5 +671,8 @@ class FairPyBackend:
             name="fair-py",
             version=version,
             available=available,
-            details={"fp_home": str(self.fp_home)},
+            details={
+                "fp_home": str(self.fp_home),
+                "semantics_profile": get_backend_semantics_profile(self.semantics_profile).name,
+            },
         )

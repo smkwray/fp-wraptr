@@ -80,6 +80,7 @@ def test_fairpy_backend_info():
 
 def test_fpr_backend_is_model_backend(tmp_path):
     assert isinstance(FpRBackend(bundle_path=tmp_path / "bundle.R"), ModelBackend)
+    assert isinstance(FpRBackend(), ModelBackend)
 
 
 def test_fpr_backend_run_accepts_pacev_output(tmp_path, monkeypatch):
@@ -134,24 +135,233 @@ def test_fpr_backend_run_requires_public_artifacts_on_success(tmp_path, monkeypa
         backend.run(work_dir=work_dir)
 
 
-def test_run_scenario_fp_r_bundle_does_not_require_fp_home_and_copies_artifacts(
+def test_fpr_backend_passes_semantics_profile_to_runner(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_backend_bundle.R").write_text("# stub\n", encoding="utf-8")
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+    observed: dict[str, object] = {}
+
+    def fake_run(*args, **kwargs):
+        command = list(args[0])
+        cwd = Path(kwargs["cwd"])
+        observed["command"] = command
+        payload = json.loads((cwd / "fp_r.runtime.json").read_text(encoding="utf-8"))
+        observed["payload"] = payload
+        (cwd / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(
+        bundle_path=bundle_path,
+        fp_r_home=fp_r_home,
+        rscript_path=rscript_path,
+        semantics_profile="canonical",
+    )
+    result = backend.run(work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert "--semantics-profile" in observed["command"]
+    assert "canonical" in observed["command"]
+    assert observed["payload"]["semantics_profile"] == "canonical"
+    manifest_path = work_dir / "semantics_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert observed["payload"]["semantics_manifest_path"] == str(manifest_path)
+    assert observed["payload"]["semantics_manifest_hash"]
+    assert manifest["semantics_profile"] == "canonical"
+    assert manifest["exogenous_equation_target_policy"] == "exclude_from_solve"
+    assert manifest["entry_input"] == ""
+    assert manifest["scanned_input_files"] == []
+
+
+def test_fpr_backend_run_raw_input_mode_uses_standard_input_runner(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_standard_input.R").write_text("# stub\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    input_file = work_dir / "psehigh.txt"
+    input_file.write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    for name in ("fmdata.txt", "fmexog.txt", "fmout.txt"):
+        (work_dir / name).write_text(f"{name}\n", encoding="utf-8")
+    observed: dict[str, object] = {}
+
+    def fake_run(*args, **kwargs):
+        command = list(args[0])
+        cwd = Path(kwargs["cwd"])
+        observed["command"] = command
+        observed["payload"] = json.loads((cwd / "fp_r.runtime.json").read_text(encoding="utf-8"))
+        (cwd / "PABEV.TXT").write_text("pabev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(
+        fp_r_home=fp_r_home,
+        fp_home=fp_home,
+        rscript_path=rscript_path,
+        semantics_profile="canonical",
+    )
+    result = backend.run(input_file=input_file, work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert "--input" in observed["command"]
+    assert str(input_file.resolve()) in observed["command"]
+    assert "--fmout" in observed["command"]
+    assert observed["payload"]["mode"] == "raw_input"
+    assert observed["payload"]["semantics_profile"] == "canonical"
+    manifest = json.loads((work_dir / "semantics_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["entry_input"] == "psehigh.txt"
+    assert manifest["scanned_input_files"] == ["psehigh.txt"]
+
+
+def test_fpr_wrapper_restores_smpl_after_identity_overlay(tmp_path):
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    base_input = tmp_path / "base_input.txt"
+    identity_overlay = tmp_path / "identity_overlay.txt"
+
+    base_input.write_text(
+        "\n".join([
+            "@ base",
+            "SMPL 2025.4 2025.4;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "QUIT;",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    identity_overlay.write_text(
+        "\n".join([
+            "@ overlay mutates SMPL",
+            "SMPL 1952.1 2025.3;",
+            "CREATE D2=1;",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+
+    backend = FpRBackend()
+    wrapper_path = backend._write_fpr_wrapper_input(
+        work_dir=work_dir,
+        base_input=base_input,
+        identity_overlay=identity_overlay,
+    )
+
+    text = wrapper_path.read_text(encoding="utf-8")
+    assert "CREATE D2=1;" in text
+    assert "SMPL 2025.4 2025.4;" in text
+    assert text.index("CREATE D2=1;") < text.index(
+        "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;"
+    )
+    last_smpl_before_solve = text.rsplit("SMPL", 1)[-1]
+    assert "2025.4 2025.4" in last_smpl_before_solve
+
+
+def test_fpr_backend_run_raw_input_mode_runs_direct_nonbaseline_input_in_compat(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_standard_input.R").write_text("# stub\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    input_file = work_dir / "psehigh.txt"
+    input_file.write_text(
+        "\n".join([
+            "INPUT FILE=child.txt;",
+            "SMPL 2025.4 2025.4;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "QUIT;",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    (work_dir / "child.txt").write_text("IDENT GDP=9;\n", encoding="utf-8")
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text(
+        "\n".join([
+            "SMPL 1952.1 2025.3;",
+            "IDENT GDP=1;",
+            "GENR KEEP_ME=3;",
+            "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;",
+            "",
+        ]),
+        encoding="utf-8",
+    )
+    for name in ("fmdata.txt", "fmexog.txt", "fmout.txt"):
+        (work_dir / name).write_text(f"{name}\n", encoding="utf-8")
+    observed: dict[str, object] = {}
+
+    def fake_run(*args, **kwargs):
+        command = list(args[0])
+        cwd = Path(kwargs["cwd"])
+        observed["command"] = command
+        observed["payload"] = json.loads((cwd / "fp_r.runtime.json").read_text(encoding="utf-8"))
+        (cwd / "PABEV.TXT").write_text("pabev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(
+        fp_home=fp_home,
+        fp_r_home=fp_r_home,
+        rscript_path=rscript_path,
+        semantics_profile="compat",
+    )
+    result = backend.run(input_file=input_file, work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert str(input_file.resolve()) in observed["command"]
+    assert observed["payload"]["effective_input_file"] == str(input_file.resolve())
+    assert not (work_dir / "fp_r_wrapper_input.txt").exists()
+    assert not (work_dir / "fp_r_identity_overlay.txt").exists()
+
+
+def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(
     tmp_path, monkeypatch
 ):
     config = ScenarioConfig(
-        name="fpr_bundle",
-        fp_home=tmp_path / "missing-fm",
+        name="fpr_raw_input",
+        fp_home=tmp_path / "FM",
         backend="fp-r",
-        fpr={"bundle_path": str(tmp_path / "bundle.R"), "rscript_path": str(tmp_path / "Rscript")},
+        input_file="psehigh.txt",
+        fpr={"rscript_path": str(tmp_path / "Rscript")},
     )
-    bundle_path = Path(str(config.fpr["bundle_path"]))
-    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    config.fp_home.mkdir(parents=True, exist_ok=True)
+    for name in ("fminput.txt", "fmdata.txt", "fmage.txt", "fmexog.txt", "fmout.txt", "psehigh.txt"):
+        (config.fp_home / name).write_text(f"{name}\n", encoding="utf-8")
     Path(str(config.fpr["rscript_path"])).write_text("", encoding="utf-8")
 
     monkeypatch.setattr(FpRBackend, "check_available", lambda self: True)
 
     def fake_run(self, input_file=None, work_dir=None, extra_env=None):
-        _ = self, input_file, extra_env
+        _ = self, extra_env
         assert work_dir is not None
+        assert self.fp_home == config.fp_home
+        assert self.timeout_seconds == 1200
+        assert input_file == work_dir / "psehigh.txt"
+        assert (work_dir / "fmout.txt").exists()
         work_dir.mkdir(parents=True, exist_ok=True)
         (work_dir / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
         (work_dir / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
@@ -162,7 +372,7 @@ def test_run_scenario_fp_r_bundle_does_not_require_fp_home_and_copies_artifacts(
             stdout="ok",
             stderr="",
             working_dir=work_dir,
-            input_file=bundle_path,
+            input_file=input_file,
             output_file=work_dir / "PACEV.TXT",
             duration_seconds=0.1,
         )
@@ -176,6 +386,42 @@ def test_run_scenario_fp_r_bundle_does_not_require_fp_home_and_copies_artifacts(
     assert (result.output_dir / "LOADFORMAT.DAT").read_text(encoding="utf-8") == "pacev\n"
     assert (result.output_dir / "fp_r_series.csv").exists()
     assert (result.output_dir / "fp_r_report.txt").exists()
+
+
+def test_run_scenario_passes_shared_semantics_profile_to_backends(tmp_path, monkeypatch):
+    fm = tmp_path / "FM"
+    fm.mkdir()
+    for name in ("fminput.txt", "fmdata.txt", "fmage.txt", "fmexog.txt", "fmout.txt"):
+        (fm / name).write_text(f"{name}\n", encoding="utf-8")
+
+    config = ScenarioConfig(
+        name="semantics_profile",
+        fp_home=fm,
+        backend="fppy",
+        semantics_profile="canonical",
+    )
+
+    monkeypatch.setattr(FairPyBackend, "check_available", lambda self: True)
+
+    def fake_run(self, input_file=None, work_dir=None, extra_env=None):
+        assert self.semantics_profile == "canonical"
+        assert work_dir is not None
+        work_dir.mkdir(parents=True, exist_ok=True)
+        (work_dir / "PABEV.TXT").write_text("SMPL 2025.4 2025.4;\nLOAD A;\n1.0\n'END'\n", encoding="utf-8")
+        return RunResult(
+            return_code=0,
+            stdout="ok",
+            stderr="",
+            working_dir=work_dir,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
+            output_file=work_dir / "PABEV.TXT",
+            duration_seconds=0.1,
+        )
+
+    monkeypatch.setattr(FairPyBackend, "run", fake_run)
+
+    result = run_scenario(config, output_dir=tmp_path / "artifacts")
+    assert result.success is True
 
 
 def test_fpr_public_example_runs_when_rscript_is_available(tmp_path):
@@ -195,9 +441,48 @@ def test_fpr_public_example_runs_when_rscript_is_available(tmp_path):
     assert (result.output_dir / "fp_r_report.txt").exists()
 
 
-def test_fairpy_backend_default_preset_has_no_extra_eq_flags(tmp_path):
+def test_fp_r_boundary_contract_script_runs_when_rscript_is_available(tmp_path):
+    if shutil.which("Rscript") is None:
+        pytest.skip("Rscript not available")
+
+    repo_root = Path(__file__).resolve().parents[1]
+    work_dir = tmp_path / "boundary-contracts"
+    subprocess.run(
+        [
+            "Rscript",
+            str(repo_root / "fp-r" / "scripts" / "check_boundary_contracts.R"),
+            "--work-dir",
+            str(work_dir),
+        ],
+        check=True,
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+
+    report_path = work_dir / "boundary_contract_report.txt"
+    assert report_path.exists()
+    report = report_path.read_text(encoding="utf-8")
+    assert "status=ok" in report
+    assert "boundary_refs=RAWB" in report
+    assert "first_period_refs=POP1,POP3" in report
+    assert "compat_boundary_value=10" in report
+    assert "canonical_boundary_value=14" in report
+
+
+def test_fairpy_backend_default_preset_uses_shared_compat_eq_flags(tmp_path):
     backend = FairPyBackend(eq_flags_preset="default")
-    assert backend._eq_args(fmout_coefs=tmp_path / "fmout.txt") == []
+    assert backend._eq_args(fmout_coefs=tmp_path / "fmout.txt") == [
+        "--enable-eq",
+        "--eq-use-setupsolve",
+        "--eq-flags-preset-label",
+        "parity",
+        "--eq-period-sequential",
+        "--eq-period-scoped",
+        "on",
+        "--eq-coefs-fmout",
+        str(tmp_path / "fmout.txt"),
+    ]
 
 
 def test_fairpy_backend_parity_preset_enables_setupsolve(tmp_path):
@@ -331,6 +616,13 @@ def test_fairpy_backend_runtime_records_requested_threads(tmp_path, monkeypatch)
     runtime_payload = json.loads((work_dir / "fppy.runtime.json").read_text(encoding="utf-8"))
     assert runtime_payload["num_threads_requested"] == 5
     assert runtime_payload["thread_env_overrides"]["OMP_NUM_THREADS"] == "5"
+    manifest_path = work_dir / "semantics_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert runtime_payload["semantics_manifest_path"] == str(manifest_path)
+    assert runtime_payload["semantics_manifest_hash"]
+    assert manifest["semantics_profile"] == "compat"
+    assert manifest["entry_input"] == "fminput.txt"
+    assert manifest["scanned_input_files"] == ["fminput.txt"]
 
 
 def test_fairpy_identity_overlay_keeps_multiline_statements(tmp_path):
