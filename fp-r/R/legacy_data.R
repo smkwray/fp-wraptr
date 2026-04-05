@@ -455,18 +455,29 @@ apply_fmexog_rows <- function(base_frame, rows) {
 
     if (is_vector) {
       if (length(values) == length(periods)) {
-        working[match(periods, working$period), variable] <- values
-        next
-      }
-      if (length(values) > 1L) {
+        padded <- values
+      } else if (length(values) > 1L) {
         padded <- values[seq_len(min(length(values), length(periods)))]
         if (length(padded) < length(periods)) {
           padded <- c(padded, rep(tail(padded, 1L), length(periods) - length(padded)))
         }
-        working[match(periods, working$period), variable] <- padded
+      } else {
+        padded <- rep(values[[1]], length(periods))
+      }
+
+      if (method %in% c("ADDDIFABS", "ADDDIFPCT")) {
+        existing <- as.numeric(working[match(periods, working$period), variable])
+        existing[!is.finite(existing)] <- 0
+        updated <- if (identical(method, "ADDDIFABS")) {
+          existing + padded
+        } else {
+          existing * (1 + padded)
+        }
+        working[match(periods, working$period), variable] <- updated
         next
       }
-      working[match(periods, working$period), variable] <- values[[1]]
+
+      working[match(periods, working$period), variable] <- padded
       next
     }
 
@@ -489,6 +500,19 @@ apply_fmexog_rows <- function(base_frame, rows) {
         current_value <- if (period %in% names(series)) as.numeric(series[[period]]) else NA_real_
         baseline <- first_finite(c(prev_value, current_value, 0))
         updated <- if (identical(method, "CHGSAMEABS")) baseline + scalar else baseline * (1 + scalar)
+        working[working$period == period, variable] <- updated
+        series[[period]] <- updated
+      }
+      next
+    }
+
+    if (method %in% c("ADDDIFABS", "ADDDIFPCT")) {
+      series <- as.numeric(working[[variable]])
+      names(series) <- working$period
+      for (period in periods) {
+        current_value <- if (period %in% names(series)) as.numeric(series[[period]]) else NA_real_
+        baseline <- first_finite(c(current_value, 0))
+        updated <- if (identical(method, "ADDDIFABS")) baseline + scalar else baseline * (1 + scalar)
         working[working$period == period, variable] <- updated
         series[[period]] <- updated
       }

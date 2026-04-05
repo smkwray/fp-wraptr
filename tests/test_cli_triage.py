@@ -19,6 +19,298 @@ def _write_pabev(path: Path, *, values_by_var: dict[str, list[float]]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def test_fp_triage_anchor_acceptance_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    fpexe = tmp_path / "fpexe.PABEV.TXT"
+    fppy = tmp_path / "fppy.PABEV.TXT"
+    fpr = tmp_path / "fpr.PABEV.TXT"
+    _write_pabev(fpexe, values_by_var={"PD": [1.0, 1.0], "XX": [10.0, 10.0]})
+    _write_pabev(fppy, values_by_var={"PD": [1.0, 1.0], "XX": [10.0, 14.0]})
+    _write_pabev(fpr, values_by_var={"PD": [1.0, 1.0005], "XX": [10.0, 12.0]})
+    out_dir = tmp_path / "anchor_acceptance"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "anchor-acceptance",
+            "--fpexe",
+            str(fpexe),
+            "--fppy",
+            str(fppy),
+            "--fpr",
+            str(fpr),
+            "--anchors",
+            "PD",
+            "--methodology",
+            "XX",
+            "--start",
+            "2025.4",
+            "--end",
+            "2025.4",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "anchor_acceptance_report.json").exists()
+    assert (out_dir / "anchor_acceptance_summary.csv").exists()
+
+
+def test_fp_triage_backend_defensibility_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    fpexe = tmp_path / "fpexe.PABEV.TXT"
+    fppy = tmp_path / "fppy.PABEV.TXT"
+    fpr = tmp_path / "fpr.PABEV.TXT"
+    _write_pabev(fpexe, values_by_var={"RS": [4.0, 4.0], "PCPD": [1.0, 1.0]})
+    _write_pabev(fppy, values_by_var={"RS": [4.0, 4.2], "PCPD": [1.0, 3.5]})
+    _write_pabev(fpr, values_by_var={"RS": [4.0, 4.21], "PCPD": [1.0, 3.54]})
+    out_dir = tmp_path / "backend_defensibility"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "backend-defensibility",
+            "--fpexe",
+            str(fpexe),
+            "--fppy",
+            str(fppy),
+            "--fpr",
+            str(fpr),
+            "--variables",
+            "RS,PCPD",
+            "--focus",
+            "RS",
+            "--start",
+            "2025.4",
+            "--end",
+            "2025.4",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "backend_defensibility_report.json").exists()
+    assert (out_dir / "backend_defensibility_summary.csv").exists()
+
+
+def test_fp_triage_focused_series_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    fpexe = tmp_path / "fpexe.PABEV.TXT"
+    fppy = tmp_path / "fppy.PABEV.TXT"
+    fpr = tmp_path / "fpr.PABEV.TXT"
+    _write_pabev(fpexe, values_by_var={"RS": [4.0, 4.0], "RB": [5.0, 5.0]})
+    _write_pabev(fppy, values_by_var={"RS": [4.0, 4.2], "RB": [5.0, 5.4]})
+    _write_pabev(fpr, values_by_var={"RS": [4.0, 4.21], "RB": [5.0, 5.45]})
+    out_dir = tmp_path / "focused_series"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "focused-series",
+            "--fpexe",
+            str(fpexe),
+            "--fppy",
+            str(fppy),
+            "--fpr",
+            str(fpr),
+            "--variables",
+            "RS,RB",
+            "--start",
+            "2025.4",
+            "--end",
+            "2025.4",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "focused_series_compare_report.json").exists()
+    assert (out_dir / "focused_series_compare_rows.csv").exists()
+
+
+def test_fp_triage_identity_decomposition_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    fpexe = tmp_path / "fpexe.PABEV.TXT"
+    fppy = tmp_path / "fppy.PABEV.TXT"
+    fpr = tmp_path / "fpr.PABEV.TXT"
+    _write_pabev(fpexe, values_by_var={"A": [10.0, 10.0], "B": [5.0, 5.0], "C": [2.0, 2.0], "T": [13.0, 13.0]})
+    _write_pabev(fppy, values_by_var={"A": [10.5, 10.5], "B": [5.0, 5.0], "C": [2.0, 2.0], "T": [13.5, 13.5]})
+    _write_pabev(fpr, values_by_var={"A": [10.0, 10.0], "B": [4.5, 4.5], "C": [2.0, 2.0], "T": [12.5, 12.5]})
+    out_dir = tmp_path / "identity_decomposition"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "identity-decomposition",
+            "--fpexe",
+            str(fpexe),
+            "--fppy",
+            str(fppy),
+            "--fpr",
+            str(fpr),
+            "--identity",
+            "T=A+B-C",
+            "--period",
+            "2025.4",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "identity_decomposition_report.json").exists()
+    assert (out_dir / "identity_decomposition_terms.csv").exists()
+
+
+def test_fp_triage_backend_release_shape_writes_output(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    anchor_report = tmp_path / "anchor_acceptance_report.json"
+    anchor_report.write_text(
+        json.dumps(
+            {
+                "status": "review",
+                "counts": {"anchor_review_count": 1, "methodology_review_count": 1},
+                "anchor_rows": [
+                    {
+                        "variable": "RS",
+                        "classification": "review",
+                        "review_scope": "fp_r_leading",
+                        "explanation_scope": "fp_r_tail_on_shared_split",
+                    }
+                ],
+                "methodology_rows": [],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "backend_release_shape"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "backend-release-shape",
+            "--anchor-report",
+            str(anchor_report),
+            "--stock-baseline-ok",
+            "--raw-input-public-ok",
+            "--modified-decks-run",
+            "--docs-honest",
+            "--corpus-not-green",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "backend_release_shape_report.json").exists()
+
+
+def test_fp_triage_backend_release_corpus_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    manifest = tmp_path / "docs" / "backend-release-corpus.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    scenario = tmp_path / "examples" / "a.yaml"
+    scenario.parent.mkdir(parents=True, exist_ok=True)
+    scenario.write_text("name: a\n", encoding="utf-8")
+    release_shape = tmp_path / "artifacts" / "a" / "backend_release_shape_report.json"
+    release_shape.parent.mkdir(parents=True, exist_ok=True)
+    release_shape.write_text(
+        json.dumps(
+            {
+                "decision": {
+                    "recommended_label": "preview_ready",
+                    "preview_ready": True,
+                    "peer_backend_ready": False,
+                    "blockers": ["release_corpus_not_green"],
+                }
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    manifest.write_text(
+        json.dumps(
+            {
+                "name": "demo",
+                "entries": [
+                    {
+                        "name": "a",
+                        "required": True,
+                        "scenario": "examples/a.yaml",
+                        "release_shape_report": "artifacts/a/backend_release_shape_report.json",
+                    }
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "backend_release_corpus"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "backend-release-corpus",
+            "--manifest",
+            str(manifest),
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "backend_release_corpus_report.json").exists()
+    assert (out_dir / "backend_release_corpus_summary.csv").exists()
+
+
+def test_fp_triage_scenario_delta_compare_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    left_baseline = tmp_path / "left-baseline.PABEV.TXT"
+    left_scenario = tmp_path / "left-scenario.PABEV.TXT"
+    right_baseline = tmp_path / "right-baseline.PABEV.TXT"
+    right_scenario = tmp_path / "right-scenario.PABEV.TXT"
+    _write_pabev(left_baseline, values_by_var={"UB": [9.0, 9.0], "YD": [100.0, 102.0]})
+    _write_pabev(left_scenario, values_by_var={"UB": [65.0, 65.0], "YD": [150.0, 160.0]})
+    _write_pabev(right_baseline, values_by_var={"UB": [9.0, 9.0], "YD": [100.0, 102.0]})
+    _write_pabev(right_scenario, values_by_var={"UB": [9.18, 9.18], "YD": [112.0, 118.0]})
+    out_dir = tmp_path / "scenario_delta"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "scenario-delta-compare",
+            "--baseline-left",
+            str(left_baseline),
+            "--scenario-left",
+            str(left_scenario),
+            "--baseline-right",
+            str(right_baseline),
+            "--scenario-right",
+            str(right_scenario),
+            "--left-label",
+            "fpexe",
+            "--right-label",
+            "fpr",
+            "--variables",
+            "UB,YD",
+            "--start",
+            "2025.4",
+            "--end",
+            "2026.1",
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "scenario_delta_compare_report.json").exists()
+    assert (out_dir / "scenario_delta_compare_summary.csv").exists()
+
+
 def test_fp_triage_parity_hardfails_writes_outputs(tmp_path: Path) -> None:
     run_dir = tmp_path / "baseline_20260301_000000"
     run_dir.mkdir(parents=True, exist_ok=True)

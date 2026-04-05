@@ -11,6 +11,8 @@ read_flag <- function(name) {
 bundle_path <- normalizePath(read_flag("--bundle"), winslash = "/", mustWork = TRUE)
 work_dir <- normalizePath(read_flag("--work-dir"), winslash = "/", mustWork = FALSE)
 dir.create(work_dir, recursive = TRUE, showWarnings = FALSE)
+semantics_profile <- if ("--semantics-profile" %in% args) read_flag("--semantics-profile") else "compat"
+options(fp_r.semantics_profile = semantics_profile)
 
 resolve_script_path <- function() {
   args_all <- commandArgs(trailingOnly = FALSE)
@@ -52,6 +54,7 @@ for (name in runtime_files) {
 }
 
 bundle <- read_model_bundle(bundle_path)
+bundle$control <- modifyList(bundle$control %||% list(), list(semantics_profile = semantics_profile))
 result <- mini_run(bundle)
 
 series_path <- file.path(work_dir, "fp_r_series.csv")
@@ -95,6 +98,7 @@ report <- list(
 )
 report_lines <- c(
   sprintf("bundle_name=%s", report$bundle_name),
+  sprintf("semantics_profile=%s", semantics_profile),
   sprintf("bundle_path=%s", report$bundle_path),
   sprintf("series_path=%s", report$series_path),
   sprintf("diagnostics_path=%s", report$diagnostics_path),

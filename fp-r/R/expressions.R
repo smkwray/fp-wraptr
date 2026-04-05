@@ -227,7 +227,10 @@ evaluate_compiled_expression <- function(
     }
     series <- state$series[[source_name]]
     if (is.null(series)) {
-      stopf("Unknown series referenced in expression: %s", source_name)
+      if (strict) {
+        stopf("Unknown series referenced in expression: %s", source_name)
+      }
+      return(NA_real_)
     }
     target_index <- as.integer(period_index) + as.integer(lag)
     if (target_index < 1L || target_index > length(series)) {
@@ -258,6 +261,84 @@ evaluate_compiled_expression <- function(
   eval(
     expr,
     envir = list(.fp_value = .fp_value, .fp_coef = .fp_coef),
+    enclos = baseenv()
+  )
+}
+
+evaluate_compiled_expression_positions <- function(
+  compiled,
+  state,
+  period_indices,
+  strict = TRUE,
+  series_overrides = NULL,
+  lag_only_overrides = FALSE
+) {
+  period_indices <- as.integer(period_indices %||% integer())
+  if (!length(period_indices)) {
+    return(numeric())
+  }
+  expr <- compiled$parsed_expression %||% parse(text = compiled$r_expression)[[1]]
+  coef_values <- state$coef_values %||% state$coefficients %||% list()
+  normalize_fp_series_values <- function(values) {
+    numeric_values <- as.numeric(values)
+    numeric_values[!is.finite(numeric_values)] <- NA_real_
+    numeric_values[abs(numeric_values + 99.0) <= 1e-12] <- NA_real_
+    numeric_values
+  }
+  .fp_value <- function(name, lag = 0L) {
+    source_name <- name
+    if (!is.null(series_overrides) &&
+      name %in% names(series_overrides) &&
+      (!isTRUE(lag_only_overrides) || as.integer(lag) != 0L)) {
+      source_name <- as.character(series_overrides[[name]])
+    }
+    series <- state$series[[source_name]]
+    if (is.null(series)) {
+      if (strict) {
+        stopf("Unknown series referenced in expression: %s", source_name)
+      }
+      return(rep(NA_real_, length(period_indices)))
+    }
+    target_indices <- period_indices + as.integer(lag)
+    if (strict && any(target_indices < 1L | target_indices > length(series))) {
+      stopf("Reference %s(%d) is outside the available period range", name, lag)
+    }
+    values <- rep(NA_real_, length(target_indices))
+    in_range <- target_indices >= 1L & target_indices <= length(series)
+    if (any(in_range)) {
+      values[in_range] <- as.numeric(series[target_indices[in_range]])
+    }
+    values <- normalize_fp_series_values(values)
+    if (strict && any(!is.finite(values))) {
+      bad_index <- which(!is.finite(values))[1L]
+      stopf("Series %s is non-finite at period position %d", name, target_indices[[bad_index]])
+    }
+    values
+  }
+  .fp_coef <- function(row, col) {
+    key <- sprintf("%d,%d", as.integer(row), as.integer(col))
+    if (is.list(coef_values) && !is.null(coef_values[[key]])) {
+      return(as.numeric(coef_values[[key]]))
+    }
+    if (is.environment(coef_values) && exists(key, envir = coef_values, inherits = FALSE)) {
+      return(as.numeric(get(key, envir = coef_values, inherits = FALSE)))
+    }
+    if (is.numeric(coef_values) && !is.null(names(coef_values)) && key %in% names(coef_values)) {
+      return(as.numeric(coef_values[[key]]))
+    }
+    0.0
+  }
+  eval(
+    expr,
+    envir = list(
+      .fp_value = .fp_value,
+      .fp_coef = .fp_coef,
+      max = pmax,
+      min = pmin,
+      log = log,
+      exp = exp,
+      abs = abs
+    ),
     enclos = baseenv()
   )
 }
