@@ -1,0 +1,53 @@
+{
+  "name": "tracked_backend_release_corpus_v1",
+  "entries": [
+    {
+      "name": "stock_fm_baseline",
+      "category": "stock_baseline",
+      "required": true,
+      "scenario": "examples/stock_fm_baseline.yaml",
+      "anchor_report": "artifacts/anchor_acceptance_stock_fm_baseline_20260405/anchor_acceptance_report.json",
+      "release_shape_report": "artifacts/backend_release_shape_stock_fm_baseline_20260405_corpusgreen/backend_release_shape_report.json",
+      "notes": "Stock baseline remains part of the release bar, even though the current corpus blocker is on modified decks."
+    },
+    {
+      "name": "pse2025_high_parity_quick",
+      "category": "modified_deck_anchor",
+      "required": true,
+      "scenario": "examples/pse2025_high_parity_quick.yaml",
+      "anchor_report": "artifacts/anchor_acceptance_pse_rs_frontier_postfix_20260404_205626/anchor_acceptance_report.json",
+      "release_shape_report": "artifacts/backend_release_shape_pse_rs_frontier_postfix_20260405_corpusgreen/backend_release_shape_report.json",
+      "notes": "Current repaired public quick-deck anchor. This is the only corpus entry with a complete release packet so far."
+    },
+    {
+      "name": "jg_baseline",
+      "category": "modified_deck_jg",
+      "required": true,
+      "scenario": "examples/jg/jg_baseline.yaml",
+      "anchor_report": "artifacts/anchor_acceptance_jg_baseline_20260405/anchor_acceptance_report.json",
+      "release_shape_report": "artifacts/backend_release_shape_jg_baseline_20260405_corpusgreen/backend_release_shape_report.json",
+      "notes": "Represents the JG-heavy modified-deck lane called out in the release plan."
+    },
+    {
+      "name": "pse2025_base_parity_quick",
+      "category": "additional_pse_quick",
+      "required": false,
+      "scenario": "examples/pse2025_base_parity_quick.yaml",
+      "notes": "Tracked quick PSE variant for expanding beyond the repaired high deck."
+    },
+    {
+      "name": "pse2025_low_parity_quick",
+      "category": "additional_pse_quick",
+      "required": false,
+      "scenario": "examples/pse2025_low_parity_quick.yaml",
+      "notes": "Tracked quick PSE variant for expanding beyond the repaired high deck."
+    },
+    {
+      "name": "fpr_raw_input_demo",
+      "category": "raw_input_smoke",
+      "required": false,
+      "scenario": "examples/fpr_raw_input_demo.yaml",
+      "notes": "Useful as a lightweight raw-input smoke, but not sufficient for release on its own."
+    }
+  ]
+}

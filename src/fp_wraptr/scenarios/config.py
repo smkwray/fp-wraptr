@@ -95,6 +95,14 @@ class ScenarioConfig(BaseModel):
         default="fpexe",
         description="Execution backend: fpexe, fppy, fp-r, or both",
     )
+    semantics_profile: str = Field(
+        default="compat",
+        description=(
+            "Shared backend semantics profile. "
+            "Use 'compat' for closest practical legacy FP behavior and "
+            "'canonical' for cleaner shared backend semantics."
+        ),
+    )
     fppy: FPPySettings = Field(
         default_factory=FPPySettings,
         description="Optional fp-py backend settings (timeout_seconds, eq_flags_preset, etc)",
