@@ -1083,6 +1083,469 @@ def triage_parity_hardfails(
     console.print(f"[green]summary:[/green] {summary_path}")
 
 
+@triage_app.command("anchor-acceptance")
+def triage_anchor_acceptance(
+    fpexe: Annotated[
+        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
+    ],
+    fppy: Annotated[
+        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
+    ],
+    fpr: Annotated[
+        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
+    ],
+    preset: Annotated[
+        str,
+        typer.Option(
+            "--preset",
+            help="Optional named anchor-acceptance preset (for example: pse_rs_frontier)",
+        ),
+    ] = "",
+    anchors: Annotated[
+        str,
+        typer.Option(
+            "--anchors",
+            help="Comma-separated shared-semantic anchor variables",
+        ),
+    ] = "",
+    methodology: Annotated[
+        str,
+        typer.Option(
+            "--methodology",
+            help="Comma-separated methodology/explanation variables",
+        ),
+    ] = "",
+    start: Annotated[
+        str | None,
+        typer.Option("--start", help="Optional start period (YYYY.Q)"),
+    ] = None,
+    end: Annotated[
+        str | None,
+        typer.Option("--end", help="Optional end period (YYYY.Q)"),
+    ] = None,
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV acceptance artifacts"),
+    ] = Path("artifacts/anchor_acceptance"),
+) -> None:
+    """Write an anchor-based backend acceptance report for one shared-semantic branch."""
+
+    from fp_wraptr.analysis.anchor_acceptance import (
+        build_anchor_acceptance_report,
+        resolve_anchor_acceptance_preset,
+        write_anchor_acceptance_report,
+    )
+
+    try:
+        preset_payload = resolve_anchor_acceptance_preset(preset)
+        anchor_vars = [item.strip() for item in str(anchors).split(",") if item.strip()]
+        methodology_vars = [item.strip() for item in str(methodology).split(",") if item.strip()]
+        if not anchor_vars and preset_payload is not None:
+            anchor_vars = list(preset_payload.get("anchors", []) or [])
+        if not methodology_vars and preset_payload is not None:
+            methodology_vars = list(preset_payload.get("methodology", []) or [])
+        effective_start = start if start is not None else (preset_payload.get("start") if preset_payload else None)
+        effective_end = end if end is not None else (preset_payload.get("end") if preset_payload else None)
+        if not anchor_vars:
+            raise ValueError("Provide --anchors or a known --preset")
+        report = build_anchor_acceptance_report(
+            {"fpexe": fpexe, "fppy": fppy, "fp-r": fpr},
+            anchor_variables=anchor_vars,
+            methodology_variables=methodology_vars,
+            start=effective_start,
+            end=effective_end,
+        )
+        json_path, csv_path = write_anchor_acceptance_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]Anchor acceptance failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    counts = report.get("counts", {}) or {}
+    console.print(
+        "status="
+        f"{report.get('status', 'review')} "
+        f"anchor_review_count={counts.get('anchor_review_count', 0)} "
+        f"methodology_review_count={counts.get('methodology_review_count', 0)}"
+    )
+    if preset_payload is not None:
+        console.print(f"preset={preset_payload.get('name')}")
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
+@triage_app.command("backend-defensibility")
+def triage_backend_defensibility(
+    fpexe: Annotated[
+        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
+    ],
+    fppy: Annotated[
+        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
+    ],
+    fpr: Annotated[
+        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
+    ],
+    variables: Annotated[
+        str,
+        typer.Option(
+            "--variables",
+            help="Optional comma-separated variable allowlist",
+        ),
+    ] = "",
+    focus: Annotated[
+        str,
+        typer.Option(
+            "--focus",
+            help="Optional comma-separated focus variables for the summary payload",
+        ),
+    ] = "",
+    start: Annotated[
+        str | None,
+        typer.Option("--start", help="Optional start period (YYYY.Q)"),
+    ] = None,
+    end: Annotated[
+        str | None,
+        typer.Option("--end", help="Optional end period (YYYY.Q)"),
+    ] = None,
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV defensibility artifacts"),
+    ] = Path("artifacts/backend_defensibility"),
+) -> None:
+    """Write a backend-defensibility report for fp.exe, fppy, and fp-r."""
+
+    from fp_wraptr.analysis.backend_defensibility import (
+        build_backend_defensibility_report,
+        write_backend_defensibility_report,
+    )
+
+    try:
+        requested_variables = [item.strip() for item in str(variables).split(",") if item.strip()]
+        focus_variables = [item.strip() for item in str(focus).split(",") if item.strip()]
+        report = build_backend_defensibility_report(
+            {"fpexe": fpexe, "fppy": fppy, "fp-r": fpr},
+            start=start,
+            end=end,
+            variables=requested_variables or None,
+            focus_variables=focus_variables or None,
+        )
+        json_path, csv_path = write_backend_defensibility_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]Backend defensibility failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    console.print(
+        "summary_rows="
+        f"{len(report.get('summary_rows', []) or [])} "
+        f"focus_rows={len(report.get('focus_rows', []) or [])}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
+@triage_app.command("focused-series")
+def triage_focused_series(
+    fpexe: Annotated[
+        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
+    ],
+    fppy: Annotated[
+        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
+    ],
+    fpr: Annotated[
+        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
+    ],
+    variables: Annotated[
+        str,
+        typer.Option(
+            "--variables",
+            help="Comma-separated variables to compare",
+        ),
+    ],
+    start: Annotated[
+        str | None,
+        typer.Option("--start", help="Optional start period (YYYY.Q)"),
+    ] = None,
+    end: Annotated[
+        str | None,
+        typer.Option("--end", help="Optional end period (YYYY.Q)"),
+    ] = None,
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV focused-series artifacts"),
+    ] = Path("artifacts/focused_series_compare"),
+) -> None:
+    """Write a focused per-period series comparison for selected variables."""
+
+    from fp_wraptr.analysis.focused_series_compare import (
+        build_focused_series_compare_report,
+        write_focused_series_compare_report,
+    )
+
+    try:
+        requested_variables = [item.strip() for item in str(variables).split(",") if item.strip()]
+        report = build_focused_series_compare_report(
+            {"fpexe": fpexe, "fppy": fppy, "fp-r": fpr},
+            variables=requested_variables,
+            start=start,
+            end=end,
+        )
+        json_path, csv_path = write_focused_series_compare_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]Focused series compare failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    console.print(
+        "row_count="
+        f"{report.get('row_count', 0)} "
+        f"common_period_count={report.get('common_period_count', 0)}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
+@triage_app.command("identity-decomposition")
+def triage_identity_decomposition(
+    fpexe: Annotated[
+        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
+    ],
+    fppy: Annotated[
+        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
+    ],
+    fpr: Annotated[
+        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
+    ],
+    identity: Annotated[
+        str,
+        typer.Option(
+            "--identity",
+            help="Additive identity to decompose, for example 'PIEF=XX+...-CCH+CDH'",
+        ),
+    ],
+    period: Annotated[
+        str,
+        typer.Option("--period", help="Single period to evaluate (YYYY.Q)"),
+    ],
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV identity artifacts"),
+    ] = Path("artifacts/identity_decomposition"),
+) -> None:
+    """Write a three-engine identity decomposition for one target and period."""
+
+    from fp_wraptr.analysis.identity_decomposition import (
+        build_identity_decomposition_report,
+        write_identity_decomposition_report,
+    )
+
+    try:
+        report = build_identity_decomposition_report(
+            {"fpexe": fpexe, "fppy": fppy, "fp-r": fpr},
+            identity=identity,
+            period=period,
+        )
+        json_path, csv_path = write_identity_decomposition_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]Identity decomposition failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    console.print(
+        "target="
+        f"{report.get('target')} "
+        f"term_count={report.get('term_count', 0)} "
+        f"period={report.get('period')}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
+@triage_app.command("backend-release-shape")
+def triage_backend_release_shape(
+    anchor_report: Annotated[
+        Path,
+        typer.Option(
+            "--anchor-report",
+            help="Path to an existing anchor_acceptance_report.json artifact",
+        ),
+    ],
+    stock_baseline_ok: Annotated[
+        bool,
+        typer.Option("--stock-baseline-ok/--stock-baseline-fail", help="Whether stock baseline acceptance is green"),
+    ] = True,
+    raw_input_public_ok: Annotated[
+        bool,
+        typer.Option("--raw-input-public-ok/--raw-input-public-fail", help="Whether the raw-input public path is real"),
+    ] = True,
+    modified_decks_run: Annotated[
+        bool,
+        typer.Option("--modified-decks-run/--modified-decks-fail", help="Whether the modified-deck surface runs"),
+    ] = True,
+    docs_honest: Annotated[
+        bool,
+        typer.Option("--docs-honest/--docs-not-honest", help="Whether docs match the supported surface"),
+    ] = True,
+    corpus_green: Annotated[
+        bool,
+        typer.Option("--corpus-green/--corpus-not-green", help="Whether the broader release corpus is green"),
+    ] = False,
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON release-shape artifact"),
+    ] = Path("artifacts/backend_release_shape"),
+) -> None:
+    """Write a preview-vs-peer release-shape decision from one anchor report."""
+
+    from fp_wraptr.analysis.backend_release_shape import (
+        build_backend_release_shape_report,
+        write_backend_release_shape_report,
+    )
+
+    try:
+        report = build_backend_release_shape_report(
+            anchor_report,
+            stock_baseline_ok=stock_baseline_ok,
+            raw_input_public_ok=raw_input_public_ok,
+            modified_decks_run=modified_decks_run,
+            docs_honest=docs_honest,
+            corpus_green=corpus_green,
+        )
+        json_path = write_backend_release_shape_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        console.print(f"[red]Backend release shape failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    decision = report.get("decision", {}) or {}
+    console.print(
+        "recommended_label="
+        f"{decision.get('recommended_label', '')} "
+        f"preview_ready={decision.get('preview_ready', False)} "
+        f"peer_backend_ready={decision.get('peer_backend_ready', False)}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+
+
+@triage_app.command("backend-release-corpus")
+def triage_backend_release_corpus(
+    manifest: Annotated[
+        Path,
+        typer.Option(
+            "--manifest",
+            help="Path to a backend release corpus manifest JSON file",
+        ),
+    ] = Path("docs/backend-release-corpus.json"),
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV corpus artifact"),
+    ] = Path("artifacts/backend_release_corpus"),
+) -> None:
+    """Summarize which corpus decks already have release packets and which still block corpus readiness."""
+
+    from fp_wraptr.analysis.backend_release_corpus import (
+        build_backend_release_corpus_report,
+        write_backend_release_corpus_report,
+    )
+
+    try:
+        report = build_backend_release_corpus_report(manifest)
+        json_path, csv_path = write_backend_release_corpus_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        console.print(f"[red]Backend release corpus failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    console.print(
+        "entry_count="
+        f"{report.get('entry_count', 0)} "
+        f"required_preview_ready={report.get('required_preview_ready_count', 0)}/{report.get('required_entry_count', 0)} "
+        f"required_peer_ready={report.get('required_peer_ready_count', 0)}/{report.get('required_entry_count', 0)}"
+    )
+    console.print(
+        "corpus_green_for_preview="
+        f"{report.get('corpus_green_for_preview', False)} "
+        f"corpus_green_for_peer={report.get('corpus_green_for_peer', False)}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
+@triage_app.command("scenario-delta-compare")
+def triage_scenario_delta_compare(
+    baseline_left: Annotated[
+        Path,
+        typer.Option("--baseline-left", help="Baseline LOADFORMAT path for the left engine"),
+    ],
+    scenario_left: Annotated[
+        Path,
+        typer.Option("--scenario-left", help="Scenario LOADFORMAT path for the left engine"),
+    ],
+    baseline_right: Annotated[
+        Path,
+        typer.Option("--baseline-right", help="Baseline LOADFORMAT path for the right engine"),
+    ],
+    scenario_right: Annotated[
+        Path,
+        typer.Option("--scenario-right", help="Scenario LOADFORMAT path for the right engine"),
+    ],
+    left_label: Annotated[
+        str,
+        typer.Option("--left-label", help="Label for the left engine in the report"),
+    ] = "left",
+    right_label: Annotated[
+        str,
+        typer.Option("--right-label", help="Label for the right engine in the report"),
+    ] = "right",
+    variables: Annotated[
+        str,
+        typer.Option("--variables", help="Optional comma-separated variable allowlist"),
+    ] = "",
+    start: Annotated[
+        str | None,
+        typer.Option("--start", help="Optional start period (YYYY.Q)"),
+    ] = None,
+    end: Annotated[
+        str | None,
+        typer.Option("--end", help="Optional end period (YYYY.Q)"),
+    ] = None,
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV scenario-delta artifacts"),
+    ] = Path("artifacts/scenario_delta_compare"),
+) -> None:
+    """Compare how two engines reproduce one scenario's delta from baseline."""
+
+    from fp_wraptr.analysis.scenario_delta_compare import (
+        build_scenario_delta_compare_report,
+        write_scenario_delta_compare_report,
+    )
+
+    try:
+        requested_variables = [item.strip() for item in str(variables).split(",") if item.strip()]
+        report = build_scenario_delta_compare_report(
+            baseline_left=baseline_left,
+            scenario_left=scenario_left,
+            baseline_right=baseline_right,
+            scenario_right=scenario_right,
+            left_label=left_label,
+            right_label=right_label,
+            variables=requested_variables or None,
+            start=start,
+            end=end,
+        )
+        json_path, csv_path = write_scenario_delta_compare_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[red]Scenario delta compare failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    summary_rows = list(report.get("summary_rows", []) or [])
+    review_rows = [row for row in summary_rows if str(row.get("classification")) == "review"]
+    console.print(
+        "summary_rows="
+        f"{len(summary_rows)} "
+        f"review_rows={len(review_rows)} "
+        f"left={left_label} "
+        f"right={right_label}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]csv:[/green] {csv_path}")
+
+
 @triage_app.command("loop")
 def triage_loop(
     scenario: Annotated[Path, typer.Argument(help="Path to scenario YAML config")],
@@ -2278,7 +2741,12 @@ def fpr_compare(
         compare_fp_r_series_csv,
         write_fp_r_comparison_report,
     )
-    from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario
+    from fp_wraptr.scenarios.runner import (
+        backend_requires_fp_home,
+        load_scenario_config,
+        run_scenario,
+        validate_fp_home,
+    )
 
     try:
         config = load_scenario_config(scenario)
@@ -2290,6 +2758,8 @@ def fpr_compare(
         raise typer.Exit(code=1) from None
 
     config.backend = "fp-r"
+    if backend_requires_fp_home(config.backend):
+        validate_fp_home(config.fp_home)
 
     expected_path = expected
     if expected_path is None:

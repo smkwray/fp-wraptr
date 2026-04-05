@@ -74,10 +74,15 @@ normalize_specs <- function(specs) {
       target = as.character(target),
       kind = as.character(spec$kind %||% ""),
       expression = expression,
+      equation_number = as.integer(spec$equation_number %||% NA_integer_),
+      rhs_tokens = as.character(spec$rhs_tokens %||% character()),
+      coefficients = as.numeric(spec$coefficients %||% numeric()),
+      terms = spec$terms %||% list(),
       compiled = compiled,
       rho_terms = rho_terms,
       resid_ar1 = resid_ar1,
-      target_lag_source = as.character(spec$target_lag_source %||% "")
+      target_lag_source = as.character(spec$target_lag_source %||% ""),
+      active_fsr_terms = as.character(spec$active_fsr_terms %||% character())
     )
   })
 }
