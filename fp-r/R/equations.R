@@ -536,6 +536,7 @@ build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = l
 
   eq_rows <- list()
   eq_fsr_rows <- list()
+  raw_eq_fsr_tokens_by_equation <- list()
   modeq_rows <- list()
   eq_statements <- list()
   modeq_statements <- list()
@@ -549,6 +550,8 @@ build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = l
         next
       }
       if (isTRUE(parsed_eq$is_fsr)) {
+        equation_key <- as.character(parsed_eq$equation_number)
+        raw_eq_fsr_tokens_by_equation[[equation_key]] <- as.character(parsed_eq$rhs_tokens %||% character())
         eq_fsr_rows[[length(eq_fsr_rows) + 1L]] <- list(
           equation_number = parsed_eq$equation_number,
           token_count = length(parsed_eq$rhs_tokens),
@@ -653,6 +656,18 @@ build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = l
       spec_index <- as.integer(spec_index_by_number[[equation_key]])
       specs[[spec_index]]$active_fsr_terms <- active_fsr_tokens
     }
+  }
+
+  for (equation_key in names(spec_index_by_number)) {
+    spec_index <- as.integer(spec_index_by_number[[equation_key]])
+    if (length(specs[[spec_index]]$active_fsr_terms %||% character())) {
+      next
+    }
+    raw_eq_fsr_tokens <- as.character(raw_eq_fsr_tokens_by_equation[[equation_key]] %||% character())
+    if (!length(raw_eq_fsr_tokens)) {
+      next
+    }
+    specs[[spec_index]]$active_fsr_terms <- raw_eq_fsr_tokens
   }
 
   equations_frame <- if (!length(eq_rows)) {

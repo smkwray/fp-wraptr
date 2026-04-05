@@ -624,6 +624,634 @@ solve_statement_metadata <- function(statement, following_statements = list()) {
   )
 }
 
+resolve_standard_input_semantics_profile <- function(profile = NULL) {
+  normalized <- tolower(trimws(as.character(profile %||% getOption("fp_r.semantics_profile", "compat"))))
+  if (!nzchar(normalized) || normalized %in% c("default", "legacy")) {
+    normalized <- "compat"
+  }
+  if (!normalized %in% c("compat", "canonical")) {
+    stopf("Unknown standard-input semantics profile: %s", normalized)
+  }
+  canonical_active_set_start <- as.integer(
+    getOption("fp_r.canonical_active_set_start_iteration", 4L) %||% 4L
+  )
+  canonical_active_set_delta <- as.numeric(
+    getOption("fp_r.canonical_active_set_delta_threshold", 1e-6) %||% 1e-6
+  )
+  exogenous_equation_target_policy <- tolower(trimws(as.character(
+    getOption("fp_r.exogenous_equation_target_policy", "exclude_from_solve") %||% "exclude_from_solve"
+  )))
+  if (!exogenous_equation_target_policy %in% c(
+    "exclude_from_solve",
+    "retain_equation_targets",
+    "retain_reduced_eq_only"
+  )) {
+    stopf(
+      "Unknown exogenous equation-target policy: %s",
+      exogenous_equation_target_policy
+    )
+  }
+  list(
+    name = normalized,
+    apply_base_helper_overlay = TRUE,
+    exogenous_equation_target_policy = exogenous_equation_target_policy,
+    apply_outside_boundary_carry = identical(normalized, "compat"),
+    apply_outside_first_period_carry = TRUE,
+    outside_first_period_carry_mode = if (identical(normalized, "compat")) {
+      "full"
+    } else {
+      "boundary_materialized_only"
+    },
+    solver_policy = if (identical(normalized, "canonical")) "active_set_v1" else "full_scan",
+    solver_active_set_enabled = identical(normalized, "canonical"),
+    solver_active_set_start_iteration = if (identical(normalized, "canonical")) canonical_active_set_start else 0L,
+    solver_active_set_delta_threshold = if (identical(normalized, "canonical")) canonical_active_set_delta else 0.0
+  )
+}
+
+apply_semantics_profile_to_solve_control <- function(control, semantics_profile) {
+  control$semantics_profile <- semantics_profile$name
+  control$exogenous_equation_target_policy <- as.character(
+    semantics_profile$exogenous_equation_target_policy %||% "exclude_from_solve"
+  )
+  control$solver_policy <- as.character(semantics_profile$solver_policy %||% "full_scan")
+  control$active_set_enabled <- isTRUE(semantics_profile$solver_active_set_enabled)
+  control$active_set_start_iteration <- as.integer(
+    semantics_profile$solver_active_set_start_iteration %||% 0L
+  )
+  control$active_set_delta_threshold <- as.numeric(
+    semantics_profile$solver_active_set_delta_threshold %||% 0.0
+  )
+  control
+}
+
+resolve_outside_first_period_carry_targets <- function(plan, semantics_profile, protected_targets = character()) {
+  mode <- as.character(semantics_profile$outside_first_period_carry_mode %||% "full")
+  target_roles <- plan$target_roles %||% NULL
+  boundary_materialized_targets <- character()
+  if (is.data.frame(target_roles) &&
+      nrow(target_roles) &&
+      all(c("target", "boundary_materialized") %in% names(target_roles))) {
+    boundary_materialized_targets <- toupper(as.character(
+      target_roles$target[as.logical(target_roles$boundary_materialized)]
+    ))
+    boundary_materialized_targets <- boundary_materialized_targets[nzchar(boundary_materialized_targets)]
+  }
+  if (identical(mode, "boundary_materialized_only")) {
+    return(unique(boundary_materialized_targets))
+  }
+  if (identical(mode, "full")) {
+    targets <- unique(c(
+      toupper(as.character(plan$first_period_targets %||% character())),
+      boundary_materialized_targets,
+      toupper(as.character(protected_targets %||% character()))
+    ))
+    return(targets[nzchar(targets)])
+  }
+  if (identical(mode, "off")) {
+    return(character())
+  }
+  stopf("Unknown OUTSIDE first-period carry mode: %s", mode)
+}
+
+apply_outside_carry_plan_frame <- function(
+  frame,
+  sample_start,
+  plan,
+  semantics_profile,
+  protected_targets = character()
+) {
+  working <- frame
+  if (isTRUE(semantics_profile$apply_outside_boundary_carry)) {
+    working <- apply_outside_boundary_carry_frame(
+      working,
+      sample_start = sample_start,
+      targets = plan$boundary_targets %||% character()
+    )
+  }
+  if (isTRUE(semantics_profile$apply_outside_first_period_carry)) {
+    first_period_targets <- resolve_outside_first_period_carry_targets(
+      plan,
+      semantics_profile,
+      protected_targets = protected_targets
+    )
+    working <- apply_outside_first_period_carry_frame(
+      working,
+      sample_start = sample_start,
+      targets = first_period_targets
+    )
+  }
+  working
+}
+
+runtime_assignment_target_name <- function(statement) {
+  if (is.null(statement)) {
+    return("")
+  }
+  command <- statement_command_runtime(statement)
+  kind <- tolower(as.character(statement$kind %||% ""))
+  if (!(command %in% c("CREATE", "GENR", "IDENT", "LHS") || kind %in% c("create", "genr", "ident", "lhs"))) {
+    return("")
+  }
+  toupper(as.character(statement$name %||% statement$target %||% ""))
+}
+
+collect_outside_boundary_window_assignment_targets <- function(statements, sample_start) {
+  sample_index <- parse_period(sample_start)$index
+  active_window <- NULL
+  targets <- character()
+  for (statement in statements %||% list()) {
+    command <- statement_command_runtime(statement)
+    if (identical(command, "SMPL")) {
+      parsed <- parse_smpl_statement(statement$raw %||% "")
+      if (!is.null(parsed)) {
+        active_window <- c(parsed$start, parsed$end)
+      }
+      next
+    }
+    if (is.null(active_window) || length(active_window) < 2L) {
+      next
+    }
+    if (parse_period(active_window[[2]])$index >= sample_index) {
+      next
+    }
+    target <- runtime_assignment_target_name(statement)
+    if (nzchar(target)) {
+      targets <- c(targets, target)
+    }
+  }
+  unique(targets[nzchar(targets)])
+}
+
+annotate_outside_support_provenance <- function(specs, statements, sample_start) {
+  all_specs <- specs %||% list()
+  normalized_specs <- normalize_specs(Filter(
+    function(item) is.null(item$equation_number %||% NULL),
+    all_specs
+  ))
+  if (!length(normalized_specs)) {
+    return(list())
+  }
+  boundary_targets <- collect_outside_boundary_window_assignment_targets(statements, sample_start)
+  target_names <- vapply(normalized_specs, `[[`, character(1), "target")
+  spec_map <- stats::setNames(normalized_specs, target_names)
+
+  direct_negative_lag_targets <- unique(vapply(normalized_specs, function(spec) {
+    refs <- spec$compiled$references %||% NULL
+    if (!is.data.frame(refs) || !nrow(refs) || !any(as.integer(refs$lag) < 0L)) {
+      return("")
+    }
+    spec$target
+  }, character(1)))
+  direct_negative_lag_targets <- direct_negative_lag_targets[nzchar(direct_negative_lag_targets)]
+
+  boundary_seed_targets <- intersect(boundary_targets, direct_negative_lag_targets)
+
+  classify_zero_lag_support_roles <- function(seed_targets) {
+    queue <- unique(seed_targets[nzchar(seed_targets)])
+    roles <- stats::setNames(rep("none", length(spec_map)), names(spec_map))
+    depths <- stats::setNames(rep(NA_integer_, length(spec_map)), names(spec_map))
+    while (length(queue)) {
+      target <- queue[[1L]]
+      queue <- queue[-1L]
+      if (!(target %in% names(spec_map))) {
+        next
+      }
+      if (roles[[target]] == "none") {
+        roles[[target]] <- if (target %in% seed_targets) "seed" else "support"
+        depths[[target]] <- if (target %in% seed_targets) 0L else 1L
+      }
+      refs <- spec_map[[target]]$compiled$references %||% NULL
+      if (!is.data.frame(refs) || !nrow(refs)) {
+        next
+      }
+      zero_refs <- unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L])))
+      next_targets <- zero_refs[zero_refs %in% names(spec_map)]
+      current_depth <- depths[[target]] %||% 0L
+      for (next_target in next_targets) {
+        next_depth <- as.integer(current_depth) + 1L
+        if (identical(roles[[next_target]], "none")) {
+          roles[[next_target]] <- "support"
+          depths[[next_target]] <- next_depth
+          queue <- c(queue, next_target)
+          next
+        }
+        if (is.na(depths[[next_target]]) || next_depth < depths[[next_target]]) {
+          depths[[next_target]] <- next_depth
+          queue <- c(queue, next_target)
+        }
+      }
+    }
+    list(roles = roles, depths = depths)
+  }
+
+  boundary_support <- classify_zero_lag_support_roles(boundary_seed_targets)
+  boundary_roles <- boundary_support$roles %||% stats::setNames(rep("none", length(spec_map)), names(spec_map))
+  boundary_depths <- boundary_support$depths %||% stats::setNames(rep(NA_integer_, length(spec_map)), names(spec_map))
+  first_period_seed_targets <- unique(unlist(lapply(normalized_specs, function(spec) {
+    refs <- spec$compiled$references %||% NULL
+    if (!is.data.frame(refs) || !nrow(refs)) {
+      return(character())
+    }
+    lagged_boundary_refs <- unique(toupper(as.character(refs$name[as.integer(refs$lag) < 0L])))
+    lagged_boundary_refs[lagged_boundary_refs %in% boundary_targets]
+  })))
+  first_period_seed_targets <- first_period_seed_targets[nzchar(first_period_seed_targets)]
+  first_period_support <- classify_zero_lag_support_roles(first_period_seed_targets)
+  first_period_roles <- first_period_support$roles %||% stats::setNames(rep("none", length(spec_map)), names(spec_map))
+  first_period_depths <- first_period_support$depths %||% stats::setNames(rep(NA_integer_, length(spec_map)), names(spec_map))
+
+  lapply(normalized_specs, function(spec) {
+    refs <- spec$compiled$references %||% NULL
+    if (is.null(refs)) {
+      refs <- data.frame(name = character(), lag = integer(), stringsAsFactors = FALSE)
+    }
+    zero_lag_raw_refs <- unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L])))
+    zero_lag_raw_refs <- zero_lag_raw_refs[!(zero_lag_raw_refs %in% names(spec_map))]
+    negative_lag_raw_refs <- unique(toupper(as.character(refs$name[as.integer(refs$lag) < 0L])))
+    negative_lag_raw_refs <- negative_lag_raw_refs[!(negative_lag_raw_refs %in% names(spec_map))]
+    spec$outside_provenance <- list(
+      boundary_materialized = spec$target %in% boundary_targets,
+      direct_negative_lag = spec$target %in% direct_negative_lag_targets,
+      boundary_role = unname(boundary_roles[[spec$target]] %||% "none"),
+      boundary_depth = as.integer(boundary_depths[[spec$target]] %||% NA_integer_),
+      boundary_reachable = !identical(boundary_roles[[spec$target]] %||% "none", "none"),
+      first_period_role = unname(first_period_roles[[spec$target]] %||% "none"),
+      first_period_depth = as.integer(first_period_depths[[spec$target]] %||% NA_integer_),
+      first_period_reachable = !identical(first_period_roles[[spec$target]] %||% "none", "none"),
+      lagged_boundary_support_targets = unique(toupper(as.character(refs$name[as.integer(refs$lag) < 0L])))[
+        unique(toupper(as.character(refs$name[as.integer(refs$lag) < 0L]))) %in% boundary_targets
+      ],
+      zero_lag_support_targets = unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L])))[
+        unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L]))) %in% names(spec_map)
+      ],
+      zero_lag_raw_refs = zero_lag_raw_refs[nzchar(zero_lag_raw_refs)],
+      negative_lag_raw_refs = negative_lag_raw_refs[nzchar(negative_lag_raw_refs)]
+    )
+    spec
+  })
+}
+
+collect_outside_boundary_materialization_refs <- function(
+  specs,
+  statements,
+  sample_start,
+  protected_targets = character(),
+  equation_targets = character(),
+  equation_support_refs = character(),
+  annotated_specs = NULL
+) {
+  all_specs <- specs %||% list()
+  implicit_equation_targets <- unique(toupper(vapply(
+    Filter(function(item) !is.null(item$equation_number %||% NULL), all_specs),
+    function(item) as.character(item$target %||% item$name %||% ""),
+    character(1)
+  )))
+  normalized_specs <- annotated_specs %||% annotate_outside_support_provenance(all_specs, statements, sample_start)
+  if (!length(normalized_specs)) {
+    return(character())
+  }
+  boundary_selected <- vapply(normalized_specs, function(spec) {
+    provenance <- spec$outside_provenance %||% list()
+    role <- provenance$boundary_role %||% "none"
+    depth <- as.integer(provenance$boundary_depth %||% NA_integer_)
+    materialized <- isTRUE(provenance$boundary_materialized)
+    identical(role, "seed") ||
+      (identical(role, "support") &&
+        !materialized &&
+        isTRUE(!is.na(depth) && depth == 1L))
+  }, logical(1))
+  if (!any(boundary_selected)) {
+    return(character())
+  }
+  raw_refs <- unique(unlist(lapply(normalized_specs[boundary_selected], function(spec) {
+    as.character((spec$outside_provenance %||% list())$zero_lag_raw_refs %||% character())
+  })))
+
+  excluded <- unique(c(
+    toupper(as.character(protected_targets %||% character())),
+    toupper(as.character(equation_targets %||% character())),
+    implicit_equation_targets,
+    toupper(as.character(equation_support_refs %||% character()))
+  ))
+  raw_refs <- unique(raw_refs[nzchar(raw_refs)])
+  raw_refs[!(raw_refs %in% excluded)]
+}
+
+apply_outside_boundary_carry_frame <- function(frame, sample_start, targets = character()) {
+  targets <- unique(toupper(as.character(targets %||% character())))
+  if (!length(targets)) {
+    return(frame)
+  }
+  boundary_period <- format_period(parse_period(sample_start)$index - 1L)
+  source_period <- format_period(parse_period(boundary_period)$index - 1L)
+  boundary_pos <- match(boundary_period, as.character(frame$period))
+  source_pos <- match(source_period, as.character(frame$period))
+  if (is.na(boundary_pos) || is.na(source_pos)) {
+    return(frame)
+  }
+  working <- frame
+  for (target in targets) {
+    column <- resolve_frame_column_name(working, target)
+    if (!(column %in% names(working))) {
+      next
+    }
+    working[[column]][[boundary_pos]] <- as.numeric(working[[column]][[source_pos]])
+  }
+  working
+}
+
+collect_outside_first_period_materialization_input_refs <- function(
+  specs,
+  statements,
+  sample_start,
+  protected_targets = character(),
+  equation_targets = character(),
+  equation_support_refs = character(),
+  annotated_specs = NULL
+) {
+  all_specs <- specs %||% list()
+  implicit_equation_targets <- unique(toupper(vapply(
+    Filter(function(item) !is.null(item$equation_number %||% NULL), all_specs),
+    function(item) as.character(item$target %||% item$name %||% ""),
+    character(1)
+  )))
+  normalized_specs <- annotated_specs %||% annotate_outside_support_provenance(all_specs, statements, sample_start)
+  if (!length(normalized_specs)) {
+    return(character())
+  }
+  first_period_selected <- vapply(normalized_specs, function(spec) {
+    provenance <- spec$outside_provenance %||% list()
+    role <- provenance$first_period_role %||% "none"
+    depth <- as.integer(provenance$first_period_depth %||% NA_integer_)
+    identical(role, "support") &&
+      isTRUE(!is.na(depth) && depth == 1L)
+  }, logical(1))
+  if (!any(first_period_selected)) {
+    first_period_selected <- logical(length(normalized_specs))
+  }
+  excluded <- unique(c(
+    toupper(as.character(protected_targets %||% character())),
+    toupper(as.character(equation_targets %||% character())),
+    implicit_equation_targets
+  ))
+  raw_refs <- unique(unlist(lapply(normalized_specs[first_period_selected], function(spec) {
+    as.character((spec$outside_provenance %||% list())$zero_lag_raw_refs %||% character())
+  })))
+  boundary_materialized_targets <- unique(vapply(
+    Filter(function(spec) isTRUE((spec$outside_provenance %||% list())$boundary_materialized), normalized_specs),
+    function(spec) as.character(spec$target %||% spec$name %||% ""),
+    character(1)
+  ))
+  direct_equation_support_targets <- intersect(
+    toupper(as.character(equation_support_refs %||% character())),
+    toupper(as.character(boundary_materialized_targets %||% character()))
+  )
+  refs <- unique(c(raw_refs, direct_equation_support_targets))
+  refs <- unique(refs[nzchar(refs)])
+  refs[!(refs %in% setdiff(excluded, direct_equation_support_targets))]
+}
+
+build_outside_carry_plan <- function(
+  specs,
+  statements,
+  sample_start,
+  protected_targets = character(),
+  equation_targets = character(),
+  equation_support_refs = character()
+) {
+  annotated_specs <- annotate_outside_support_provenance(specs %||% list(), statements, sample_start)
+  boundary_targets <- collect_outside_boundary_materialization_refs(
+    specs,
+    statements = statements,
+    sample_start = sample_start,
+    protected_targets = protected_targets,
+    equation_targets = equation_targets,
+    equation_support_refs = equation_support_refs,
+    annotated_specs = annotated_specs
+  )
+  first_period_targets <- collect_outside_first_period_materialization_input_refs(
+    specs,
+    statements = statements,
+    sample_start = sample_start,
+    protected_targets = protected_targets,
+    equation_targets = equation_targets,
+    equation_support_refs = equation_support_refs,
+    annotated_specs = annotated_specs
+  )
+  role_rows <- if (length(annotated_specs)) {
+    do.call(rbind, lapply(annotated_specs, function(spec) {
+      provenance <- spec$outside_provenance %||% list()
+      data.frame(
+        target = as.character(spec$target %||% ""),
+        boundary_role = as.character(provenance$boundary_role %||% "none"),
+        boundary_depth = as.integer(provenance$boundary_depth %||% NA_integer_),
+        first_period_role = as.character(provenance$first_period_role %||% "none"),
+        first_period_depth = as.integer(provenance$first_period_depth %||% NA_integer_),
+        boundary_materialized = isTRUE(provenance$boundary_materialized),
+        direct_negative_lag = isTRUE(provenance$direct_negative_lag),
+        stringsAsFactors = FALSE,
+        check.names = FALSE
+      )
+    }))
+  } else {
+    data.frame(
+      target = character(),
+      boundary_role = character(),
+      boundary_depth = integer(),
+      first_period_role = character(),
+      first_period_depth = integer(),
+      boundary_materialized = logical(),
+      direct_negative_lag = logical(),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  }
+  list(
+    boundary_targets = unique(toupper(as.character(boundary_targets %||% character()))),
+    first_period_targets = unique(toupper(as.character(first_period_targets %||% character()))),
+    target_roles = role_rows
+  )
+}
+
+resolve_outside_snapshot_variables <- function(plan, watch_variables = character(), spec_targets = character()) {
+  role_rows <- plan$target_roles %||% data.frame()
+  role_targets <- if (is.data.frame(role_rows) && "target" %in% names(role_rows)) {
+    as.character(role_rows$target %||% character())
+  } else {
+    character()
+  }
+  vars <- unique(c(
+    toupper(as.character(plan$boundary_targets %||% character())),
+    toupper(as.character(plan$first_period_targets %||% character())),
+    toupper(role_targets),
+    toupper(as.character(watch_variables %||% character())),
+    toupper(as.character(spec_targets %||% character()))
+  ))
+  vars[nzchar(vars)]
+}
+
+build_frame_snapshot_rows <- function(frame, variables, sample_start, phase) {
+  vars <- unique(toupper(as.character(variables %||% character())))
+  vars <- vars[nzchar(vars)]
+  if (!length(vars) || is.null(frame) || !"period" %in% names(frame) || !nzchar(sample_start %||% "")) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  sample_index <- parse_period(sample_start)$index
+  periods <- unique(c(format_period(sample_index - 1L), as.character(sample_start)))
+  rows <- list()
+  for (period in periods) {
+    period_pos <- match(as.character(period), as.character(frame$period))
+    if (is.na(period_pos)) {
+      next
+    }
+    for (variable in vars) {
+      column <- resolve_frame_column_name(frame, variable)
+      if (!(column %in% names(frame))) {
+        next
+      }
+      value <- suppressWarnings(as.numeric(frame[[column]][[period_pos]]))
+      rows[[length(rows) + 1L]] <- data.frame(
+        phase = as.character(phase),
+        period = as.character(period),
+        variable = as.character(variable),
+        value = value,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (!length(rows)) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+append_exogenous_path_trace_rows <- function(current_rows, frame, active_window = NULL, exogenous_targets = character(), watch_variables = character(), phase = "") {
+  if (is.null(active_window) || length(active_window) < 2L || !nzchar(as.character(active_window[[1]] %||% ""))) {
+    return(current_rows)
+  }
+  trace_vars <- resolve_exogenous_path_trace_variables(
+    exogenous_targets = exogenous_targets,
+    watch_variables = watch_variables
+  )
+  rows <- build_frame_snapshot_rows(
+    frame,
+    trace_vars,
+    sample_start = as.character(active_window[[1]]),
+    phase = as.character(phase)
+  )
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(current_rows)
+  }
+  if (!is.data.frame(current_rows) || !nrow(current_rows)) {
+    return(rows)
+  }
+  unique(rbind(current_rows, rows))
+}
+
+resolve_live_frontier_trace_variables <- function(watch_variables = character(), spec_targets = character()) {
+  vars <- unique(c(
+    "UR", "UR1", "PCPD", "RS1", "PCM1L1A", "PCM1L1B", "RS", "RB", "RM",
+    toupper(as.character(watch_variables %||% character())),
+    toupper(as.character(spec_targets %||% character()))
+  ))
+  vars[nzchar(vars)]
+}
+
+resolve_exogenous_path_trace_variables <- function(exogenous_targets = character(), watch_variables = character()) {
+  vars <- unique(c(
+    "LUB", "UB", "UIFAC", "TRGH", "TRSH", "YD", "GDPR", "RS", "RB", "RM", "AH",
+    toupper(as.character(exogenous_targets %||% character())),
+    toupper(as.character(watch_variables %||% character()))
+  ))
+  vars[nzchar(vars)]
+}
+
+resolve_live_frontier_equation_trace_targets <- function(watch_variables = character(), spec_targets = character()) {
+  targets <- unique(c(
+    "UR", "UR1", "PCPD", "RS", "RB", "RM"
+  ))
+  targets[nzchar(targets)]
+}
+
+resolve_standard_input_equation_trace_config <- function(sample_start = "") {
+  raw_targets <- getOption("fp_r.equation_trace_targets", NULL)
+  if (is.null(raw_targets)) {
+    return(list(
+      enabled = FALSE,
+      targets = character(),
+      periods = character(),
+      max_iterations = 0L
+    ))
+  }
+  targets <- unique(toupper(as.character(raw_targets %||% character())))
+  targets <- targets[nzchar(targets)]
+  if (!length(targets)) {
+    return(list(
+      enabled = FALSE,
+      targets = character(),
+      periods = character(),
+      max_iterations = 0L
+    ))
+  }
+  raw_periods <- unique(as.character(getOption("fp_r.equation_trace_periods", character()) %||% character()))
+  raw_periods <- raw_periods[nzchar(raw_periods)]
+  periods <- if (length(raw_periods)) raw_periods else if (nzchar(sample_start %||% "")) as.character(sample_start) else character()
+  list(
+    enabled = TRUE,
+    targets = targets,
+    periods = periods,
+    max_iterations = as.integer(getOption("fp_r.equation_trace_max_iterations", 0L) %||% 0L)
+  )
+}
+
+resolve_standard_input_first_eval_targets <- function() {
+  raw_targets <- getOption("fp_r.first_eval_targets", NULL)
+  if (is.null(raw_targets)) {
+    return(character())
+  }
+  targets <- unique(toupper(as.character(raw_targets %||% character())))
+  targets <- targets[nzchar(targets)]
+  targets
+}
+
+apply_outside_first_period_carry_frame <- function(frame, sample_start, targets = character()) {
+  targets <- unique(toupper(as.character(targets %||% character())))
+  if (!length(targets)) {
+    return(frame)
+  }
+  sample_pos <- match(as.character(sample_start), as.character(frame$period))
+  if (is.na(sample_pos) || sample_pos <= 1L) {
+    return(frame)
+  }
+  source_pos <- sample_pos - 1L
+  working <- frame
+  for (target in targets) {
+    column <- resolve_frame_column_name(working, target)
+    if (!(column %in% names(working))) {
+      next
+    }
+    current_value <- as.numeric(working[[column]][[sample_pos]])
+    if (is.finite(current_value) && abs(current_value + 99.0) > 1e-12) {
+      next
+    }
+    working[[column]][[sample_pos]] <- as.numeric(working[[column]][[source_pos]])
+  }
+  working
+}
+
 resolve_runtime_output_path <- function(name, work_dir) {
   cleaned <- clean_fp_filename(name)
   if (!nzchar(cleaned)) {
@@ -633,6 +1261,90 @@ resolve_runtime_output_path <- function(name, work_dir) {
     return(normalizePath(cleaned, winslash = "/", mustWork = FALSE))
   }
   normalizePath(file.path(work_dir, cleaned), winslash = "/", mustWork = FALSE)
+}
+
+json_escape_string <- function(value) {
+  text <- as.character(value %||% "")
+  text <- gsub("\\\\", "\\\\\\\\", text, perl = TRUE)
+  text <- gsub("\"", "\\\\\"", text, perl = TRUE)
+  text <- gsub("\n", "\\\\n", text, fixed = TRUE)
+  text <- gsub("\r", "\\\\r", text, fixed = TRUE)
+  text <- gsub("\t", "\\\\t", text, fixed = TRUE)
+  paste0("\"", text, "\"")
+}
+
+render_json_value <- function(value, indent = 0L) {
+  indent_text <- paste(rep("  ", max(0L, as.integer(indent))), collapse = "")
+  next_indent_text <- paste(rep("  ", max(0L, as.integer(indent) + 1L)), collapse = "")
+  if (is.null(value)) {
+    return("null")
+  }
+  if (is.atomic(value) && length(value) == 0L) {
+    return("[]")
+  }
+  if (is.data.frame(value)) {
+    if (!nrow(value)) {
+      return("[]")
+    }
+    return(render_json_value(lapply(seq_len(nrow(value)), function(idx) as.list(value[idx, , drop = FALSE])), indent = indent))
+  }
+  if (is.list(value)) {
+    value_names <- names(value) %||% character(length(value))
+    if (!length(value)) {
+      return(if (length(value_names[nzchar(value_names)])) "{}" else "[]")
+    }
+    if (length(value_names) && any(nzchar(value_names))) {
+      parts <- character()
+      for (idx in seq_along(value)) {
+        key <- value_names[[idx]] %||% ""
+        if (!nzchar(key)) {
+          next
+        }
+        parts[[length(parts) + 1L]] <- paste0(
+          next_indent_text,
+          json_escape_string(key),
+          ": ",
+          render_json_value(value[[idx]], indent = indent + 1L)
+        )
+      }
+      if (!length(parts)) {
+        return("{}")
+      }
+      return(paste0("{\n", paste(parts, collapse = ",\n"), "\n", indent_text, "}"))
+    }
+    parts <- vapply(value, render_json_value, character(1), indent = indent + 1L)
+    return(paste0("[\n", paste0(next_indent_text, parts, collapse = ",\n"), "\n", indent_text, "]"))
+  }
+  if (is.logical(value)) {
+    if (length(value) != 1L || is.na(value)) {
+      return("null")
+    }
+    return(if (isTRUE(value)) "true" else "false")
+  }
+  if (is.numeric(value)) {
+    if (length(value) != 1L || !is.finite(value)) {
+      return("null")
+    }
+    return(as.character(signif(as.numeric(value), digits = 15L)))
+  }
+  if (length(value) > 1L) {
+    return(render_json_value(as.list(value), indent = indent))
+  }
+  json_escape_string(value)
+}
+
+write_json_output <- function(value, output_path) {
+  dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+  write_lines_output(output_path, render_json_value(value))
+  output_path
+}
+
+annotate_scanned_statement <- function(statement, source_path, source_order, source_depth = 0L) {
+  out <- normalize_scanned_statement(statement)
+  out$source_path <- as.character(source_path %||% "")
+  out$source_order <- as.integer(source_order %||% 0L)
+  out$source_depth <- as.integer(source_depth %||% 0L)
+  out
 }
 
 normalize_scanned_statement <- function(statement) {
@@ -1033,10 +1745,455 @@ emit_summary_output <- function(summary, output_name, work_dir) {
   output_path
 }
 
+resolve_bundle_outside_carry_plan <- function(bundle) {
+  direct_plan <- bundle$control$outside_carry_plan %||% bundle$runtime$outside_carry_plan %||% NULL
+  if (!is.null(direct_plan)) {
+    return(direct_plan)
+  }
+  solve_stages <- bundle$solve_stages %||% list()
+  if (length(solve_stages)) {
+    last_stage <- solve_stages[[length(solve_stages)]]
+    return(last_stage$bundle$control$outside_carry_plan %||% last_stage$bundle$runtime$outside_carry_plan %||% NULL)
+  }
+  NULL
+}
+
+resolve_bundle_outside_carry_snapshots <- function(bundle) {
+  direct_rows <- bundle$runtime$outside_carry_snapshots %||% NULL
+  if (is.data.frame(direct_rows) && nrow(direct_rows)) {
+    return(direct_rows)
+  }
+  solve_stages <- bundle$solve_stages %||% list()
+  if (!length(solve_stages)) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  last_stage <- solve_stages[[length(solve_stages)]]
+  runtime_rows <- last_stage$bundle$runtime$outside_carry_snapshots %||% NULL
+  if (!is.data.frame(runtime_rows)) {
+    runtime_rows <- data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    )
+  }
+  sample_start <- as.character(last_stage$bundle$control$sample_start %||% "")
+  snapshot_vars <- as.character(last_stage$bundle$runtime$outside_snapshot_variables %||% character())
+  post_rows <- if (length(snapshot_vars) && nzchar(sample_start)) {
+    build_frame_snapshot_rows(last_stage$result$series, snapshot_vars, sample_start, "post_solve")
+  } else {
+    data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    )
+  }
+  unique(rbind(runtime_rows, post_rows))
+}
+
+resolve_bundle_replay_plan_rows <- function(bundle) {
+  direct_rows <- bundle$presolve_replay_plan_rows %||% bundle$runtime$presolve_replay_plan_rows %||% NULL
+  if (is.data.frame(direct_rows)) {
+    return(direct_rows)
+  }
+  data.frame(
+    replay_order = integer(),
+    plan_type = character(),
+    command = character(),
+    target = character(),
+    active_window_start = character(),
+    active_window_end = character(),
+    preserve_mode = character(),
+    changevar_applied = logical(),
+    source_path = character(),
+    source_order = integer(),
+    cycle_revisit = logical(),
+    raw = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+resolve_bundle_replay_plan_meta <- function(bundle) {
+  bundle$presolve_replay_plan_meta %||% bundle$runtime$presolve_replay_plan_meta %||% list(
+    cyclic_targets = character(),
+    revisit_targets = character()
+  )
+}
+
+resolve_bundle_preserve_mode_audit <- function(bundle) {
+  direct_rows <- bundle$preserve_mode_audit %||% bundle$runtime$preserve_mode_audit %||% NULL
+  if (is.data.frame(direct_rows)) {
+    return(direct_rows)
+  }
+  data.frame(
+    target = character(),
+    mode = character(),
+    trigger_reason = character(),
+    trigger_period = character(),
+    protected_value = numeric(),
+    candidate_value = numeric(),
+    active_window_start = character(),
+    active_window_end = character(),
+    source_path = character(),
+    source_order = integer(),
+    command = character(),
+    raw = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+resolve_bundle_solve_input_trace_rows <- function(bundle) {
+  direct_rows <- bundle$runtime$solve_input_trace_rows %||% NULL
+  if (is.data.frame(direct_rows) && nrow(direct_rows)) {
+    return(direct_rows)
+  }
+  solve_stages <- bundle$solve_stages %||% list()
+  if (!length(solve_stages)) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(solve_stages, function(stage) {
+    runtime_rows <- stage$bundle$runtime$solve_input_trace_rows %||% data.frame()
+    if (!is.data.frame(runtime_rows) || !nrow(runtime_rows)) {
+      return(NULL)
+    }
+    runtime_rows$solve_stage <- as.integer(stage$stage %||% 0L)
+    runtime_rows
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      solve_stage = integer(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+resolve_bundle_exogenous_path_trace_rows <- function(bundle) {
+  rows <- bundle$exogenous_path_trace %||% bundle$runtime$exogenous_path_trace %||% data.frame()
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows
+}
+
+resolve_bundle_equation_first_eval_rows <- function(bundle) {
+  direct_rows <- bundle$runtime$equation_first_eval_rows %||% NULL
+  if (is.data.frame(direct_rows)) {
+    return(direct_rows)
+  }
+  solve_stages <- bundle$solve_stages %||% list()
+  if (!length(solve_stages)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      trace_kind = character(),
+      variable = character(),
+      lag = integer(),
+      source_name = character(),
+      source_period = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(solve_stages, function(stage) {
+    stage_rows <- stage$bundle$runtime$equation_first_eval_rows %||% data.frame()
+    if (!is.data.frame(stage_rows) || !nrow(stage_rows)) {
+      return(NULL)
+    }
+    stage_rows$solve_stage <- as.integer(stage$stage %||% 0L)
+    stage_rows
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      trace_kind = character(),
+      variable = character(),
+      lag = integer(),
+      source_name = character(),
+      source_period = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+resolve_bundle_equation_input_trace_rows <- function(bundle) {
+  solve_stages <- bundle$solve_stages %||% list()
+  if (!length(solve_stages)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      trace_kind = character(),
+      variable = character(),
+      lag = integer(),
+      source_name = character(),
+      source_period = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(solve_stages, function(stage) {
+    stage_rows <- stage$result$equation_input_trace %||% data.frame()
+    if (!is.data.frame(stage_rows) || !nrow(stage_rows)) {
+      return(NULL)
+    }
+    stage_rows$solve_stage <- as.integer(stage$stage %||% 0L)
+    stage_rows
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      trace_kind = character(),
+      variable = character(),
+      lag = integer(),
+      source_name = character(),
+      source_period = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+resolve_bundle_nonfinite_fallback_rows <- function(bundle) {
+  solve_stages <- bundle$solve_stages %||% list()
+  if (!length(solve_stages)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      fallback_reason = character(),
+      previous_value = numeric(),
+      evaluated_value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  rows <- lapply(solve_stages, function(stage) {
+    stage_rows <- stage$result$fallback_audit %||% data.frame()
+    if (!is.data.frame(stage_rows) || !nrow(stage_rows)) {
+      return(NULL)
+    }
+    stage_rows$solve_stage <- as.integer(stage$stage %||% 0L)
+    stage_rows
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) {
+    return(data.frame(
+      solve_stage = integer(),
+      period = character(),
+      iteration = integer(),
+      target = character(),
+      fallback_reason = character(),
+      previous_value = numeric(),
+      evaluated_value = numeric(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, rows)
+}
+
+emit_outside_carry_plan_outputs <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(character())
+  }
+  plan <- resolve_bundle_outside_carry_plan(bundle)
+  if (is.null(plan)) {
+    return(character())
+  }
+  summary_path <- resolve_runtime_output_path("OUTSIDE_CARRY_PLAN.txt", work_dir)
+  dir.create(dirname(summary_path), recursive = TRUE, showWarnings = FALSE)
+  write_lines_output(
+    summary_path,
+    c(
+      sprintf("boundary_targets=%s", paste(as.character(plan$boundary_targets %||% character()), collapse = ",")),
+      sprintf("first_period_targets=%s", paste(as.character(plan$first_period_targets %||% character()), collapse = ","))
+    )
+  )
+  role_path <- NULL
+  role_rows <- plan$target_roles %||% data.frame()
+  if (is.data.frame(role_rows)) {
+    role_path <- resolve_runtime_output_path("OUTSIDE_CARRY_ROLES.csv", work_dir)
+    dir.create(dirname(role_path), recursive = TRUE, showWarnings = FALSE)
+    write.csv(role_rows, role_path, row.names = FALSE)
+  }
+  Filter(Negate(is.null), c(summary_path, role_path))
+}
+
+emit_outside_carry_snapshot_outputs <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  snapshot_rows <- resolve_bundle_outside_carry_snapshots(bundle)
+  if (!is.data.frame(snapshot_rows) || !nrow(snapshot_rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("OUTSIDE_CARRY_SNAPSHOTS.csv", work_dir)
+  dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+  write.csv(snapshot_rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_replay_plan_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_replay_plan_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("REPLAY_PLAN.json", work_dir)
+  payload <- list(
+    replay_plan = if (nrow(rows)) lapply(seq_len(nrow(rows)), function(idx) as.list(rows[idx, , drop = FALSE])) else list(),
+    meta = resolve_bundle_replay_plan_meta(bundle)
+  )
+  write_json_output(payload, output_path)
+}
+
+emit_preserve_mode_audit_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_preserve_mode_audit(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("PRESERVE_MODE_AUDIT.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_solve_input_trace_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_solve_input_trace_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("SOLVE_INPUT_TRACE.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_exogenous_path_trace_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_exogenous_path_trace_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("EXOGENOUS_PATH_TRACE.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_equation_first_eval_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_equation_first_eval_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("EQUATION_FIRST_EVAL_SNAPSHOT.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_equation_input_trace_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_equation_input_trace_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("EQUATION_INPUT_SNAPSHOT.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
+emit_nonfinite_fallback_output <- function(bundle, work_dir) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(NULL)
+  }
+  rows <- resolve_bundle_nonfinite_fallback_rows(bundle)
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(NULL)
+  }
+  output_path <- resolve_runtime_output_path("NONFINITE_FALLBACKS.csv", work_dir)
+  write.csv(rows, output_path, row.names = FALSE)
+  output_path
+}
+
 emit_printmodel_support_outputs <- function(bundle, work_dir) {
   Filter(Negate(is.null), c(
     emit_summary_output(bundle$estimation_summary %||% data.frame(), "ESTIMATION_SUMMARY.csv", work_dir),
-    emit_summary_output(bundle$header_summary %||% data.frame(), "HEADER_SUMMARY.csv", work_dir)
+    emit_summary_output(bundle$header_summary %||% data.frame(), "HEADER_SUMMARY.csv", work_dir),
+    emit_replay_plan_output(bundle, work_dir),
+    emit_preserve_mode_audit_output(bundle, work_dir),
+    emit_outside_carry_plan_outputs(bundle, work_dir),
+    emit_outside_carry_snapshot_outputs(bundle, work_dir),
+    emit_solve_input_trace_output(bundle, work_dir),
+    emit_exogenous_path_trace_output(bundle, work_dir),
+    emit_equation_first_eval_output(bundle, work_dir),
+    emit_equation_input_trace_output(bundle, work_dir),
+    emit_nonfinite_fallback_output(bundle, work_dir)
+  ))
+}
+
+emit_solve_support_outputs <- function(bundle, work_dir) {
+  Filter(Negate(is.null), c(
+    emit_replay_plan_output(bundle, work_dir),
+    emit_preserve_mode_audit_output(bundle, work_dir),
+    emit_outside_carry_plan_outputs(bundle, work_dir),
+    emit_outside_carry_snapshot_outputs(bundle, work_dir),
+    emit_solve_input_trace_output(bundle, work_dir),
+    emit_exogenous_path_trace_output(bundle, work_dir),
+    emit_equation_first_eval_output(bundle, work_dir),
+    emit_equation_input_trace_output(bundle, work_dir),
+    emit_nonfinite_fallback_output(bundle, work_dir)
   ))
 }
 
@@ -1639,14 +2796,128 @@ emit_estimation_outputs <- function(estimation_summary, equations, estimation_re
 }
 
 is_fmexog_like_text <- function(text) {
-  lines <- strsplit(gsub("\r", "", text), "\n", fixed = TRUE)[[1]]
-  lines <- trimws(lines)
-  lines <- lines[nzchar(lines)]
-  if (!length(lines)) {
+  normalized <- gsub("\r", "", as.character(text %||% ""))
+  normalized <- trimws(normalized)
+  if (!nzchar(normalized)) {
     return(FALSE)
   }
-  any(grepl("^CHANGEVAR\\b", lines, ignore.case = TRUE, perl = TRUE)) ||
-    any(grepl("^RETURN\\b", lines, ignore.case = TRUE, perl = TRUE))
+
+  parsed_rows <- tryCatch(parse_fmexog_text(normalized), error = function(...) NULL)
+  if (is.data.frame(parsed_rows) && nrow(parsed_rows) > 0L) {
+    return(TRUE)
+  }
+
+  parsed <- tryCatch(parse_fp_input(normalized), error = function(...) NULL)
+  statements <- parsed$statements %||% list()
+  if (!length(statements)) {
+    return(FALSE)
+  }
+  commands <- unique(toupper(vapply(statements, function(item) {
+    as.character(item$command %||% "")
+  }, character(1))))
+  commands <- commands[nzchar(commands)]
+  if (!length(commands) || !("CHANGEVAR" %in% commands)) {
+    return(FALSE)
+  }
+  allowed_commands <- c("SMPL", "CHANGEVAR", "RETURN", "QUIT", "END")
+  all(commands %in% allowed_commands)
+}
+
+inline_changevar_payload_raw <- function(statements, index) {
+  if (is.null(statements) || !length(statements)) {
+    return("")
+  }
+  position <- as.integer(index %||% 0L)
+  if (!is.finite(position) || position < 1L || position >= length(statements)) {
+    return("")
+  }
+  trimws(as.character(statements[[position + 1L]]$raw %||% ""))
+}
+
+apply_inline_changevar_payload_frame <- function(frame, payload_raw, active_window) {
+  payload_text <- trimws(as.character(payload_raw %||% ""))
+  if (!nzchar(payload_text)) {
+    return(frame)
+  }
+  if (is.null(active_window) || length(active_window) < 2L) {
+    stopf("Inline CHANGEVAR payload encountered without an active SMPL window")
+  }
+  changevar_text <- paste(
+    sprintf("SMPL %s %s;", active_window[[1]], active_window[[2]]),
+    "CHANGEVAR;",
+    payload_text,
+    ";",
+    sep = "\n"
+  )
+  apply_fmexog_rows(frame, parse_fmexog_text(changevar_text))
+}
+
+collect_runtime_input_targets <- function(statements, search_dirs = NULL) {
+  items <- statements %||% list()
+  if (!length(items)) {
+    return(character())
+  }
+  targets <- character()
+  active_window <- NULL
+  fallback_window <- c("2000.1", "2000.1")
+
+  parse_changevar_targets <- function(payload_raw, window) {
+    payload_text <- trimws(as.character(payload_raw %||% ""))
+    if (!nzchar(payload_text)) {
+      return(character())
+    }
+    current_window <- window
+    if (is.null(current_window) || length(current_window) < 2L) {
+      current_window <- fallback_window
+    }
+    changevar_text <- paste(
+      sprintf("SMPL %s %s;", current_window[[1]], current_window[[2]]),
+      "CHANGEVAR;",
+      payload_text,
+      ";",
+      sep = "\n"
+    )
+    rows <- tryCatch(parse_fmexog_text(changevar_text), error = function(...) NULL)
+    if (!is.data.frame(rows) || !nrow(rows) || !"variable" %in% names(rows)) {
+      return(character())
+    }
+    unique(toupper(as.character(rows$variable)))
+  }
+
+  for (idx in seq_along(items)) {
+    statement <- items[[idx]]
+    raw <- statement$raw %||% ""
+    command <- statement_command_runtime(statement)
+    if (idx > 1L && identical(statement_command_runtime(items[[idx - 1L]]), "CHANGEVAR")) {
+      next
+    }
+    if (identical(command, "SMPL")) {
+      parsed_window <- parse_smpl_statement(raw)
+      if (!is.null(parsed_window)) {
+        active_window <- c(parsed_window$start, parsed_window$end)
+      }
+      next
+    }
+    if (identical(command, "INPUT")) {
+      input_name <- extract_fp_file_arg(raw, key = "FILE")
+      resolved_input <- resolve_fp_source_path(input_name, search_dirs)
+      if (!is.null(resolved_input)) {
+        rows <- tryCatch(parse_fmexog_file(resolved_input), error = function(...) NULL)
+        if (is.data.frame(rows) && nrow(rows) && "variable" %in% names(rows)) {
+          targets <- c(targets, toupper(as.character(rows$variable)))
+        }
+      }
+      next
+    }
+    if (identical(command, "CHANGEVAR")) {
+      targets <- c(targets, parse_changevar_targets(
+        inline_changevar_payload_raw(items, idx),
+        active_window
+      ))
+    }
+  }
+
+  unique(targets[nzchar(targets)])
 }
 
 parse_setupsolve_options <- function(statement) {
@@ -2076,7 +3347,14 @@ scan_fp_input_tree <- function(entry_input, search_dirs = NULL) {
 
     text <- paste(readLines(normalized, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
     parsed <- parse_fp_input(text)
-    parsed_statements <- parsed$statements
+    parsed_statements <- lapply(seq_along(parsed$statements %||% list()), function(idx) {
+      annotate_scanned_statement(
+        parsed$statements[[idx]],
+        source_path = normalized,
+        source_order = idx,
+        source_depth = length(stack)
+      )
+    })
     statements <- list()
     include_files <- character()
     loaddata_files <- character()
@@ -2103,7 +3381,10 @@ scan_fp_input_tree <- function(entry_input, search_dirs = NULL) {
           next
         }
         nested <- visit_file(include_path, stack = c(stack, normalized))
-        statements <- c(statements, nested$statements)
+        nested_statements <- Filter(function(item) {
+          !identical(statement_command_runtime(item), "RETURN")
+        }, nested$statements)
+        statements <- c(statements, nested_statements)
         include_files <- c(include_files, include_name, nested$include_files)
         loaddata_files <- c(loaddata_files, nested$loaddata_files)
         files_scanned <- c(files_scanned, nested$files_scanned)
@@ -2130,6 +3411,397 @@ scan_fp_input_tree <- function(entry_input, search_dirs = NULL) {
   visit_file(entry_path)
 }
 
+standard_assignment_target_name <- function(statement) {
+  toupper(as.character(statement$name %||% statement$target %||% ""))
+}
+
+collect_standard_assignment_targets <- function(statements = list()) {
+  if (!length(statements)) {
+    return(character())
+  }
+  targets <- vapply(
+    Filter(function(statement) {
+      command <- statement_command_runtime(statement)
+      command %in% c("CREATE", "GENR", "IDENT", "LHS", "EQ")
+    }, statements),
+    standard_assignment_target_name,
+    character(1)
+  )
+  unique(targets[nzchar(targets)])
+}
+
+normalize_assignment_expression_text <- function(expression) {
+  text <- trimws(as.character(expression %||% ""))
+  text <- sub(";\\s*$", "", text)
+  gsub("\\s+", "", text, perl = TRUE)
+}
+
+assignment_reference_keys <- function(statement) {
+  compiled <- statement$compiled %||% NULL
+  if (is.null(compiled)) {
+    expression <- sub(";\\s*$", "", as.character(statement$expression %||% ""))
+    if (nzchar(trimws(expression))) {
+      compiled <- compile_expression(expression)
+    }
+  }
+  refs <- compiled$references %||% NULL
+  if (!is.data.frame(refs) || !nrow(refs)) {
+    return(character())
+  }
+  unique(sprintf(
+    "%s(%d)",
+    toupper(as.character(refs$name)),
+    as.integer(refs$lag)
+  ))
+}
+
+build_assignment_statement_map <- function(statements = list(), targets = character()) {
+  wanted_targets <- unique(toupper(as.character(targets %||% character())))
+  wanted_targets <- wanted_targets[nzchar(wanted_targets)]
+  assignments <- Filter(function(item) {
+    !identical(item$kind %||% "control", "control") &&
+      nzchar(as.character(item$expression %||% ""))
+  }, statements %||% list())
+  statement_map <- list()
+  for (statement in assignments) {
+    target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+    if (!nzchar(target)) {
+      next
+    }
+    if (length(wanted_targets) && !(target %in% wanted_targets)) {
+      next
+    }
+    statement_map[[target]] <- statement
+  }
+  statement_map
+}
+
+scan_targeted_fmout_assignment_statements <- function(fmout_path, targets = character()) {
+  normalized_path <- normalizePath(fmout_path %||% "", winslash = "/", mustWork = FALSE)
+  wanted_targets <- unique(toupper(as.character(targets %||% character())))
+  wanted_targets <- wanted_targets[nzchar(wanted_targets)]
+  if (!nzchar(normalized_path) || !file.exists(normalized_path) || !length(wanted_targets)) {
+    return(list())
+  }
+
+  lines <- readLines(normalized_path, warn = FALSE, encoding = "UTF-8")
+  statement_map <- list()
+  current <- character()
+  current_target <- ""
+
+  flush_current <- function() {
+    if (!length(current) || !nzchar(current_target)) {
+      current <<- character()
+      current_target <<- ""
+      return(NULL)
+    }
+    raw <- paste(current, collapse = "\n")
+    parsed <- parse_assignment_statement(trimws(raw))
+    if (!is.null(parsed) && identical(toupper(as.character(parsed$name %||% "")), current_target)) {
+      parsed$expression <- sub(";\\s*$", "", as.character(parsed$expression %||% ""))
+      statement_map[[current_target]] <<- c(list(command = toupper(parsed$kind)), parsed)
+    }
+    current <<- character()
+    current_target <<- ""
+    NULL
+  }
+
+  for (line in lines) {
+    trimmed <- trimws(line)
+    if (!nzchar(trimmed)) {
+      next
+    }
+    if (!length(current)) {
+      matches <- regexec(
+        "^(GENR|IDENT|LHS|CREATE)\\s+([A-Za-z][A-Za-z0-9_]*)\\b",
+        trimmed,
+        perl = TRUE
+      )
+      parts <- regmatches(trimmed, matches)[[1]]
+      if (length(parts) < 3L) {
+        next
+      }
+      target <- toupper(parts[[3]])
+      if (!(target %in% wanted_targets)) {
+        next
+      }
+      current <- trimmed
+      current_target <- target
+      if (grepl(";\\s*$", trimmed)) {
+        flush_current()
+      }
+      next
+    }
+    current <- c(current, trimmed)
+    if (grepl(";\\s*$", trimmed)) {
+      flush_current()
+      if (length(statement_map) >= length(wanted_targets)) {
+        break
+      }
+    }
+  }
+  flush_current()
+  statement_map
+}
+
+build_fmout_assignment_statement_map <- function(fmout_path, targets = character()) {
+  normalized_path <- normalizePath(fmout_path %||% "", winslash = "/", mustWork = FALSE)
+  if (!nzchar(normalized_path) || !file.exists(normalized_path)) {
+    return(list())
+  }
+  wanted_targets <- unique(toupper(as.character(targets %||% character())))
+  wanted_targets <- wanted_targets[nzchar(wanted_targets)]
+  if (length(wanted_targets)) {
+    targeted <- scan_targeted_fmout_assignment_statements(normalized_path, targets = wanted_targets)
+    if (length(targeted)) {
+      return(targeted)
+    }
+  }
+  parsed <- tryCatch(
+    parse_fp_input(paste(readLines(normalized_path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")),
+    error = function(...) NULL
+  )
+  if (is.null(parsed)) {
+    return(list())
+  }
+  build_assignment_statement_map(parsed$statements, targets = targets)
+}
+
+compare_assignment_expression_sources <- function(statements = list(), fmout_path = NULL, targets = character()) {
+  scenario_map <- build_assignment_statement_map(statements, targets = targets)
+  fmout_map <- build_fmout_assignment_statement_map(fmout_path, targets = targets)
+  all_targets <- unique(c(names(scenario_map), names(fmout_map)))
+  all_targets <- all_targets[nzchar(all_targets)]
+  if (!length(all_targets)) {
+    return(data.frame(
+      target = character(),
+      scenario_expression = character(),
+      fmout_expression = character(),
+      expressions_match = logical(),
+      scenario_only_refs = character(),
+      fmout_only_refs = character(),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    ))
+  }
+
+  rows <- lapply(all_targets, function(target) {
+    scenario_statement <- scenario_map[[target]] %||% NULL
+    fmout_statement <- fmout_map[[target]] %||% NULL
+    scenario_expression <- as.character(scenario_statement$expression %||% "")
+    fmout_expression <- as.character(fmout_statement$expression %||% "")
+    scenario_refs <- assignment_reference_keys(scenario_statement %||% list())
+    fmout_refs <- assignment_reference_keys(fmout_statement %||% list())
+    data.frame(
+      target = target,
+      scenario_expression = scenario_expression,
+      fmout_expression = fmout_expression,
+      expressions_match = identical(
+        normalize_assignment_expression_text(scenario_expression),
+        normalize_assignment_expression_text(fmout_expression)
+      ),
+      scenario_only_refs = paste(setdiff(scenario_refs, fmout_refs), collapse = ","),
+      fmout_only_refs = paste(setdiff(fmout_refs, scenario_refs), collapse = ","),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+standard_input_simple_cust_replay_targets <- function() {
+  c("PIEF", "SF", "RECG")
+}
+
+resolve_simple_cust_compat_replay_statements <- function(
+  statements = list(),
+  fmout_path = NULL,
+  assignment_targets = character(),
+  preserve_modes_by_target = NULL,
+  semantics_profile = NULL
+) {
+  profile <- resolve_standard_input_semantics_profile(semantics_profile)
+  if (!identical(profile$name, "compat")) {
+    return(statements)
+  }
+  active_targets <- intersect(
+    unique(toupper(as.character(assignment_targets %||% character()))),
+    standard_input_simple_cust_replay_targets()
+  )
+  active_targets <- active_targets[nzchar(active_targets)]
+  if (!length(active_targets)) {
+    return(statements)
+  }
+  if (!is.null(preserve_modes_by_target) && length(preserve_modes_by_target)) {
+    active_targets <- active_targets[vapply(active_targets, function(target) {
+      identical(as.character(preserve_modes_by_target[[target]] %||% "skip"), "fallback")
+    }, logical(1))]
+  }
+  if (!length(active_targets)) {
+    return(statements)
+  }
+
+  comparison <- compare_assignment_expression_sources(
+    statements,
+    fmout_path = fmout_path,
+    targets = active_targets
+  )
+  if (!nrow(comparison)) {
+    return(statements)
+  }
+  replacement_targets <- comparison$target[
+    !comparison$expressions_match &
+      !nzchar(comparison$scenario_only_refs) &
+      comparison$fmout_only_refs == "CUST(0)"
+  ]
+  replacement_targets <- unique(toupper(as.character(replacement_targets)))
+  replacement_targets <- replacement_targets[nzchar(replacement_targets)]
+  if (!length(replacement_targets)) {
+    return(statements)
+  }
+
+  fmout_map <- build_fmout_assignment_statement_map(
+    fmout_path,
+    targets = replacement_targets
+  )
+  if (!length(fmout_map)) {
+    return(statements)
+  }
+
+  lapply(statements, function(statement) {
+    target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+    if (!nzchar(target) || !(target %in% replacement_targets) || is.null(fmout_map[[target]])) {
+      return(statement)
+    }
+    fmout_map[[target]]
+  })
+}
+
+parse_single_fp_statement <- function(raw) {
+  text <- trimws(as.character(raw %||% ""))
+  if (!nzchar(text)) {
+    return(NULL)
+  }
+  parsed <- parse_fp_input(paste0(text, if (grepl(";\\s*$", text)) "" else ";"))
+  statements <- parsed$statements %||% list()
+  if (!length(statements)) {
+    return(NULL)
+  }
+  statements[[1L]]
+}
+
+extract_base_helper_overlay_statements <- function(base_input_path, exclude_targets = character()) {
+  normalized_base <- normalizePath(base_input_path, winslash = "/", mustWork = TRUE)
+  text <- paste(readLines(normalized_base, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  parsed <- parse_fp_input(text)
+  statements <- lapply(seq_along(parsed$statements %||% list()), function(idx) {
+    annotate_scanned_statement(
+      parsed$statements[[idx]],
+      source_path = normalized_base,
+      source_order = idx,
+      source_depth = 0L
+    )
+  })
+  excluded <- unique(toupper(as.character(exclude_targets %||% character())))
+  excluded <- excluded[nzchar(excluded)]
+
+  overlay <- list()
+  for (statement in statements) {
+    command <- statement_command_runtime(statement)
+    if (identical(command, "SOLVE")) {
+      break
+    }
+    if (identical(command, "SMPL")) {
+      overlay[[length(overlay) + 1L]] <- statement
+      next
+    }
+    if (!(command %in% c("CREATE", "GENR", "IDENT", "LHS"))) {
+      next
+    }
+    target <- standard_assignment_target_name(statement)
+    if (nzchar(target) && target %in% excluded) {
+      next
+    }
+    overlay[[length(overlay) + 1L]] <- statement
+  }
+
+  list(
+    statements = overlay,
+    path = normalized_base
+  )
+}
+
+apply_base_helper_overlay_to_tree <- function(entry_path, tree, search_dirs = NULL, semantics_profile = NULL) {
+  profile <- resolve_standard_input_semantics_profile(semantics_profile)
+  entry_name <- tolower(basename(entry_path %||% ""))
+  if (!isTRUE(profile$apply_base_helper_overlay) || identical(entry_name, "fminput.txt")) {
+    return(tree)
+  }
+
+  base_input_path <- resolve_fp_source_path("fminput.txt", search_dirs)
+  if (is.null(base_input_path)) {
+    return(tree)
+  }
+  normalized_base <- normalizePath(base_input_path, winslash = "/", mustWork = TRUE)
+  normalized_entry <- normalizePath(entry_path, winslash = "/", mustWork = TRUE)
+  if (identical(normalized_base, normalized_entry)) {
+    return(tree)
+  }
+
+  statements <- tree$statements %||% list()
+  if (!length(statements)) {
+    tree$files_scanned <- unique(c(tree$files_scanned %||% character(), normalized_base))
+    return(tree)
+  }
+
+  exclude_targets <- collect_standard_assignment_targets(statements)
+  overlay <- extract_base_helper_overlay_statements(
+    normalized_base,
+    exclude_targets = exclude_targets
+  )
+  overlay_statements <- overlay$statements %||% list()
+  if (!length(overlay_statements)) {
+    tree$files_scanned <- unique(c(tree$files_scanned %||% character(), normalized_base))
+    return(tree)
+  }
+
+  solve_indices <- which(vapply(statements, function(statement) {
+    identical(statement_command_runtime(statement), "SOLVE")
+  }, logical(1)))
+  insert_at <- if (length(solve_indices)) solve_indices[[1L]] else NA_integer_
+
+  last_smpl_statement <- NULL
+  if (is.finite(insert_at)) {
+    for (statement in statements[seq_len(max(0L, insert_at - 1L))]) {
+      if (identical(statement_command_runtime(statement), "SMPL")) {
+        last_smpl_statement <- statement
+      }
+    }
+  }
+  restore_smpl <- last_smpl_statement
+
+  if (is.finite(insert_at)) {
+    before <- if (insert_at > 1L) statements[seq_len(insert_at - 1L)] else list()
+    after <- statements[seq.int(insert_at, length(statements))]
+    statements <- c(
+      before,
+      overlay_statements,
+      if (!is.null(restore_smpl)) list(restore_smpl) else list(),
+      after
+    )
+  } else {
+    statements <- c(
+      statements,
+      overlay_statements,
+      if (!is.null(restore_smpl)) list(restore_smpl) else list()
+    )
+  }
+
+  tree$statements <- statements
+  tree$files_scanned <- unique(c(tree$files_scanned %||% character(), normalized_base))
+  tree
+}
+
 prepare_standard_runtime <- function(statements, frame, search_dirs, default_fmexog_path = NULL) {
   working <- sort_frame_by_period(frame)
   active_window <- NULL
@@ -2144,6 +3816,9 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
     statement <- statements[[idx]]
     raw <- statement$raw %||% ""
     command <- statement_command_runtime(statement)
+    if (idx > 1L && identical(statement_command_runtime(statements[[idx - 1L]]), "CHANGEVAR")) {
+      next
+    }
     if (command %in% c("QUIT", "RETURN")) {
       termination_command <- command
       termination_index <- idx
@@ -2178,6 +3853,16 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
       if (!is.null(resolved_input)) {
         saw_runtime_input <- TRUE
         working <- apply_fmexog_rows(working, parse_fmexog_file(resolved_input))
+        working <- sort_frame_by_period(working)
+      }
+      next
+    }
+
+    if (identical(command, "CHANGEVAR")) {
+      payload_raw <- inline_changevar_payload_raw(statements, idx)
+      if (nzchar(payload_raw)) {
+        saw_runtime_input <- TRUE
+        working <- apply_inline_changevar_payload_frame(working, payload_raw, active_window)
         working <- sort_frame_by_period(working)
       }
       next
@@ -2425,6 +4110,45 @@ align_frame_finite_mask <- function(mask, frame) {
   setNames(out, setdiff(names(frame), "period"))
 }
 
+runtime_assignment_references_target <- function(statement, target, compiled = NULL) {
+  expression <- statement$expression %||% NULL
+  if (is.null(expression) || !nzchar(target)) {
+    return(FALSE)
+  }
+  compiled <- compiled %||% statement$compiled %||% compile_expression(expression)
+  refs <- compiled$references %||% NULL
+  if (is.null(refs) || !nrow(refs)) {
+    return(FALSE)
+  }
+  any(toupper(as.character(refs$name %||% character())) == toupper(target), na.rm = TRUE)
+}
+
+update_pre_solve_protected_target <- function(protected_frame, working, target) {
+  target <- toupper(as.character(target %||% ""))
+  if (!nzchar(target) || !nrow(working)) {
+    return(protected_frame)
+  }
+  protected <- ensure_frame_periods(
+    protected_frame,
+    as.character(working$period %||% character())
+  )
+  protected <- sort_frame_by_period(protected)
+  shared_periods <- intersect(as.character(protected$period), as.character(working$period))
+  if (!length(shared_periods)) {
+    return(protected)
+  }
+  if (!(target %in% names(working))) {
+    return(protected)
+  }
+  if (!(target %in% names(protected))) {
+    protected[[target]] <- NA_real_
+  }
+  protected_idx <- match(shared_periods, as.character(protected$period))
+  working_idx <- match(shared_periods, as.character(working$period))
+  protected[[target]][protected_idx] <- as.numeric(working[[target]][working_idx])
+  protected
+}
+
 runtime_assignment_positions <- function(frame, active_window = NULL) {
   if (!nrow(frame)) {
     return(integer())
@@ -2514,6 +4238,19 @@ apply_runtime_assignment_state_frame <- function(frame, statement, active_window
       target_mask[shared] <- current_mask[shared]
     }
   }
+  if (isTRUE(preserve_existing) &&
+    identical(preserve_mode, "skip") &&
+    length(target_positions)) {
+    all_protected <- all(vapply(target_positions, function(period_pos) {
+      period <- target_mask_names[[period_pos]]
+      isTRUE(target_mask[[period]]) && is.finite(as.numeric(target_values[[period_pos]]))
+    }, logical(1)))
+    if (isTRUE(all_protected)) {
+      working[[target]] <- target_values
+      state$series[[target]] <- target_values
+      return(list(frame = working, state = state, changed = FALSE))
+    }
+  }
 
   expression <- statement$expression %||% NULL
   if (is.null(expression)) {
@@ -2528,8 +4265,50 @@ apply_runtime_assignment_state_frame <- function(frame, statement, active_window
   }
 
   compiled <- statement$compiled %||% compile_expression(expression)
+  self_referential <- runtime_assignment_references_target(statement, target, compiled = compiled)
+  eval_positions <- target_positions
+  if (isTRUE(preserve_existing) && identical(preserve_mode, "skip") && length(eval_positions)) {
+    protected_positions <- eval_positions[
+      vapply(eval_positions, function(period_pos) {
+        period <- target_mask_names[[period_pos]]
+        isTRUE(target_mask[[period]]) && is.finite(as.numeric(target_values[[period_pos]]))
+      }, logical(1))
+    ]
+    if (length(protected_positions)) {
+      eval_positions <- setdiff(eval_positions, protected_positions)
+    }
+  }
   changed <- FALSE
-  for (period_pos in target_positions) {
+  if (!isTRUE(self_referential) && length(eval_positions)) {
+    values <- as.numeric(evaluate_compiled_expression_positions(
+      compiled,
+      state,
+      eval_positions,
+      strict = FALSE
+    ))
+    if (length(values) != length(eval_positions)) {
+      values <- rep_len(values, length(eval_positions))
+    }
+    if (isTRUE(preserve_existing) && identical(preserve_mode, "fallback")) {
+      restore_mask <- vapply(seq_along(eval_positions), function(idx) {
+        period_pos <- eval_positions[[idx]]
+        period <- target_mask_names[[period_pos]]
+        protected_value <- as.numeric(target_values[[period_pos]])
+        isTRUE(target_mask[[period]]) && is.finite(protected_value) && !is.finite(values[[idx]])
+      }, logical(1))
+      if (any(restore_mask)) {
+        values[restore_mask] <- target_values[eval_positions[restore_mask]]
+      }
+    }
+    if (length(values)) {
+      changed <- any(!mapply(numeric_values_equal, target_values[eval_positions], values))
+      target_values[eval_positions] <- values
+    }
+    working[[target]] <- target_values
+    state$series[[target]] <- target_values
+    return(list(frame = working, state = state, changed = changed))
+  }
+  for (period_pos in eval_positions) {
     period <- target_mask_names[[period_pos]]
     protected_value <- as.numeric(target_values[[period_pos]])
     if (isTRUE(preserve_existing) &&
@@ -2555,9 +4334,12 @@ apply_runtime_assignment_state_frame <- function(frame, statement, active_window
       changed <- TRUE
     }
     target_values[[period_pos]] <- value
-    state$series[[target]] <- target_values
+    if (isTRUE(self_referential)) {
+      state$series[[target]] <- target_values
+    }
   }
   working[[target]] <- target_values
+  state$series[[target]] <- target_values
 
   list(frame = working, state = state, changed = changed)
 }
@@ -2569,17 +4351,36 @@ base_standard_input_frame <- function(fmdata_path) {
   parse_fm_numeric_file(fmdata_path, block_name = basename(fmdata_path))
 }
 
-filter_standard_specs_for_exogenous <- function(specs, exogenous_targets = character()) {
+filter_standard_specs_for_exogenous <- function(specs, exogenous_targets = character(), retained_targets = character()) {
   if (!length(exogenous_targets)) {
     return(specs)
   }
+  normalized_retained_targets <- toupper(as.character(retained_targets %||% character()))
   Filter(
-    function(item) !(toupper(item$name %||% item$target %||% "") %in% toupper(exogenous_targets)),
+    function(item) {
+      target <- toupper(item$name %||% item$target %||% "")
+      !(target %in% toupper(exogenous_targets) && !(target %in% normalized_retained_targets))
+    },
     specs
   )
 }
 
-partition_standard_solve_specs <- function(eq_specs = list(), candidate_specs = list(), exogenous_targets = character()) {
+partition_standard_solve_specs <- function(
+  eq_specs = list(),
+  candidate_specs = list(),
+  exogenous_targets = character(),
+  exogenous_equation_target_policy = "exclude_from_solve"
+) {
+  normalized_policy <- tolower(as.character(
+    exogenous_equation_target_policy %||% "exclude_from_solve"
+  ))
+  if (!normalized_policy %in% c(
+    "exclude_from_solve",
+    "retain_equation_targets",
+    "retain_reduced_eq_only"
+  )) {
+    stopf("Unknown exogenous equation-target policy: %s", normalized_policy)
+  }
   eq_targets <- unique(toupper(vapply(
     eq_specs %||% list(),
     function(item) as.character(item$target %||% item$name %||% ""),
@@ -2612,6 +4413,30 @@ partition_standard_solve_specs <- function(eq_specs = list(), candidate_specs = 
   same_target_setup <- if (length(candidate_specs)) {
     setup_candidate_mask &
       candidate_targets %in% eq_targets
+  } else {
+    logical()
+  }
+  pure_create_setup_mask <- if (length(candidate_specs)) {
+    vapply(seq_along(candidate_specs), function(idx) {
+      if (!identical(candidate_kinds[[idx]], "create")) {
+        return(FALSE)
+      }
+      target <- candidate_targets[[idx]]
+      if (!nzchar(target) || target %in% eq_targets) {
+        return(FALSE)
+      }
+      item <- candidate_specs[[idx]]
+      compiled <- item$compiled %||% NULL
+      if (is.null(compiled) && !is.null(item$expression)) {
+        compiled <- compile_expression(item$expression)
+      }
+      refs <- compiled$references %||% NULL
+      if (is.null(refs) || !nrow(refs)) {
+        return(TRUE)
+      }
+      zero_refs <- unique(toupper(as.character(refs$name[refs$lag == 0L])))
+      !length(zero_refs[nzchar(zero_refs)])
+    }, logical(1))
   } else {
     logical()
   }
@@ -2668,7 +4493,7 @@ partition_standard_solve_specs <- function(eq_specs = list(), candidate_specs = 
   } else {
     logical()
   }
-  setup_only_mask <- same_target_setup | safe_setup_mask
+  setup_only_mask <- same_target_setup | safe_setup_mask | pure_create_setup_mask
   setup_only_assignments <- if (length(candidate_specs)) candidate_specs[setup_only_mask] else list()
   post_solve_assignments <- if (length(candidate_specs)) candidate_specs[same_target_lhs] else list()
   candidate_solve_specs <- if (length(candidate_specs)) {
@@ -2699,24 +4524,263 @@ partition_standard_solve_specs <- function(eq_specs = list(), candidate_specs = 
     }
     candidate_solve_specs <- candidate_solve_specs[keep_mask]
   }
-  solve_specs <- c(
-    eq_specs %||% list(),
-    candidate_solve_specs
-  )
+  retained_eq_targets <- if (normalized_policy %in% c("retain_equation_targets", "retain_reduced_eq_only")) {
+    intersect(eq_targets, toupper(as.character(exogenous_targets %||% character())))
+  } else {
+    character()
+  }
+  retained_candidate_targets <- if (identical(normalized_policy, "retain_equation_targets")) {
+    retained_eq_targets
+  } else {
+    character()
+  }
   list(
-    specs = filter_standard_specs_for_exogenous(solve_specs, exogenous_targets = exogenous_targets),
-    setup_only_assignments = filter_standard_specs_for_exogenous(setup_only_assignments, exogenous_targets = exogenous_targets),
-    post_solve_assignments = filter_standard_specs_for_exogenous(post_solve_assignments, exogenous_targets = exogenous_targets)
+    specs = c(
+      filter_standard_specs_for_exogenous(
+        eq_specs %||% list(),
+        exogenous_targets = exogenous_targets,
+        retained_targets = retained_eq_targets
+      ),
+      filter_standard_specs_for_exogenous(
+        candidate_solve_specs,
+        exogenous_targets = exogenous_targets,
+        retained_targets = retained_candidate_targets
+      )
+    ),
+    setup_only_assignments = filter_standard_specs_for_exogenous(
+      setup_only_assignments,
+      exogenous_targets = exogenous_targets,
+      retained_targets = character()
+    ),
+    post_solve_assignments = filter_standard_specs_for_exogenous(
+      post_solve_assignments,
+      exogenous_targets = exogenous_targets,
+      retained_targets = character()
+    )
   )
 }
 
-replay_selected_runtime_assignments <- function(statements, frame, assignment_targets = character(), coef_values = NULL, preserve_existing = FALSE, preserve_mode = c("skip", "fallback"), preserve_modes_by_target = NULL) {
+order_runtime_replay_assignment_block <- function(block_statements) {
+  if (!length(block_statements)) {
+    return(list(statements = list(), cyclic_targets = character()))
+  }
+  if (length(block_statements) == 1L) {
+    return(list(statements = block_statements, cyclic_targets = character()))
+  }
+  specs <- lapply(block_statements, function(item) {
+    list(
+      target = as.character(item$name %||% item$target %||% ""),
+      expression = item$expression %||% NULL,
+      compiled = item$compiled %||% NULL
+    )
+  })
+  details <- build_dependency_order_details(specs)
+  block_targets <- toupper(vapply(block_statements, function(item) as.character(item$name %||% item$target %||% ""), character(1)))
+  ordered_index <- match(details$order, block_targets)
+  ordered_index <- ordered_index[is.finite(ordered_index)]
+  list(
+    statements = block_statements[ordered_index],
+    cyclic_targets = unique(toupper(as.character(details$cyclic_targets %||% character())))
+  )
+}
+
+build_runtime_replay_plan <- function(items, assignment_targets = character(), replay_inline_changevar = TRUE) {
+  targets <- unique(toupper(as.character(assignment_targets %||% character())))
+  targets <- targets[nzchar(targets)]
+  plan <- list()
+  pending_block <- list()
+  pending_targets <- character()
+  cyclic_targets <- character()
+
+  flush_pending_block <- function() {
+    if (!length(pending_block)) {
+      return(NULL)
+    }
+    ordered <- order_runtime_replay_assignment_block(pending_block)
+    plan[[length(plan) + 1L]] <<- list(
+      type = "assignments",
+      statements = ordered$statements
+    )
+    cyclic_targets <<- c(cyclic_targets, ordered$cyclic_targets)
+    pending_block <<- list()
+    pending_targets <<- character()
+    NULL
+  }
+
+  idx <- 1L
+  while (idx <= length(items)) {
+    statement <- items[[idx]]
+    command <- statement_command_runtime(statement)
+    if (identical(command, "SMPL")) {
+      flush_pending_block()
+      plan[[length(plan) + 1L]] <- list(type = "smpl", statement = statement)
+      idx <- idx + 1L
+      next
+    }
+    if (identical(command, "CHANGEVAR")) {
+      flush_pending_block()
+      if (isTRUE(replay_inline_changevar)) {
+        payload_raw <- inline_changevar_payload_raw(items, idx)
+        if (nzchar(payload_raw)) {
+          plan[[length(plan) + 1L]] <- list(type = "changevar", statement = statement, raw = payload_raw)
+          idx <- idx + 2L
+          next
+        }
+      }
+      idx <- idx + 1L
+      next
+    }
+    if (!is_runtime_assignment_statement(statement)) {
+      idx <- idx + 1L
+      next
+    }
+    target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+    if (length(targets) && !(target %in% targets)) {
+      idx <- idx + 1L
+      next
+    }
+    if (target %in% pending_targets) {
+      flush_pending_block()
+    }
+    pending_block[[length(pending_block) + 1L]] <- statement
+    pending_targets <- c(pending_targets, target)
+    idx <- idx + 1L
+  }
+  flush_pending_block()
+
+  revisit_targets <- unique(cyclic_targets[nzchar(cyclic_targets)])
+  if (length(revisit_targets)) {
+    changed <- TRUE
+    while (changed) {
+      changed <- FALSE
+      for (plan_item in plan) {
+        for (statement in plan_item$statements %||% list()) {
+          target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+          if (!nzchar(target) || target %in% revisit_targets) {
+            next
+          }
+          compiled <- statement$compiled %||% compile_expression(statement$expression %||% "")
+          refs <- compiled$references %||% NULL
+          deps <- if (!is.null(refs) && nrow(refs) > 0L) {
+            unique(toupper(as.character(refs$name[refs$lag == 0L])))
+          } else {
+            character()
+          }
+          if (any(deps %in% revisit_targets)) {
+            revisit_targets <- c(revisit_targets, target)
+            changed <- TRUE
+          }
+        }
+      }
+    }
+  }
+
+  list(
+    plan = plan,
+    cyclic_targets = unique(cyclic_targets[nzchar(cyclic_targets)]),
+    revisit_targets = unique(revisit_targets[nzchar(revisit_targets)])
+  )
+}
+
+build_runtime_replay_plan_rows <- function(plan_payload, preserve_modes_by_target = NULL) {
+  plan_items <- plan_payload$plan %||% list()
+  if (!length(plan_items)) {
+    return(data.frame(
+      replay_order = integer(),
+      plan_type = character(),
+      command = character(),
+      target = character(),
+      active_window_start = character(),
+      active_window_end = character(),
+      preserve_mode = character(),
+      changevar_applied = logical(),
+      source_path = character(),
+      source_order = integer(),
+      cycle_revisit = logical(),
+      raw = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  active_window <- NULL
+  revisit_targets <- unique(toupper(as.character(plan_payload$revisit_targets %||% character())))
+  rows <- list()
+  replay_order <- 1L
+  for (plan_item in plan_items) {
+    if (identical(plan_item$type, "smpl")) {
+      statement <- plan_item$statement %||% list()
+      parsed_window <- parse_smpl_statement(statement$raw %||% "")
+      if (!is.null(parsed_window)) {
+        active_window <- c(parsed_window$start, parsed_window$end)
+      }
+      rows[[length(rows) + 1L]] <- data.frame(
+        replay_order = replay_order,
+        plan_type = "smpl",
+        command = "SMPL",
+        target = "",
+        active_window_start = as.character(active_window[[1]] %||% ""),
+        active_window_end = as.character(active_window[[2]] %||% ""),
+        preserve_mode = "",
+        changevar_applied = FALSE,
+        source_path = as.character(statement$source_path %||% ""),
+        source_order = as.integer(statement$source_order %||% 0L),
+        cycle_revisit = FALSE,
+        raw = as.character(statement$raw %||% ""),
+        stringsAsFactors = FALSE
+      )
+      replay_order <- replay_order + 1L
+      next
+    }
+    if (identical(plan_item$type, "changevar")) {
+      statement <- plan_item$statement %||% list()
+      rows[[length(rows) + 1L]] <- data.frame(
+        replay_order = replay_order,
+        plan_type = "changevar",
+        command = "CHANGEVAR",
+        target = "",
+        active_window_start = as.character(active_window[[1]] %||% ""),
+        active_window_end = as.character(active_window[[2]] %||% ""),
+        preserve_mode = "",
+        changevar_applied = TRUE,
+        source_path = as.character(statement$source_path %||% ""),
+        source_order = as.integer(statement$source_order %||% 0L),
+        cycle_revisit = FALSE,
+        raw = as.character(plan_item$raw %||% statement$raw %||% ""),
+        stringsAsFactors = FALSE
+      )
+      replay_order <- replay_order + 1L
+      next
+    }
+    for (statement in plan_item$statements %||% list()) {
+      target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+      rows[[length(rows) + 1L]] <- data.frame(
+        replay_order = replay_order,
+        plan_type = "assignment",
+        command = statement_command_runtime(statement),
+        target = target,
+        active_window_start = as.character(active_window[[1]] %||% ""),
+        active_window_end = as.character(active_window[[2]] %||% ""),
+        preserve_mode = if (!is.null(preserve_modes_by_target) && target %in% names(preserve_modes_by_target)) as.character(preserve_modes_by_target[[target]]) else "",
+        changevar_applied = FALSE,
+        source_path = as.character(statement$source_path %||% ""),
+        source_order = as.integer(statement$source_order %||% 0L),
+        cycle_revisit = isTRUE(target %in% revisit_targets),
+        raw = as.character(statement$raw %||% ""),
+        stringsAsFactors = FALSE
+      )
+      replay_order <- replay_order + 1L
+    }
+  }
+  do.call(rbind, rows)
+}
+
+replay_selected_runtime_assignments <- function(statements, frame, assignment_targets = character(), coef_values = NULL, preserve_existing = FALSE, preserve_mode = c("skip", "fallback"), preserve_modes_by_target = NULL, replay_inline_changevar = TRUE, replay_profile_path = "") {
   preserve_mode <- match.arg(preserve_mode)
   targets <- unique(toupper(as.character(assignment_targets %||% character())))
   targets <- targets[nzchar(targets)]
   if (!length(targets) || !length(statements)) {
     return(sort_frame_by_period(frame))
   }
+  replay_profile_rows <- list()
 
   target_snapshot <- function(current_frame, tracked_targets = targets) {
     snapshot <- data.frame(
@@ -2786,7 +4850,9 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
       NULL
     }
 
-    for (statement in items) {
+    idx <- 1L
+    while (idx <= length(items)) {
+      statement <- items[[idx]]
       command <- statement_command_runtime(statement)
       raw <- statement$raw %||% ""
       if (identical(command, "SMPL")) {
@@ -2795,13 +4861,32 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
           type = "smpl",
           raw = raw
         )
+        idx <- idx + 1L
+        next
+      }
+      if (identical(command, "CHANGEVAR")) {
+        flush_pending_block()
+        if (isTRUE(replay_inline_changevar)) {
+          payload_raw <- inline_changevar_payload_raw(items, idx)
+          if (nzchar(payload_raw)) {
+            plan[[length(plan) + 1L]] <- list(
+              type = "changevar",
+              raw = payload_raw
+            )
+            idx <- idx + 2L
+            next
+          }
+        }
+        idx <- idx + 1L
         next
       }
       if (!is_runtime_assignment_statement(statement)) {
+        idx <- idx + 1L
         next
       }
       target <- toupper(as.character(statement$name %||% statement$target %||% ""))
       if (!(target %in% targets)) {
+        idx <- idx + 1L
         next
       }
       if (target %in% pending_targets) {
@@ -2809,6 +4894,7 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
       }
       pending_block[[length(pending_block) + 1L]] <- statement
       pending_targets <- c(pending_targets, target)
+      idx <- idx + 1L
     }
     flush_pending_block()
     revisit_targets <- unique(cyclic_targets[nzchar(cyclic_targets)])
@@ -2898,6 +4984,7 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
     active_targets <- if (pass > 1L) unique(cyclic_targets) else character()
     changed_targets <- character()
     active_window <- NULL
+    applied_target_counts <- integer()
     for (plan_item in replay_plan$plan) {
       if (identical(plan_item$type, "smpl")) {
         parsed_window <- parse_smpl_statement(plan_item$raw %||% "")
@@ -2918,25 +5005,88 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
         }
         next
       }
+      if (identical(plan_item$type, "changevar")) {
+        working <- apply_inline_changevar_payload_frame(
+          working,
+          plan_item$raw %||% "",
+          active_window
+        )
+        working <- sort_frame_by_period(working)
+        if (isTRUE(preserve_existing)) {
+          preserve_mask <- build_frame_finite_mask(working)
+        }
+        state <- state_from_frame(working)
+        state$coef_values <- coef_values %||% state$coef_values %||% list()
+        next
+      }
       for (statement in plan_item$statements %||% list()) {
         target <- toupper(as.character(statement$name %||% ""))
         if (pass > 1L && length(active_targets) && !(target %in% active_targets)) {
           next
         }
+        prior_target_applications <- if (nzchar(target) && target %in% names(applied_target_counts)) {
+          as.integer(unname(applied_target_counts[target]))
+        } else {
+          0L
+        }
+        effective_preserve_existing <- isTRUE(preserve_existing) && (
+          prior_target_applications <= 0L ||
+            runtime_assignment_references_target(statement, target)
+        )
+        effective_preserve_mask <- if (isTRUE(effective_preserve_existing)) {
+          current_mask <- preserve_mask %||% list()
+          if (prior_target_applications > 0L && nzchar(target)) {
+            target_values <- as.numeric(state$series[[target]] %||% working[[target]] %||% rep(NA_real_, nrow(working)))
+            target_periods <- as.character(working$period %||% character())
+            target_current_mask <- as.logical(is.finite(target_values) & abs(target_values + 99.0) > 1e-12)
+            names(target_current_mask) <- target_periods
+            current_mask[[target]] <- target_current_mask
+          }
+          current_mask
+        } else {
+          NULL
+        }
+        started <- proc.time()[["elapsed"]]
         applied <- apply_runtime_assignment_state_frame(
           working,
           statement,
           active_window = active_window,
           state = state,
           coef_values = coef_values,
-          preserve_existing = preserve_existing,
-          preserve_mask = preserve_mask,
+          preserve_existing = effective_preserve_existing,
+          preserve_mask = effective_preserve_mask,
           preserve_mode = if (!is.null(preserve_modes_by_target) && target %in% names(preserve_modes_by_target)) {
             as.character(preserve_modes_by_target[[target]])
           } else {
             preserve_mode
           }
         )
+        elapsed_sec <- as.numeric(proc.time()[["elapsed"]] - started)
+        if (nzchar(target)) {
+          applied_target_counts[target] <- prior_target_applications + 1L
+        }
+        if (nzchar(replay_profile_path)) {
+          current_preserve_mode <- if (!is.null(preserve_modes_by_target) && target %in% names(preserve_modes_by_target)) {
+            as.character(preserve_modes_by_target[[target]])
+          } else {
+            preserve_mode
+          }
+          self_referential <- runtime_assignment_references_target(statement, target, compiled = statement$compiled %||% NULL)
+          window_positions <- runtime_assignment_positions(working, active_window)
+          replay_profile_rows[[length(replay_profile_rows) + 1L]] <- data.frame(
+            pass = as.integer(pass),
+            target = as.character(target),
+            command = as.character(statement_command_runtime(statement)),
+            preserve_mode = as.character(current_preserve_mode),
+            self_referential = as.logical(self_referential),
+            active_window_start = as.character(active_window[[1]] %||% ""),
+            active_window_end = as.character(active_window[[2]] %||% ""),
+            window_count = as.integer(length(window_positions)),
+            elapsed_sec = as.numeric(elapsed_sec),
+            changed = as.logical(applied$changed),
+            stringsAsFactors = FALSE
+          )
+        }
         working <- applied$frame
         state <- applied$state
         if (pass > 1L && isTRUE(applied$changed) && target %in% revisit_targets) {
@@ -2948,6 +5098,10 @@ replay_selected_runtime_assignments <- function(statements, frame, assignment_ta
     if (max_passes > 1L && pass > 1L && !length(changed_targets)) {
       break
     }
+  }
+  if (nzchar(replay_profile_path) && length(replay_profile_rows)) {
+    replay_profile <- do.call(rbind, replay_profile_rows)
+    utils::write.csv(replay_profile, replay_profile_path, row.names = FALSE)
   }
 
   working
@@ -2977,6 +5131,7 @@ infer_replay_preserve_modes <- function(statements, frame, assignment_targets = 
   target_set <- unique(toupper(targets))
   fallback_targets <- character()
   active_smpl <- active_window
+  audit_entries <- stats::setNames(rep(list(NULL), length(target_set)), target_set)
 
   eval_positions_for_target <- function(target_values) {
     finite_positions <- which(is.finite(target_values))
@@ -3007,6 +5162,22 @@ infer_replay_preserve_modes <- function(statements, frame, assignment_targets = 
     target <- toupper(as.character(statement$name %||% statement$target %||% ""))
     if (!(target %in% target_set) || target %in% fallback_targets) {
       next
+    }
+    if (is.null(audit_entries[[target]])) {
+      audit_entries[[target]] <- list(
+        target = target,
+        mode = "skip",
+        trigger_reason = "",
+        trigger_period = "",
+        protected_value = NA_real_,
+        candidate_value = NA_real_,
+        active_window_start = as.character(active_smpl[[1]] %||% ""),
+        active_window_end = as.character(active_smpl[[2]] %||% ""),
+        source_path = as.character(statement$source_path %||% ""),
+        source_order = as.integer(statement$source_order %||% 0L),
+        command = statement_command_runtime(statement),
+        raw = as.character(statement$raw %||% "")
+      )
     }
     resolved_target <- resolve_frame_column_name(working, target)
     if (!(resolved_target %in% names(working))) {
@@ -3039,10 +5210,20 @@ infer_replay_preserve_modes <- function(statements, frame, assignment_targets = 
       ))
       if (!is.finite(candidate_value) && is.finite(protected_value)) {
         fallback_targets <- c(fallback_targets, target)
+        audit_entries[[target]]$mode <- "fallback"
+        audit_entries[[target]]$trigger_reason <- "nonfinite_candidate"
+        audit_entries[[target]]$trigger_period <- period_label
+        audit_entries[[target]]$protected_value <- as.numeric(protected_value)
+        audit_entries[[target]]$candidate_value <- as.numeric(candidate_value)
         break
       }
       if (materially_differs_for_fallback(candidate_value, protected_value)) {
         fallback_targets <- c(fallback_targets, target)
+        audit_entries[[target]]$mode <- "fallback"
+        audit_entries[[target]]$trigger_reason <- "material_difference"
+        audit_entries[[target]]$trigger_period <- period_label
+        audit_entries[[target]]$protected_value <- as.numeric(protected_value)
+        audit_entries[[target]]$candidate_value <- as.numeric(candidate_value)
         break
       }
     }
@@ -3053,6 +5234,38 @@ infer_replay_preserve_modes <- function(statements, frame, assignment_targets = 
   if (length(fallback_targets)) {
     modes[unique(fallback_targets)] <- "fallback"
   }
+  audit_rows <- lapply(target_set, function(target) {
+    entry <- audit_entries[[target]] %||% list(
+      target = target,
+      mode = as.character(modes[[target]] %||% "skip"),
+      trigger_reason = "",
+      trigger_period = "",
+      protected_value = NA_real_,
+      candidate_value = NA_real_,
+      active_window_start = "",
+      active_window_end = "",
+      source_path = "",
+      source_order = 0L,
+      command = "",
+      raw = ""
+    )
+    data.frame(
+      target = as.character(entry$target %||% target),
+      mode = as.character(entry$mode %||% as.character(modes[[target]] %||% "skip")),
+      trigger_reason = as.character(entry$trigger_reason %||% ""),
+      trigger_period = as.character(entry$trigger_period %||% ""),
+      protected_value = as.numeric(entry$protected_value %||% NA_real_),
+      candidate_value = as.numeric(entry$candidate_value %||% NA_real_),
+      active_window_start = as.character(entry$active_window_start %||% ""),
+      active_window_end = as.character(entry$active_window_end %||% ""),
+      source_path = as.character(entry$source_path %||% ""),
+      source_order = as.integer(entry$source_order %||% 0L),
+      command = as.character(entry$command %||% ""),
+      raw = as.character(entry$raw %||% ""),
+      stringsAsFactors = FALSE
+    )
+  })
+  attr(modes, "audit") <- do.call(rbind, audit_rows)
   modes
 }
 
@@ -3075,7 +5288,38 @@ standard_presolve_replay_context <- function(statements, frame, termination_inde
       spec_limit = as.integer(spec_limit),
       statements = list(),
       assignment_targets = character(),
-      preserve_modes = stats::setNames(character(), character())
+      preserve_modes = stats::setNames(character(), character()),
+      preserve_mode_audit = data.frame(
+        target = character(),
+        mode = character(),
+        trigger_reason = character(),
+        trigger_period = character(),
+        protected_value = numeric(),
+        candidate_value = numeric(),
+        active_window_start = character(),
+        active_window_end = character(),
+        source_path = character(),
+        source_order = integer(),
+        command = character(),
+        raw = character(),
+        stringsAsFactors = FALSE
+      ),
+      replay_plan_rows = data.frame(
+        replay_order = integer(),
+        plan_type = character(),
+        command = character(),
+        target = character(),
+        active_window_start = character(),
+        active_window_end = character(),
+        preserve_mode = character(),
+        changevar_applied = logical(),
+        source_path = character(),
+        source_order = integer(),
+        cycle_revisit = logical(),
+        raw = character(),
+        stringsAsFactors = FALSE
+      ),
+      replay_plan_meta = list(cyclic_targets = character(), revisit_targets = character())
     ))
   }
 
@@ -3084,9 +5328,7 @@ standard_presolve_replay_context <- function(statements, frame, termination_inde
     Filter(
       function(item) {
         kind <- tolower(as.character(item$kind %||% ""))
-        target <- toupper(as.character(item$name %||% item$target %||% ""))
-        kind %in% c("create", "genr", "ident") &&
-          !(target %in% active_exogenous_targets)
+        kind %in% c("create", "genr", "ident")
       },
       pre_solve_statements
     ),
@@ -3099,19 +5341,59 @@ standard_presolve_replay_context <- function(statements, frame, termination_inde
     assignment_targets = pre_solve_assignment_targets,
     coef_values = coef_values
   )
+  replay_plan <- build_runtime_replay_plan(
+    pre_solve_statements,
+    assignment_targets = pre_solve_assignment_targets,
+    replay_inline_changevar = FALSE
+  )
   list(
     spec_limit = as.integer(spec_limit),
     statements = pre_solve_statements,
     assignment_targets = pre_solve_assignment_targets,
-    preserve_modes = preserve_modes
+    preserve_modes = preserve_modes,
+    preserve_mode_audit = attr(preserve_modes, "audit") %||% data.frame(),
+    replay_plan_rows = build_runtime_replay_plan_rows(replay_plan, preserve_modes_by_target = preserve_modes),
+    replay_plan_meta = list(
+      cyclic_targets = replay_plan$cyclic_targets %||% character(),
+      revisit_targets = replay_plan$revisit_targets %||% character()
+    )
   )
 }
 
 build_standard_solve_bundle <- function(sources, frame, history_statements, solve_index = 0L, active_window = NULL, setupsolve = list(), exogenous_targets = character(), solve_metadata = list()) {
+  semantics_profile <- resolve_standard_input_semantics_profile(
+    solve_metadata$semantics_profile %||% sources$semantics_profile %||% NULL
+  )
+  stage_progress_path <- as.character(solve_metadata$stage_build_progress_path %||% "")
+  stage_progress_index <- as.integer(solve_metadata$solve_stage_index %||% 0L)
+  build_started <- proc.time()[["elapsed"]]
+  append_solve_stage_build_progress_row(stage_progress_path, stage_progress_index, "bundle_enter", elapsed_sec = 0)
+  runtime_input_targets <- collect_runtime_input_targets(
+    history_statements,
+    search_dirs = sources$search_dirs %||% character()
+  )
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "runtime_input_targets_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(runtime_input_targets)
+  )
+  protected_input_targets <- unique(c(
+    toupper(as.character(exogenous_targets %||% character())),
+    runtime_input_targets
+  ))
   eq_support <- build_reduced_eq_specs(
     history_statements,
     fmout_path = sources$fmout,
     setupsolve = setupsolve
+  )
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "eq_support_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(eq_support$specs %||% list())
   )
   candidate_specs <- Filter(
     function(item) item$kind != "control" && !is.null(item$expression),
@@ -3120,7 +5402,15 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
   spec_partition <- partition_standard_solve_specs(
     eq_specs = eq_support$specs,
     candidate_specs = candidate_specs,
-    exogenous_targets = exogenous_targets
+    exogenous_targets = protected_input_targets,
+    exogenous_equation_target_policy = semantics_profile$exogenous_equation_target_policy
+  )
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "spec_partition_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(spec_partition$specs %||% list())
   )
   specs <- spec_partition$specs
   post_solve_assignments <- spec_partition$post_solve_assignments
@@ -3128,9 +5418,7 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     Filter(
       function(item) {
         kind <- tolower(as.character(item$kind %||% ""))
-        target <- toupper(as.character(item$name %||% item$target %||% ""))
-        kind %in% c("create", "genr", "ident") &&
-          !(target %in% toupper(as.character(exogenous_targets %||% character())))
+        kind %in% c("create", "genr", "ident")
       },
       candidate_specs
     ),
@@ -3144,20 +5432,247 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     coef_values = eq_support$coef_values %||% list(),
     active_window = active_window
   )
-  pre_solve_frame <- replay_selected_runtime_assignments(
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "preserve_modes_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(preserve_modes)
+  )
+  replay_statements <- resolve_simple_cust_compat_replay_statements(
     history_statements,
+    fmout_path = sources$fmout,
+    assignment_targets = pre_solve_assignment_targets,
+    preserve_modes_by_target = preserve_modes,
+    semantics_profile = semantics_profile$name
+  )
+  replay_plan <- build_runtime_replay_plan(
+    replay_statements,
+    assignment_targets = pre_solve_assignment_targets,
+    replay_inline_changevar = FALSE
+  )
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "replay_plan_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(replay_plan$ordered_statements %||% list())
+  )
+  replay_plan_rows <- build_runtime_replay_plan_rows(
+    replay_plan,
+    preserve_modes_by_target = preserve_modes
+  )
+  pre_solve_frame <- replay_selected_runtime_assignments(
+    replay_statements,
     frame,
     assignment_targets = pre_solve_assignment_targets,
     coef_values = eq_support$coef_values %||% list(),
     preserve_existing = TRUE,
     preserve_mode = "skip",
-    preserve_modes_by_target = preserve_modes
+    preserve_modes_by_target = preserve_modes,
+    replay_inline_changevar = FALSE,
+    replay_profile_path = as.character(solve_metadata$replay_profile_path %||% "")
   )
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "pre_solve_replay_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started)
+  )
+  snapshot_vars <- character()
+  snapshot_rows <- data.frame(
+    phase = character(),
+    period = character(),
+    variable = character(),
+    value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  solve_input_trace_rows <- data.frame(
+    phase = character(),
+    period = character(),
+    variable = character(),
+    value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  trace_variables <- resolve_live_frontier_trace_variables(
+    watch_variables = solve_metadata$watch_variables %||% character(),
+    spec_targets = vapply(specs %||% list(), function(item) as.character(item$target %||% item$name %||% ""), character(1))
+  )
+  if (!is.null(active_window) && length(active_window) >= 2L) {
+    solve_input_trace_rows <- rbind(
+      solve_input_trace_rows,
+      build_frame_snapshot_rows(frame, trace_variables, active_window[[1]], "incoming_bundle_state"),
+      build_frame_snapshot_rows(pre_solve_frame, trace_variables, active_window[[1]], "post_replay")
+    )
+  }
+  if (!is.null(active_window) &&
+      length(active_window) >= 2L &&
+      isTRUE(solve_metadata$options$outside) &&
+      isTRUE(solve_metadata$options$noreset)) {
+    equation_targets <- unique(toupper(vapply(eq_support$specs %||% list(), function(item) {
+      as.character(item$target %||% item$name %||% "")
+    }, character(1))))
+    equation_targets <- equation_targets[nzchar(equation_targets)]
+    equation_support_refs <- unique(unlist(lapply(eq_support$specs %||% list(), function(item) {
+      refs <- tokens_to_reference_frame(item$rhs_tokens %||% character())
+      if (!is.data.frame(refs) || !nrow(refs)) {
+        return(character())
+      }
+      unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L])))
+    })))
+    equation_support_refs <- equation_support_refs[nzchar(equation_support_refs)]
+    outside_carry_plan <- build_outside_carry_plan(
+      candidate_specs,
+      statements = history_statements,
+      sample_start = active_window[[1]],
+      protected_targets = protected_input_targets,
+      equation_targets = equation_targets,
+      equation_support_refs = equation_support_refs
+    )
+    append_solve_stage_build_progress_row(
+      stage_progress_path,
+      stage_progress_index,
+      "outside_carry_plan_ready",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+      row_count = length(outside_carry_plan$boundary_targets %||% character())
+    )
+    snapshot_vars <- resolve_outside_snapshot_variables(
+      outside_carry_plan,
+      watch_variables = solve_metadata$watch_variables %||% character(),
+      spec_targets = vapply(specs %||% list(), function(item) as.character(item$target %||% item$name %||% ""), character(1))
+    )
+    snapshot_rows <- build_frame_snapshot_rows(
+      pre_solve_frame,
+      snapshot_vars,
+      active_window[[1]],
+      "pre_carry"
+    )
+    if (isTRUE(semantics_profile$apply_outside_boundary_carry)) {
+      pre_solve_frame <- apply_outside_boundary_carry_frame(
+        pre_solve_frame,
+        sample_start = active_window[[1]],
+        targets = outside_carry_plan$boundary_targets
+      )
+      snapshot_rows <- rbind(
+        snapshot_rows,
+        build_frame_snapshot_rows(
+          pre_solve_frame,
+          snapshot_vars,
+          active_window[[1]],
+          "post_boundary_carry"
+        )
+      )
+      solve_input_trace_rows <- rbind(
+        solve_input_trace_rows,
+        build_frame_snapshot_rows(
+          pre_solve_frame,
+          trace_variables,
+          active_window[[1]],
+          "post_boundary_carry"
+        )
+      )
+    }
+    if (isTRUE(semantics_profile$apply_outside_first_period_carry)) {
+      first_period_carry_targets <- resolve_outside_first_period_carry_targets(
+        outside_carry_plan,
+        semantics_profile,
+        protected_targets = protected_input_targets
+      )
+      pre_solve_frame <- apply_outside_first_period_carry_frame(
+        pre_solve_frame,
+        sample_start = active_window[[1]],
+        targets = first_period_carry_targets
+      )
+      solve_input_trace_rows <- rbind(
+        solve_input_trace_rows,
+        build_frame_snapshot_rows(
+          pre_solve_frame,
+          trace_variables,
+          active_window[[1]],
+          "post_first_period_carry"
+        )
+      )
+    }
+    snapshot_rows <- rbind(
+      snapshot_rows,
+      build_frame_snapshot_rows(
+        pre_solve_frame,
+        snapshot_vars,
+        active_window[[1]],
+        "final_pre_solve"
+      )
+    )
+    solve_input_trace_rows <- rbind(
+      solve_input_trace_rows,
+      build_frame_snapshot_rows(
+        pre_solve_frame,
+        trace_variables,
+        active_window[[1]],
+        "final_pre_solve"
+      )
+    )
+  } else {
+    outside_carry_plan <- list(
+      boundary_targets = character(),
+      first_period_targets = character(),
+      target_roles = data.frame(
+        target = character(),
+        boundary_role = character(),
+        first_period_role = character(),
+        boundary_materialized = logical(),
+        direct_negative_lag = logical(),
+        stringsAsFactors = FALSE,
+        check.names = FALSE
+      )
+    )
+  }
 
   state <- state_from_frame(pre_solve_frame)
   state$coef_values <- eq_support$coef_values %||% numeric()
   if (!length(state$periods) && !is.null(active_window) && length(active_window) >= 2L) {
     state$periods <- seq_periods(active_window[[1]], active_window[[2]])
+  }
+  equation_first_eval_rows <- data.frame(
+    period = character(),
+    iteration = integer(),
+    target = character(),
+    trace_kind = character(),
+    variable = character(),
+    lag = integer(),
+    source_name = character(),
+    source_period = character(),
+    value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  first_eval_targets <- resolve_standard_input_first_eval_targets()
+  if (length(first_eval_targets) && !is.null(active_window) && length(active_window) >= 2L) {
+    eval_period_pos <- match(as.character(active_window[[1]]), state$periods)
+    if (!is.na(eval_period_pos)) {
+      normalized_specs <- normalize_specs(specs %||% list())
+      first_eval_targets <- intersect(first_eval_targets, vapply(normalized_specs, `[[`, character(1), "target"))
+      if (length(first_eval_targets)) {
+        first_eval_rows <- lapply(first_eval_targets, function(target) {
+          spec <- normalized_specs[[which(vapply(normalized_specs, function(item) identical(item$target, target), logical(1)))[1L]]]
+          previous <- as.numeric(state$series[[target]][[eval_period_pos]])
+          evaluation <- suppressWarnings(evaluate_spec_at_period(
+            spec,
+            state,
+            eval_period_pos,
+            strict = FALSE,
+            resid_state = NULL
+          ))
+          rbind(
+            build_spec_reference_trace_rows(spec, state, eval_period_pos, 0L),
+            build_spec_active_fsr_trace_rows(spec, state, eval_period_pos, 0L),
+            build_spec_result_trace_rows(spec, state, eval_period_pos, 0L, previous, evaluation)
+          )
+        })
+        first_eval_rows <- Filter(function(item) is.data.frame(item) && nrow(item), first_eval_rows)
+        if (length(first_eval_rows)) {
+          equation_first_eval_rows <- do.call(rbind, first_eval_rows)
+        }
+      }
+    }
   }
 
   control <- setupsolve %||% list()
@@ -3165,8 +5680,17 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     control$sample_start <- active_window[[1]]
     control$sample_end <- active_window[[2]]
   }
+  control <- apply_semantics_profile_to_solve_control(control, semantics_profile)
   control$order <- vapply(specs, function(item) as.character(item$target %||% item$name %||% ""), character(1))
   control$order <- control$order[nzchar(control$order)]
+  control$outside_carry_plan <- outside_carry_plan
+  append_solve_stage_build_progress_row(
+    stage_progress_path,
+    stage_progress_index,
+    "bundle_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
+    row_count = length(specs %||% list())
+  )
 
   list(
     name = tools::file_path_sans_ext(basename(sources$entry_path)),
@@ -3175,23 +5699,39 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
       fmdata = sources$fmdata,
       fmexog = sources$fmexog,
       fmout = sources$fmout,
-      files_scanned = sources$tree$files_scanned
+      files_scanned = sources$tree$files_scanned,
+      runtime_input_targets = runtime_input_targets
     ),
     runtime = list(
       statements = sources$tree$statements,
       solve_index = as.integer(solve_index),
       solve_window_start = active_window[[1]] %||% "",
       solve_window_end = active_window[[2]] %||% "",
+      semantics_profile = semantics_profile$name,
+      solver_policy = semantics_profile$solver_policy,
       solve_options = solve_metadata$options %||% list(),
       watch_variables = solve_metadata$watch_variables %||% character(),
       solve_option_text = solve_metadata$option_text %||% "",
-      solve_watch_text = solve_metadata$watch_text %||% ""
+      solve_watch_text = solve_metadata$watch_text %||% "",
+      presolve_replay_plan_rows = replay_plan_rows,
+      presolve_replay_plan_meta = list(
+        cyclic_targets = replay_plan$cyclic_targets %||% character(),
+        revisit_targets = replay_plan$revisit_targets %||% character()
+      ),
+      preserve_mode_audit = attr(preserve_modes, "audit") %||% data.frame(),
+      outside_carry_plan = outside_carry_plan,
+      outside_snapshot_variables = snapshot_vars,
+      outside_carry_snapshots = unique(snapshot_rows),
+      equation_first_eval_rows = unique(equation_first_eval_rows),
+      solve_input_trace_rows = unique(solve_input_trace_rows)
     ),
     equations = eq_support,
     state = state,
     specs = specs,
     post_solve_assignments = post_solve_assignments,
     control = control,
+    semantics_profile = semantics_profile$name,
+    solver_policy = semantics_profile$solver_policy,
     input_text = paste(vapply(history_statements, function(item) paste0(item$raw, ";"), character(1)), collapse = "\n")
   )
 }
@@ -3204,10 +5744,63 @@ empty_standard_diagnostics <- function() {
     converged = logical(),
     max_delta = numeric(),
     termination = character(),
+    elapsed_sec = numeric(),
+    spec_count = integer(),
     sample_start = character(),
     sample_end = character(),
     stringsAsFactors = FALSE
   )
+}
+
+append_solve_stage_progress_row <- function(work_dir, solve_stage, event, sample_start = "", sample_end = "", elapsed_sec = NA_real_, spec_count = NA_integer_) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(invisible(NULL))
+  }
+  progress_path <- file.path(work_dir, "SOLVE_STAGE_PROGRESS.csv")
+  row <- data.frame(
+    solve_stage = as.integer(solve_stage),
+    event = as.character(event),
+    sample_start = as.character(sample_start %||% ""),
+    sample_end = as.character(sample_end %||% ""),
+    elapsed_sec = as.numeric(elapsed_sec),
+    spec_count = as.integer(spec_count),
+    recorded_at = as.character(Sys.time()),
+    stringsAsFactors = FALSE
+  )
+  utils::write.table(
+    row,
+    file = progress_path,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(progress_path),
+    append = file.exists(progress_path),
+    quote = TRUE
+  )
+  invisible(progress_path)
+}
+
+append_solve_stage_build_progress_row <- function(progress_path, solve_stage, event, elapsed_sec = NA_real_, row_count = NA_integer_) {
+  if (is.null(progress_path) || !nzchar(progress_path)) {
+    return(invisible(NULL))
+  }
+  row <- data.frame(
+    solve_stage = as.integer(solve_stage),
+    event = as.character(event),
+    elapsed_sec = as.numeric(elapsed_sec),
+    row_count = as.integer(row_count),
+    recorded_at = as.character(Sys.time()),
+    stringsAsFactors = FALSE
+  )
+  utils::write.table(
+    row,
+    file = progress_path,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(progress_path),
+    append = file.exists(progress_path),
+    quote = TRUE
+  )
+  invisible(progress_path)
 }
 
 emit_runtime_printvar <- function(frame, statement, active_window, work_dir, source_info = NULL, search_dirs = NULL) {
@@ -3256,12 +5849,19 @@ emit_runtime_printvar <- function(frame, statement, active_window, work_dir, sou
 }
 
 run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path = NULL, fmout_path = NULL, search_dirs = NULL, work_dir = NULL) {
+  semantics_profile <- resolve_standard_input_semantics_profile()
   sources <- resolve_standard_input_sources(
     entry_input,
     fmdata_path = fmdata_path,
     fmexog_path = fmexog_path,
     fmout_path = fmout_path,
     search_dirs = search_dirs
+  )
+  sources$tree <- apply_base_helper_overlay_to_tree(
+    sources$entry_path,
+    sources$tree,
+    search_dirs = sources$search_dirs,
+    semantics_profile = semantics_profile$name
   )
   statements <- sources$tree$statements
   runtime_coef_values <- build_reduced_eq_specs(
@@ -3284,6 +5884,41 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     exogenous_targets = runtime_preview$exogenous_targets %||% character(),
     coef_values = runtime_coef_values
   )
+  historical_preserve_targets <- character()
+  if (!is.null(runtime_preview$solve_snapshot)) {
+    history_statements <- statements[seq_len(max(0L, as.integer(runtime_preview$solve_snapshot$solve_index %||% 0L) - 1L))]
+    if (length(history_statements)) {
+      solve_eq_support <- build_reduced_eq_specs(
+        history_statements,
+        fmout_path = sources$fmout,
+        setupsolve = runtime_preview$solve_snapshot$setupsolve %||% list()
+      )
+      solve_candidate_specs <- Filter(
+        function(item) item$kind != "control" && !is.null(item$expression),
+        history_statements
+      )
+      solve_partition <- partition_standard_solve_specs(
+        eq_specs = solve_eq_support$specs,
+        candidate_specs = solve_candidate_specs,
+        exogenous_targets = unique(c(
+          toupper(as.character(runtime_preview$solve_snapshot$exogenous_targets %||% character())),
+          collect_runtime_input_targets(history_statements, search_dirs = sources$search_dirs)
+        )),
+        exogenous_equation_target_policy = semantics_profile$exogenous_equation_target_policy
+      )
+      spec_targets <- unique(toupper(vapply(
+        solve_partition$specs %||% list(),
+        function(item) as.character(item$name %||% item$target %||% ""),
+        character(1)
+      )))
+      setup_targets <- unique(toupper(vapply(
+        solve_partition$setup_only_assignments %||% list(),
+        function(item) as.character(item$name %||% item$target %||% ""),
+        character(1)
+      )))
+      historical_preserve_targets <- setdiff(spec_targets[nzchar(spec_targets)], setup_targets[nzchar(setup_targets)])
+    }
+  }
   active_window <- NULL
   exogenous_targets <- character()
   setupsolve <- list()
@@ -3295,6 +5930,15 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
   termination_command <- ""
   has_runtime_input <- isTRUE(runtime_preview$saw_runtime_input)
   protected_frame <- working
+  pre_solve_applied_target_counts <- integer()
+  exogenous_path_trace <- data.frame(
+    phase = character(),
+    period = character(),
+    variable = character(),
+    value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  forecast_trace_start <- as.character(runtime_preview$solve_snapshot$sample_start %||% "")
 
   if (!has_runtime_input && !is.null(sources$fmexog) && nzchar(sources$fmexog) && file.exists(sources$fmexog)) {
     working <- apply_fmexog_rows(working, parse_fmexog_file(sources$fmexog))
@@ -3307,6 +5951,9 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     statement <- statements[[idx]]
     raw <- statement$raw %||% ""
     command <- statement_command_runtime(statement)
+    if (idx > 1L && identical(statement_command_runtime(statements[[idx - 1L]]), "CHANGEVAR")) {
+      next
+    }
     if (command %in% c("QUIT", "RETURN")) {
       termination_command <- command
       break
@@ -3320,6 +5967,15 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         if (!length(solve_results)) {
           protected_frame <- ensure_frame_periods(protected_frame, seq_periods(active_window[[1]], active_window[[2]]))
           protected_frame <- sort_frame_by_period(protected_frame)
+        }
+        if (nzchar(forecast_trace_start) && identical(as.character(active_window[[1]]), forecast_trace_start)) {
+          exogenous_path_trace <- append_exogenous_path_trace_rows(
+            exogenous_path_trace,
+            working,
+            active_window = active_window,
+            exogenous_targets = exogenous_targets,
+            phase = "forecast_window_entry"
+          )
         }
       }
       next
@@ -3355,6 +6011,39 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
           protected_frame <- apply_fmexog_rows(protected_frame, parse_fmexog_file(resolved_input))
           protected_frame <- sort_frame_by_period(protected_frame)
         }
+        if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
+            identical(as.character(active_window[[1]]), forecast_trace_start)) {
+          exogenous_path_trace <- append_exogenous_path_trace_rows(
+            exogenous_path_trace,
+            working,
+            active_window = active_window,
+            exogenous_targets = exogenous_targets,
+            phase = sprintf("post_input_%s", basename(resolved_input))
+          )
+        }
+      }
+      next
+    }
+
+    if (identical(command, "CHANGEVAR")) {
+      payload_raw <- inline_changevar_payload_raw(statements, idx)
+      if (nzchar(payload_raw)) {
+        working <- apply_inline_changevar_payload_frame(working, payload_raw, active_window)
+        working <- sort_frame_by_period(working)
+        if (!length(solve_results)) {
+          protected_frame <- apply_inline_changevar_payload_frame(protected_frame, payload_raw, active_window)
+          protected_frame <- sort_frame_by_period(protected_frame)
+        }
+        if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
+            identical(as.character(active_window[[1]]), forecast_trace_start)) {
+          exogenous_path_trace <- append_exogenous_path_trace_rows(
+            exogenous_path_trace,
+            working,
+            active_window = active_window,
+            exogenous_targets = exogenous_targets,
+            phase = "post_changevar"
+          )
+        }
       }
       next
     }
@@ -3363,6 +6052,16 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       variable <- extract_fp_named_arg(raw, key = "VARIABLE")
       if (nzchar(variable %||% "")) {
         exogenous_targets <- unique(c(exogenous_targets, variable))
+        if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
+            identical(as.character(active_window[[1]]), forecast_trace_start)) {
+          exogenous_path_trace <- append_exogenous_path_trace_rows(
+            exogenous_path_trace,
+            working,
+            active_window = active_window,
+            exogenous_targets = exogenous_targets,
+            phase = sprintf("post_exogenous_%s", toupper(as.character(variable)))
+          )
+        }
       }
       next
     }
@@ -3393,6 +6092,16 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
             include_all_columns = TRUE
           )
         }
+        if (!length(solve_results) && nzchar(forecast_trace_start) &&
+            identical(as.character(active_window[[1]]), forecast_trace_start)) {
+          exogenous_path_trace <- append_exogenous_path_trace_rows(
+            exogenous_path_trace,
+            working,
+            active_window = active_window,
+            exogenous_targets = exogenous_targets,
+            phase = "post_extrapolate"
+          )
+        }
       }
       next
     }
@@ -3404,13 +6113,38 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
 
     if (is_runtime_assignment_statement(statement)) {
       target <- toupper(as.character(statement$name %||% statement$target %||% ""))
+      command_kind <- statement_command_runtime(statement)
+      prior_target_applications <- if (!length(solve_results) &&
+        nzchar(target) &&
+        target %in% names(pre_solve_applied_target_counts)) {
+        as.integer(unname(pre_solve_applied_target_counts[[target]]))
+      } else {
+        0L
+      }
+      effective_preserve_existing <- !length(solve_results) && (
+        prior_target_applications <= 0L ||
+          runtime_assignment_references_target(statement, target)
+      )
+      effective_preserve_mask <- if (isTRUE(effective_preserve_existing)) {
+        current_mask <- build_frame_finite_mask(protected_frame)
+        if (prior_target_applications > 0L && nzchar(target)) {
+          target_values <- as.numeric(working[[target]] %||% rep(NA_real_, nrow(working)))
+          target_periods <- as.character(working$period %||% character())
+          target_current_mask <- as.logical(is.finite(target_values) & abs(target_values + 99.0) > 1e-12)
+          names(target_current_mask) <- target_periods
+          current_mask[[target]] <- target_current_mask
+        }
+        current_mask
+      } else {
+        NULL
+      }
       working <- apply_runtime_assignment_frame(
         working,
         statement,
         active_window = active_window,
         coef_values = runtime_coef_values,
-        preserve_existing = !length(solve_results),
-        preserve_mask = if (!length(solve_results)) build_frame_finite_mask(protected_frame) else NULL,
+        preserve_existing = effective_preserve_existing,
+        preserve_mask = effective_preserve_mask,
         preserve_mode = if (!length(solve_results)) {
           if (target %in% names(presolve_replay$preserve_modes)) {
             as.character(presolve_replay$preserve_modes[[target]])
@@ -3422,13 +6156,38 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         }
       )
       working <- sort_frame_by_period(working)
+      if (!length(solve_results) && nzchar(target)) {
+        pre_solve_applied_target_counts[[target]] <- prior_target_applications + 1L
+      }
+      if (!length(solve_results) && identical(command_kind, "CREATE")) {
+        protected_frame <- update_pre_solve_protected_target(protected_frame, working, target)
+      }
       next
     }
 
     if (identical(command, "SOLVE")) {
+      if (nzchar(forecast_trace_start) && !is.null(active_window) &&
+          identical(as.character(active_window[[1]]), forecast_trace_start)) {
+        exogenous_path_trace <- append_exogenous_path_trace_rows(
+          exogenous_path_trace,
+          working,
+          active_window = active_window,
+          exogenous_targets = exogenous_targets,
+          phase = sprintf("pre_solve_stage_%d", length(solve_results) + 1L)
+        )
+      }
       history_statements <- if (idx <= 1L) list() else statements[seq_len(idx - 1L)]
       following_statements <- if (idx < length(statements)) statements[seq.int(idx + 1L, length(statements))] else list()
       solve_metadata <- solve_statement_metadata(statement, following_statements)
+      stage_index <- length(solve_results) + 1L
+      stage_started <- proc.time()[["elapsed"]]
+      append_solve_stage_progress_row(
+        work_dir,
+        solve_stage = stage_index,
+        event = "stage_bundle_start",
+        sample_start = active_window[[1]] %||% "",
+        sample_end = active_window[[2]] %||% ""
+      )
       stage_bundle <- build_standard_solve_bundle(
         sources,
         frame = working,
@@ -3437,17 +6196,70 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         active_window = active_window,
         setupsolve = setupsolve,
         exogenous_targets = exogenous_targets,
-        solve_metadata = solve_metadata
+        solve_metadata = modifyList(solve_metadata, list(
+          solve_stage_index = stage_index,
+          stage_build_progress_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+            file.path(work_dir, "SOLVE_STAGE_BUILD_PROGRESS.csv")
+          } else {
+            ""
+          },
+          replay_profile_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+            file.path(work_dir, "REPLAY_PROFILE.csv")
+          } else {
+            ""
+          }
+        ))
       )
-      stage_result <- mini_run(stage_bundle, control = list(resid_ar1_states = resid_ar1_states))
+      append_solve_stage_progress_row(
+        work_dir,
+        solve_stage = stage_index,
+        event = "stage_bundle_ready",
+        sample_start = stage_bundle$control$sample_start %||% "",
+        sample_end = stage_bundle$control$sample_end %||% "",
+        elapsed_sec = as.numeric(proc.time()[["elapsed"]] - stage_started),
+        spec_count = length(stage_bundle$specs %||% list())
+      )
+      solve_started <- proc.time()[["elapsed"]]
+      stage_result <- mini_run(stage_bundle, control = list(
+        resid_ar1_states = resid_ar1_states,
+        solve_stage_index = stage_index,
+        period_progress_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+          file.path(work_dir, "SOLVE_PERIOD_PROGRESS.csv")
+        } else {
+          ""
+        },
+        iteration_profile_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+          file.path(work_dir, "SOLVE_ITERATION_PROFILE.csv")
+        } else {
+          ""
+        }
+      ))
+      append_solve_stage_progress_row(
+        work_dir,
+        solve_stage = stage_index,
+        event = "stage_solve_complete",
+        sample_start = stage_bundle$control$sample_start %||% "",
+        sample_end = stage_bundle$control$sample_end %||% "",
+        elapsed_sec = as.numeric(proc.time()[["elapsed"]] - solve_started),
+        spec_count = length(stage_bundle$specs %||% list())
+      )
       working <- sort_frame_by_period(stage_result$series)
+      if (nzchar(forecast_trace_start) &&
+          identical(as.character(stage_bundle$control$sample_start %||% ""), forecast_trace_start)) {
+        exogenous_path_trace <- append_exogenous_path_trace_rows(
+          exogenous_path_trace,
+          working,
+          active_window = c(stage_bundle$control$sample_start %||% "", stage_bundle$control$sample_end %||% ""),
+          exogenous_targets = exogenous_targets,
+          phase = sprintf("post_solve_stage_%d", stage_index)
+        )
+      }
       resid_ar1_states <- stage_result$resid_ar1_states %||% resid_ar1_states
-      stage_index <- length(solve_results) + 1L
       stage_diag <- stage_result$diagnostics
       stage_diag$solve_stage <- stage_index
       stage_diag$sample_start <- stage_bundle$control$sample_start %||% ""
       stage_diag$sample_end <- stage_bundle$control$sample_end %||% ""
-      stage_diag <- stage_diag[, c("solve_stage", "period", "iterations", "converged", "max_delta", "termination", "sample_start", "sample_end"), drop = FALSE]
+      stage_diag <- stage_diag[, c("solve_stage", "period", "iterations", "converged", "max_delta", "termination", "elapsed_sec", "spec_count", "sample_start", "sample_end"), drop = FALSE]
       solve_results[[stage_index]] <- list(
         stage = stage_index,
         solve_index = idx,
@@ -3534,6 +6346,9 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         list(
           bundle_name = tools::file_path_sans_ext(basename(sources$entry_path)),
           solve_stages = solve_results,
+          presolve_replay_plan_rows = presolve_replay$replay_plan_rows %||% data.frame(),
+          presolve_replay_plan_meta = presolve_replay$replay_plan_meta %||% list(),
+          preserve_mode_audit = presolve_replay$preserve_mode_audit %||% data.frame(),
           specs = last_stage$bundle$specs %||% list(),
           equations = last_stage$bundle$equations %||% build_reduced_eq_specs(statements, fmout_path = sources$fmout, setupsolve = setupsolve),
           estimation_summary = collect_estimation_summary(statements),
@@ -3544,6 +6359,9 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         list(
           bundle_name = tools::file_path_sans_ext(basename(sources$entry_path)),
           solve_stages = list(),
+          presolve_replay_plan_rows = presolve_replay$replay_plan_rows %||% data.frame(),
+          presolve_replay_plan_meta = presolve_replay$replay_plan_meta %||% list(),
+          preserve_mode_audit = presolve_replay$preserve_mode_audit %||% data.frame(),
           specs = eq_support$specs %||% list(),
           equations = eq_support,
           estimation_summary = collect_estimation_summary(statements),
@@ -3642,6 +6460,18 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
   if (length(solve_paths)) {
     emitted_files <- c(emitted_files, solve_paths)
   }
+  solve_support_paths <- emit_solve_support_outputs(list(
+    solve_stages = solve_results,
+    presolve_replay_plan_rows = presolve_replay$replay_plan_rows %||% data.frame(),
+    presolve_replay_plan_meta = presolve_replay$replay_plan_meta %||% list(),
+    preserve_mode_audit = presolve_replay$preserve_mode_audit %||% data.frame(),
+    exogenous_path_trace = exogenous_path_trace,
+    control = if (is.null(last_stage)) list() else last_stage$bundle$control %||% list(),
+    runtime = if (is.null(last_stage)) list() else last_stage$bundle$runtime %||% list()
+  ), work_dir)
+  if (length(solve_support_paths)) {
+    emitted_files <- c(emitted_files, solve_support_paths)
+  }
   estimation_paths <- emit_estimation_outputs(
     collect_estimation_summary(statements),
     equation_support,
@@ -3669,6 +6499,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
 
   list(
     bundle_name = tools::file_path_sans_ext(basename(sources$entry_path)),
+    semantics_profile = semantics_profile$name,
     series = working,
     diagnostics = diagnostics,
     order = if (is.null(last_stage)) character() else last_stage$result$order,
@@ -3679,6 +6510,10 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     solve_options = if (is.null(last_stage)) list() else last_stage$solve_metadata$options %||% list(),
     watch_variables = if (is.null(last_stage)) character() else as.character(last_stage$solve_metadata$watch_variables %||% character()),
     emitted_files = unique(normalizePath(emitted_files, winslash = "/", mustWork = FALSE)),
+    presolve_replay_plan_rows = presolve_replay$replay_plan_rows %||% data.frame(),
+    presolve_replay_plan_meta = presolve_replay$replay_plan_meta %||% list(),
+    preserve_mode_audit = presolve_replay$preserve_mode_audit %||% data.frame(),
+    exogenous_path_trace = exogenous_path_trace,
     header_summary = collect_header_summary(statements),
     estimation_summary = collect_estimation_summary(statements),
     source = list(
@@ -3686,7 +6521,8 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       fmdata = sources$fmdata,
       fmexog = sources$fmexog,
       fmout = sources$fmout,
-      files_scanned = sources$tree$files_scanned
+      files_scanned = sources$tree$files_scanned,
+      semantics_profile = semantics_profile$name
     ),
     test_outputs = test_results,
     specs = last_stage$bundle$specs %||% list(),
@@ -3695,12 +6531,19 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
 }
 
 read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_path = NULL, fmout_path = NULL, search_dirs = NULL) {
+  semantics_profile <- resolve_standard_input_semantics_profile()
   sources <- resolve_standard_input_sources(
     entry_input,
     fmdata_path = fmdata_path,
     fmexog_path = fmexog_path,
     fmout_path = fmout_path,
     search_dirs = search_dirs
+  )
+  sources$tree <- apply_base_helper_overlay_to_tree(
+    sources$entry_path,
+    sources$tree,
+    search_dirs = sources$search_dirs,
+    semantics_profile = semantics_profile$name
   )
   entry_path <- sources$entry_path
   tree <- sources$tree
@@ -3739,15 +6582,77 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
     assignment_targets = presolve_replay$assignment_targets,
     coef_values = eq_support$coef_values %||% list()
   )
+  replay_statements <- resolve_simple_cust_compat_replay_statements(
+    presolve_replay$statements,
+    fmout_path = resolved_fmout,
+    assignment_targets = presolve_replay$assignment_targets,
+    preserve_modes_by_target = presolve_replay$preserve_modes,
+    semantics_profile = semantics_profile$name
+  )
+  replay_plan <- build_runtime_replay_plan(
+    replay_statements,
+    assignment_targets = presolve_replay$assignment_targets,
+    replay_inline_changevar = FALSE
+  )
+  presolve_replay$replay_plan_rows <- build_runtime_replay_plan_rows(
+    replay_plan,
+    preserve_modes_by_target = presolve_replay$preserve_modes
+  )
+  presolve_replay$replay_plan_meta <- list(
+    cyclic_targets = replay_plan$cyclic_targets %||% character(),
+    revisit_targets = replay_plan$revisit_targets %||% character()
+  )
+  presolve_replay$preserve_mode_audit <- attr(presolve_replay$preserve_modes, "audit") %||% data.frame()
   if (length(presolve_replay$assignment_targets)) {
     frame <- replay_selected_runtime_assignments(
-      presolve_replay$statements,
+      replay_statements,
       frame,
       assignment_targets = presolve_replay$assignment_targets,
       coef_values = eq_support$coef_values %||% list(),
       preserve_existing = TRUE,
       preserve_mode = "skip",
-      preserve_modes_by_target = presolve_replay$preserve_modes
+      preserve_modes_by_target = presolve_replay$preserve_modes,
+      replay_inline_changevar = FALSE
+    )
+  }
+  exogenous_targets <- as.character(runtime$exogenous_targets %||% character())
+  exogenous_path_trace <- data.frame(
+    phase = character(),
+    period = character(),
+    variable = character(),
+    value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  if (!is.null(solve_snapshot) &&
+      nzchar(solve_snapshot$sample_start %||% "") &&
+      nzchar(solve_snapshot$sample_end %||% "")) {
+    exogenous_path_trace <- append_exogenous_path_trace_rows(
+      exogenous_path_trace,
+      frame,
+      active_window = c(solve_snapshot$sample_start, solve_snapshot$sample_end),
+      exogenous_targets = exogenous_targets,
+      watch_variables = solve_snapshot$watch_variables %||% character(),
+      phase = "bundle_state_post_replay"
+    )
+  }
+  if (!is.null(solve_snapshot) &&
+      nzchar(solve_snapshot$sample_start %||% "") &&
+      nzchar(solve_snapshot$sample_end %||% "") &&
+      length(runtime$exogenous_targets %||% character())) {
+    frame <- apply_extrapolate_frame(
+      frame,
+      window_start = solve_snapshot$sample_start,
+      window_end = solve_snapshot$sample_end,
+      variables = runtime$exogenous_targets %||% character(),
+      include_all_columns = TRUE
+    )
+    exogenous_path_trace <- append_exogenous_path_trace_rows(
+      exogenous_path_trace,
+      frame,
+      active_window = c(solve_snapshot$sample_start, solve_snapshot$sample_end),
+      exogenous_targets = exogenous_targets,
+      watch_variables = solve_snapshot$watch_variables %||% character(),
+      phase = "bundle_state_post_extrapolate"
     )
   }
   state <- state_from_frame(frame)
@@ -3778,22 +6683,120 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
       control$sample_end <- window[[2]]
     }
   }
-  exogenous_targets <- as.character(runtime$exogenous_targets %||% character())
-  specs <- if (presolve_replay$spec_limit <= 0L) {
+  candidate_specs <- if (presolve_replay$spec_limit <= 0L) {
     list()
   } else {
-    candidate_specs <- Filter(
+    Filter(
       function(item) item$kind != "control" && !is.null(item$expression),
       presolve_replay$statements
     )
+  }
+  specs <- if (presolve_replay$spec_limit <= 0L) {
+    list()
+  } else {
     partition_standard_solve_specs(
       eq_specs = eq_support$specs,
       candidate_specs = candidate_specs,
-      exogenous_targets = exogenous_targets
+      exogenous_targets = exogenous_targets,
+      exogenous_equation_target_policy = semantics_profile$exogenous_equation_target_policy
     )
   }
   control$order <- vapply(specs$specs %||% list(), function(item) as.character(item$target %||% item$name %||% ""), character(1))
   control$order <- control$order[nzchar(control$order)]
+  control <- apply_semantics_profile_to_solve_control(control, semantics_profile)
+  equation_trace <- resolve_standard_input_equation_trace_config(
+    sample_start = solve_snapshot$sample_start %||% ""
+  )
+  if (isTRUE(equation_trace$enabled)) {
+    control$equation_input_trace_periods <- equation_trace$periods
+    control$equation_input_trace_targets <- equation_trace$targets
+    control$equation_input_trace_max_iterations <- equation_trace$max_iterations
+  }
+  if (!is.null(solve_snapshot) &&
+      nzchar(solve_snapshot$sample_start %||% "") &&
+      isTRUE((solve_snapshot$solve_options %||% list())$outside) &&
+      isTRUE((solve_snapshot$solve_options %||% list())$noreset)) {
+    equation_targets <- unique(toupper(vapply(eq_support$specs %||% list(), function(item) {
+      as.character(item$target %||% item$name %||% "")
+    }, character(1))))
+    equation_targets <- equation_targets[nzchar(equation_targets)]
+    equation_support_refs <- unique(unlist(lapply(eq_support$specs %||% list(), function(item) {
+      refs <- tokens_to_reference_frame(item$rhs_tokens %||% character())
+      if (!is.data.frame(refs) || !nrow(refs)) {
+        return(character())
+      }
+      unique(toupper(as.character(refs$name[as.integer(refs$lag) == 0L])))
+    })))
+    equation_support_refs <- equation_support_refs[nzchar(equation_support_refs)]
+    outside_carry_plan <- build_outside_carry_plan(
+      candidate_specs,
+      statements = presolve_replay$statements,
+      sample_start = solve_snapshot$sample_start,
+      protected_targets = exogenous_targets,
+      equation_targets = equation_targets,
+      equation_support_refs = equation_support_refs
+    )
+    outside_snapshot_variables <- resolve_outside_snapshot_variables(
+      outside_carry_plan,
+      watch_variables = solve_snapshot$watch_variables %||% character(),
+      spec_targets = vapply(specs$specs %||% list(), function(item) as.character(item$target %||% item$name %||% ""), character(1))
+    )
+    outside_carry_snapshots <- build_frame_snapshot_rows(
+      frame,
+      outside_snapshot_variables,
+      solve_snapshot$sample_start,
+      "bundle_state"
+    )
+    frame <- apply_outside_carry_plan_frame(
+      frame,
+      sample_start = solve_snapshot$sample_start,
+      plan = outside_carry_plan,
+      semantics_profile = semantics_profile,
+      protected_targets = exogenous_targets
+    )
+    outside_carry_snapshots <- rbind(
+      outside_carry_snapshots,
+      build_frame_snapshot_rows(
+        frame,
+        outside_snapshot_variables,
+        solve_snapshot$sample_start,
+        "bundle_state_post_carry"
+      )
+    )
+    exogenous_path_trace <- append_exogenous_path_trace_rows(
+      exogenous_path_trace,
+      frame,
+      active_window = c(solve_snapshot$sample_start, solve_snapshot$sample_end),
+      exogenous_targets = exogenous_targets,
+      watch_variables = solve_snapshot$watch_variables %||% character(),
+      phase = "bundle_state_post_carry"
+    )
+  } else {
+    outside_carry_plan <- list(
+      boundary_targets = character(),
+      first_period_targets = character(),
+      target_roles = data.frame(
+        target = character(),
+        boundary_role = character(),
+        first_period_role = character(),
+        boundary_materialized = logical(),
+        direct_negative_lag = logical(),
+        stringsAsFactors = FALSE,
+        check.names = FALSE
+      )
+    )
+    outside_snapshot_variables <- character()
+    outside_carry_snapshots <- data.frame(
+      phase = character(),
+      period = character(),
+      variable = character(),
+      value = numeric(),
+      stringsAsFactors = FALSE
+    )
+  }
+  control$outside_carry_plan <- outside_carry_plan
+  state <- state_from_frame(frame)
+  state$coef_values <- eq_support$coef_values %||% numeric()
 
   list(
     name = tools::file_path_sans_ext(basename(entry_path)),
@@ -3807,7 +6810,8 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
         function(item) extract_fp_file_arg(item$raw %||% "", key = "FILE") %||% "",
         character(1)
       )),
-      files_scanned = tree$files_scanned
+      files_scanned = tree$files_scanned,
+      semantics_profile = semantics_profile$name
     ),
     runtime = list(
       statements = tree$statements,
@@ -3819,7 +6823,16 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
       solve_option_text = solve_snapshot$solve_option_text %||% "",
       solve_watch_text = solve_snapshot$solve_watch_text %||% "",
       termination_command = runtime$termination_command %||% "",
-      termination_index = as.integer(runtime$termination_index %||% 0L)
+      termination_index = as.integer(runtime$termination_index %||% 0L),
+      semantics_profile = semantics_profile$name,
+      solver_policy = semantics_profile$solver_policy,
+      presolve_replay_plan_rows = presolve_replay$replay_plan_rows %||% data.frame(),
+      presolve_replay_plan_meta = presolve_replay$replay_plan_meta %||% list(),
+      preserve_mode_audit = presolve_replay$preserve_mode_audit %||% data.frame(),
+      outside_carry_plan = outside_carry_plan,
+      outside_snapshot_variables = outside_snapshot_variables,
+      outside_carry_snapshots = outside_carry_snapshots,
+      exogenous_path_trace = exogenous_path_trace
     ),
     equations = eq_support,
     header_summary = collect_header_summary(tree$statements),
@@ -3828,6 +6841,8 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
     specs = specs$specs %||% list(),
     post_solve_assignments = specs$post_solve_assignments %||% list(),
     control = control,
+    semantics_profile = semantics_profile$name,
+    solver_policy = semantics_profile$solver_policy,
     input_text = tree$text
   )
 }
