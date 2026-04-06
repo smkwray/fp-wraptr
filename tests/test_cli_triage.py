@@ -165,6 +165,107 @@ def test_fp_triage_identity_decomposition_writes_outputs(monkeypatch, tmp_path: 
     assert (out_dir / "identity_decomposition_terms.csv").exists()
 
 
+def test_fp_triage_fp_ineq_publication_writes_outputs(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
+    manifest = tmp_path / "manifest.json"
+    matrix = tmp_path / "matrix.json"
+    contract = tmp_path / "contract.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "runs": [
+                    {"run_id": "ineq-baseline-observed", "label": "Baseline"},
+                    {"run_id": "ineq-federal-transfer-relief", "label": "Federal"},
+                    {
+                        "run_id": "ineq-ui-relief",
+                        "label": "UI (legacy split)",
+                        "summary": "Shared modern branch relative to legacy fp.exe.",
+                    },
+                ],
+                "default_run_ids": [
+                    "ineq-baseline-observed",
+                    "ineq-federal-transfer-relief",
+                ],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    matrix.write_text(
+        json.dumps(
+            {
+                "lane_rows": [
+                    {
+                        "variant_id": "baseline-observed",
+                        "classification": "modern_branch_ok",
+                        "evidence_mode": "baseline",
+                        "notes": "baseline ok",
+                    },
+                    {
+                        "variant_id": "federal-transfer-relief",
+                        "classification": "modern_branch_ok",
+                        "evidence_mode": "federal",
+                        "notes": "federal ok",
+                    },
+                    {
+                        "variant_id": "ui-relief",
+                        "classification": "modern_branch_ok_but_legacy_split",
+                        "evidence_mode": "ui",
+                        "notes": "ui split",
+                    },
+                ]
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    contract.write_text(
+        json.dumps(
+            {
+                "run_id_prefix": "ineq-",
+                "required_run_ids": [
+                    "ineq-baseline-observed",
+                    "ineq-federal-transfer-relief",
+                    "ineq-ui-relief",
+                ],
+                "recommended_default_run_ids": [
+                    "ineq-baseline-observed",
+                    "ineq-federal-transfer-relief",
+                ],
+                "allow_published_legacy_split": True,
+                "require_explicit_label_for_published_legacy_split": True,
+                "legacy_split_label_fields": ["label", "summary"],
+                "legacy_split_label_tokens": ["legacy split", "shared modern"],
+                "require_default_runs_to_be_public_default_safe": True,
+                "require_exact_default_run_ids": True,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "fp_ineq_publication"
+
+    result = runner.invoke(
+        app,
+        [
+            "triage",
+            "fp-ineq-publication",
+            "--manifest",
+            str(manifest),
+            "--matrix",
+            str(matrix),
+            "--contract",
+            str(contract),
+            "--out-dir",
+            str(out_dir),
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout + "\n" + result.stderr
+    assert (out_dir / "fp_ineq_publication_validation_report.json").exists()
+    assert (out_dir / "fp_ineq_publication_validation_rows.csv").exists()
+
+
 def test_fp_triage_backend_release_shape_writes_output(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
     anchor_report = tmp_path / "anchor_acceptance_report.json"
@@ -309,6 +410,7 @@ def test_fp_triage_scenario_delta_compare_writes_outputs(monkeypatch, tmp_path: 
     assert result.exit_code == 0, result.stdout + "\n" + result.stderr
     assert (out_dir / "scenario_delta_compare_report.json").exists()
     assert (out_dir / "scenario_delta_compare_summary.csv").exists()
+    assert (out_dir / "scenario_delta_compare_rows.csv").exists()
 
 
 def test_fp_triage_parity_hardfails_writes_outputs(tmp_path: Path) -> None:
