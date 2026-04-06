@@ -1528,7 +1528,9 @@ def triage_scenario_delta_compare(
             start=start,
             end=end,
         )
-        json_path, csv_path = write_scenario_delta_compare_report(report, output_dir=out_dir)
+        json_path, summary_csv_path, detail_csv_path = write_scenario_delta_compare_report(
+            report, output_dir=out_dir
+        )
     except (FileNotFoundError, ValueError) as exc:
         console.print(f"[red]Scenario delta compare failed:[/red] {exc}")
         raise typer.Exit(code=1) from None
@@ -1543,7 +1545,64 @@ def triage_scenario_delta_compare(
         f"right={right_label}"
     )
     console.print(f"[green]json:[/green] {json_path}")
+    console.print(f"[green]summary csv:[/green] {summary_csv_path}")
+    console.print(f"[green]rows csv:[/green] {detail_csv_path}")
+
+
+@triage_app.command("fp-ineq-publication")
+def triage_fp_ineq_publication(
+    manifest: Annotated[
+        str,
+        typer.Option("--manifest", help="Manifest path or URL for the fp-ineq run bundle"),
+    ] = "https://smkwray.github.io/fp-ineq/manifest.json",
+    matrix: Annotated[
+        Path,
+        typer.Option("--matrix", help="Path to the current fp-ineq fp-r matrix JSON"),
+    ] = Path("artifacts/fp_ineq_fpr_matrix_20260405/fp_ineq_fpr_matrix.json"),
+    contract: Annotated[
+        Path,
+        typer.Option("--contract", help="Path to fp-ineq publication guardrails JSON"),
+    ] = Path("docs/fp-ineq-publication-guardrails.json"),
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for JSON + CSV publication artifacts"),
+    ] = Path("artifacts/fp_ineq_publication_validation"),
+) -> None:
+    """Validate an fp-ineq publication bundle against the current fp-r defensibility gate."""
+
+    from fp_wraptr.analysis.fp_ineq_publication_validation import (
+        validate_fp_ineq_publication,
+        write_fp_ineq_publication_report,
+    )
+
+    try:
+        report = validate_fp_ineq_publication(
+            manifest_source=manifest,
+            matrix_path=matrix,
+            contract_path=contract,
+        )
+        json_path, csv_path = write_fp_ineq_publication_report(report, output_dir=out_dir)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+        console.print(f"[red]fp-ineq publication validation failed:[/red] {exc}")
+        raise typer.Exit(code=1) from None
+
+    summary = report.get("summary", {}) or {}
+    console.print(
+        "published_runs="
+        f"{summary.get('published_run_count', 0)} "
+        f"modern_ok={summary.get('modern_branch_ok_count', 0)} "
+        f"legacy_split={summary.get('modern_branch_ok_but_legacy_split_count', 0)} "
+        f"default_safe={summary.get('default_runs_public_default_safe_count', 0)}/{summary.get('default_run_count', 0)}"
+    )
+    console.print(
+        "status="
+        f"{'pass' if report.get('ok') else 'fail'} "
+        f"failure_count={len(report.get('failures', []) or [])}"
+    )
+    console.print(f"[green]json:[/green] {json_path}")
     console.print(f"[green]csv:[/green] {csv_path}")
+    if not report.get("ok"):
+        raise typer.Exit(code=1)
 
 
 @triage_app.command("loop")
