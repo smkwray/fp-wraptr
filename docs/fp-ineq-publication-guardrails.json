@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "site_id": "fp-ineq",
+  "description": "Machine-readable publication guardrails for presenting fp-ineq runs as defensible fp-r results.",
+  "run_id_prefix": "ineq-",
+  "required_run_ids": [
+    "ineq-baseline-observed",
+    "ineq-ui-relief",
+    "ineq-ui-shock",
+    "ineq-ui-small",
+    "ineq-ui-large",
+    "ineq-federal-transfer-relief",
+    "ineq-federal-transfer-shock",
+    "ineq-state-local-transfer-relief",
+    "ineq-state-local-transfer-shock",
+    "ineq-transfer-package-relief",
+    "ineq-transfer-package-shock",
+    "ineq-transfer-composite-small",
+    "ineq-transfer-composite-medium",
+    "ineq-transfer-composite-large"
+  ],
+  "recommended_default_run_ids": [
+    "ineq-baseline-observed",
+    "ineq-federal-transfer-relief",
+    "ineq-federal-transfer-shock",
+    "ineq-state-local-transfer-relief",
+    "ineq-state-local-transfer-shock"
+  ],
+  "allow_published_legacy_split": true,
+  "require_explicit_label_for_published_legacy_split": true,
+  "legacy_split_label_fields": [
+    "label",
+    "summary"
+  ],
+  "legacy_split_label_tokens": [
+    "legacy split",
+    "shared modern"
+  ],
+  "require_default_runs_to_be_public_default_safe": true,
+  "require_exact_default_run_ids": true,
+  "agent_rules": [
+    "Every published fp-ineq run must map to a classified lane in the current fp-r matrix.",
+    "Legacy-split lanes may be published on the broader fp-ineq surface, but they must not control the default fp-r presentation contract.",
+    "Published legacy-split lanes must say so explicitly in the public label or summary surface.",
+    "Default-selected fp-r runs must be public_default_safe unless the publication contract is deliberately revised.",
+    "Do not treat raw fp.exe equality as the publication contract for lanes already classified as shared modern-vs-legacy splits."
+  ]
+}
