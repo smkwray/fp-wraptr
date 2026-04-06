@@ -956,7 +956,15 @@ apply_outside_boundary_carry_frame <- function(frame, sample_start, targets = ch
     if (!(column %in% names(working))) {
       next
     }
-    working[[column]][[boundary_pos]] <- as.numeric(working[[column]][[source_pos]])
+    current_value <- as.numeric(working[[column]][[boundary_pos]])
+    if (is.finite(current_value) && abs(current_value + 99.0) > 1e-12) {
+      next
+    }
+    source_value <- as.numeric(working[[column]][[source_pos]])
+    if (!is.finite(source_value) || abs(source_value + 99.0) <= 1e-12) {
+      next
+    }
+    working[[column]][[boundary_pos]] <- source_value
   }
   working
 }
@@ -1247,7 +1255,11 @@ apply_outside_first_period_carry_frame <- function(frame, sample_start, targets 
     if (is.finite(current_value) && abs(current_value + 99.0) > 1e-12) {
       next
     }
-    working[[column]][[sample_pos]] <- as.numeric(working[[column]][[source_pos]])
+    source_value <- as.numeric(working[[column]][[source_pos]])
+    if (!is.finite(source_value) || abs(source_value + 99.0) <= 1e-12) {
+      next
+    }
+    working[[column]][[sample_pos]] <- source_value
   }
   working
 }
@@ -4149,6 +4161,70 @@ update_pre_solve_protected_target <- function(protected_frame, working, target) 
   protected
 }
 
+restore_historical_boundary_replay_targets <- function(
+  frame,
+  replayed_frame,
+  replay_plan_rows,
+  sample_start,
+  protected_targets = character()
+) {
+  if (!nrow(frame) || !nrow(replayed_frame) || !is.data.frame(replay_plan_rows) || !nrow(replay_plan_rows)) {
+    return(replayed_frame)
+  }
+  sample_start <- as.character(sample_start %||% "")
+  if (!nzchar(sample_start)) {
+    return(replayed_frame)
+  }
+  sample_index <- parse_period(sample_start)$index
+  if (!is.finite(sample_index) || sample_index <= 0L) {
+    return(replayed_frame)
+  }
+  boundary_period <- format_period(sample_index - 1L)
+  replay_windows <- replay_plan_rows$active_window_start %||% character()
+  replay_window_index <- suppressWarnings(vapply(replay_windows, function(period) {
+    if (!nzchar(as.character(period %||% ""))) {
+      return(NA_integer_)
+    }
+    parse_period(period)$index
+  }, integer(1)))
+  restore_rows <- replay_plan_rows[
+    replay_plan_rows$plan_type %in% c("assignment", "changevar_assignment") &
+      nzchar(as.character(replay_plan_rows$target %||% "")) &
+      as.character(replay_plan_rows$active_window_end %||% "") == boundary_period &
+      is.finite(replay_window_index) &
+      replay_window_index < sample_index,
+    ,
+    drop = FALSE
+  ]
+  restore_targets <- unique(toupper(as.character(restore_rows$target %||% character())))
+  restore_targets <- setdiff(restore_targets[nzchar(restore_targets)], unique(toupper(as.character(protected_targets %||% character()))))
+  if (!length(restore_targets)) {
+    return(replayed_frame)
+  }
+  source_pos <- match(boundary_period, as.character(frame$period %||% character()))
+  target_pos <- match(boundary_period, as.character(replayed_frame$period %||% character()))
+  if (is.na(source_pos) || is.na(target_pos)) {
+    return(replayed_frame)
+  }
+  restored <- replayed_frame
+  for (target in restore_targets) {
+    source_column <- resolve_frame_column_name(frame, target)
+    target_column <- resolve_frame_column_name(restored, target)
+    if (!(source_column %in% names(frame))) {
+      next
+    }
+    source_value <- as.numeric(frame[[source_column]][[source_pos]])
+    if (!is.finite(source_value) || abs(source_value + 99.0) <= 1e-12) {
+      next
+    }
+    if (!(target_column %in% names(restored))) {
+      restored[[target_column]] <- NA_real_
+    }
+    restored[[target_column]][[target_pos]] <- source_value
+  }
+  restored
+}
+
 runtime_assignment_positions <- function(frame, active_window = NULL) {
   if (!nrow(frame)) {
     return(integer())
@@ -5472,6 +5548,13 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     preserve_modes_by_target = preserve_modes,
     replay_inline_changevar = FALSE,
     replay_profile_path = as.character(solve_metadata$replay_profile_path %||% "")
+  )
+  pre_solve_frame <- restore_historical_boundary_replay_targets(
+    frame = frame,
+    replayed_frame = pre_solve_frame,
+    replay_plan_rows = replay_plan_rows,
+    sample_start = active_window[[1]] %||% "",
+    protected_targets = protected_input_targets
   )
   append_solve_stage_build_progress_row(
     stage_progress_path,
