@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raptr Runs Explorer</title>
+    <link rel="icon" type="image/png" href="./assets/rptr-mv_rmgb.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div>
+          <div class="hero-title-row">
+            <h1 id="pageTitle">Model Runs Explorer</h1>
+            <img
+              class="hero-mark"
+              src="./assets/rex-rptr_rmgb.png"
+              alt=""
+              width="48"
+              height="48"
+              decoding="async"
+            />
+          </div>
+          <p id="pageSubtitle" class="hero-copy">
+            Read-only exported scenario runs.
+            <a class="hero-inline-link" href="https://smkwray.github.io/fp-wraptr/">fp-wraptr home</a>
+          </p>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="control-panel">
+          <section id="runPanel" class="panel-card">
+            <div class="panel-card-header">
+              <h2>Runs</h2>
+              <button id="runSelectToggle" type="button" class="panel-toggle-button">Expand</button>
+            </div>
+            <div id="runSelect" class="checklist" aria-label="Runs"></div>
+            <p class="hint">Select one or more exported runs to overlay.</p>
+          </section>
+
+          <section class="panel-card">
+            <h2>Presets</h2>
+            <div id="presetSelect" class="checklist" aria-label="Presets"></div>
+            <button id="applyPresetButton" type="button" class="ghost-button">Apply preset selection</button>
+          </section>
+
+          <section class="panel-card">
+            <h2>Variables</h2>
+            <label class="search-label" for="variableSearch">Search variables</label>
+            <input id="variableSearch" type="search" placeholder="Filter by code or short name" />
+            <div id="variableSelect" class="checklist checklist-tall" aria-label="Variables"></div>
+            <p class="hint">Preset selection seeds variables; manual edits stay in-browser only.</p>
+          </section>
+
+          <section class="panel-card">
+            <h2>Run Info</h2>
+            <label class="search-label" for="runInfoSelect">Scenario</label>
+            <select id="runInfoSelect"></select>
+            <div id="runInfo" class="run-info-list">
+              <div class="empty-state">Select a scenario to see its details.</div>
+            </div>
+          </section>
+        </aside>
+
+        <section class="content">
+          <section class="content-card">
+            <label class="search-label" for="equationInput">Custom Series</label>
+            <div class="equation-bar">
+              <input id="equationInput" type="text" placeholder="e.g. (CD + CN + CS) / GDP * 100" aria-label="Custom series expression" />
+              <button id="equationPlotButton" type="button" class="ghost-button equation-button">Plot series</button>
+            </div>
+            <div id="equationError" class="equation-error" hidden></div>
+            <div id="equationCharts" class="charts-grid"></div>
+            <div id="charts" class="charts-grid"></div>
+            <div id="chartEmpty" class="empty-state">
+              Select runs and variables to render charts.
+            </div>
+          </section>
+
+          <section class="content-card">
+            <div class="section-header">
+              <div>
+                <h2>Variable Definitions</h2>
+              </div>
+            </div>
+            <label class="search-label" for="dictionarySearch">Search variables</label>
+            <input id="dictionarySearch" type="search" placeholder="Filter by code, short name, description, or units" />
+            <div id="dictionaryResults" class="dictionary-results"></div>
+          </section>
+
+          <section class="content-card">
+            <div class="section-header">
+              <div>
+                <h2>Equation Explorer</h2>
+              </div>
+            </div>
+            <label class="search-label" for="equationSearch">Search equations</label>
+            <input id="equationSearch" type="search" placeholder="Enter a variable code, equation id, label, or formula" />
+            <p class="hint">Equation metadata is exported at the bundle level. Derived or scenario-only series may not have a matching model equation record.</p>
+            <div id="equationExplorerResults" class="equation-results">
+              <div class="empty-state">Search for a variable like GDP or an equation like 82.</div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <div id="runPanelBackdrop" class="panel-backdrop" hidden></div>
+  </body>
+</html>

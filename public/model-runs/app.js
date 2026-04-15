@@ -1,4 +1,4 @@
-const APP_VERSION = "2026.04.02.2117";
+const APP_VERSION = "2026.03.07";
 
 const TRANSFORM_LEVEL = "level";
 const TRANSFORM_PCT_OF = "pct_of";
@@ -125,7 +125,7 @@ const state = {
   dictionary: new Map(),
   equationCatalog: new Map(),
   runMeta: [],
-  groupHorizons: {},
+  activeHorizonId: "",
   selectedRunIds: [],
   selectedPresetIds: [],
   selectedVariables: [],
@@ -144,6 +144,7 @@ const dom = {
   runPanelBackdrop: document.querySelector("#runPanelBackdrop"),
   runSelect: document.querySelector("#runSelect"),
   runSelectToggle: document.querySelector("#runSelectToggle"),
+  horizonControls: document.querySelector("#horizonControls"),
   presetSelect: document.querySelector("#presetSelect"),
   applyPresetButton: document.querySelector("#applyPresetButton"),
   variableSearch: document.querySelector("#variableSearch"),
@@ -262,36 +263,79 @@ function getRunMeta(runId) {
   return state.runMeta.find((item) => item.run_id === runId) || null;
 }
 
+function getReferenceRuns() {
+  return state.runMeta.filter((run) => {
+    const horizonId = `${run?.horizon_id || ""}`.trim();
+    const group = `${run?.group || ""}`.trim().toLowerCase();
+    const familyId = `${run?.family_id || ""}`.trim();
+    return !horizonId || group === "reference" || familyId === "stock_fm_baseline";
+  });
+}
+
+function getAvailableHorizonIds() {
+  const ids = unique(
+    state.runMeta
+      .map((run) => `${run?.horizon_id || ""}`.trim())
+      .filter(Boolean),
+  );
+  return ids.sort((left, right) => {
+    const leftYears = Number.parseInt(left, 10);
+    const rightYears = Number.parseInt(right, 10);
+    if (Number.isFinite(leftYears) && Number.isFinite(rightYears) && leftYears !== rightYears) {
+      return leftYears - rightYears;
+    }
+    return left.localeCompare(right);
+  });
+}
+
+function getHorizonLabel(horizonId) {
+  const match = state.runMeta.find((run) => `${run?.horizon_id || ""}`.trim() === horizonId);
+  return `${match?.horizon_label || horizonId}`.trim() || horizonId.toUpperCase();
+}
+
+function getVisibleRunMeta() {
+  return state.runMeta.filter((run) => {
+    const horizonId = `${run?.horizon_id || ""}`.trim();
+    if (getReferenceRuns().some((item) => item.run_id === run.run_id)) {
+      return true;
+    }
+    return !horizonId || !state.activeHorizonId || horizonId === state.activeHorizonId;
+  });
+}
+
+function getRunForActiveHorizon(run) {
+  if (!run) {
+    return null;
+  }
+  const familyId = `${run?.family_id || ""}`.trim();
+  const horizonId = `${run?.horizon_id || ""}`.trim();
+  if (getReferenceRuns().some((item) => item.run_id === run.run_id)) {
+    return run;
+  }
+  if (!familyId || !horizonId || !state.activeHorizonId || horizonId === state.activeHorizonId) {
+    return run;
+  }
+  return state.runMeta.find((item) => {
+    return `${item?.family_id || ""}`.trim() === familyId && `${item?.horizon_id || ""}`.trim() === state.activeHorizonId;
+  }) || run;
+}
+
+function normalizeSelectedRunIdsForActiveHorizon(runIds) {
+  const visibleRunIds = new Set(getVisibleRunMeta().map((run) => run.run_id));
+  const mapped = new Set();
+  for (const runId of runIds) {
+    const target = getRunForActiveHorizon(getRunMeta(runId));
+    if (target && visibleRunIds.has(target.run_id)) {
+      mapped.add(target.run_id);
+    }
+  }
+  return getVisibleRunMeta()
+    .map((run) => run.run_id)
+    .filter((runId) => mapped.has(runId));
+}
+
 function getRunGroupLabel(run) {
   return `${run?.group || ""}`.trim() || "Other";
-}
-
-function getRunFamilyId(run) {
-  return `${run?.family_id || run?.run_id || ""}`.trim();
-}
-
-function getRunHorizonId(run) {
-  return `${run?.horizon_id || ""}`.trim();
-}
-
-function getRunHorizonLabel(run) {
-  const label = `${run?.horizon_label || ""}`.trim();
-  if (label) {
-    return label;
-  }
-  const horizonId = getRunHorizonId(run);
-  return horizonId ? horizonId.toUpperCase() : "";
-}
-
-function resolveGroupActiveHorizon(groupLabel, toggleHorizonIds) {
-  const saved = `${state.groupHorizons[groupLabel] || ""}`.trim();
-  if (toggleHorizonIds.includes(saved)) {
-    return saved;
-  }
-  if (toggleHorizonIds.includes("5y")) {
-    return "5y";
-  }
-  return toggleHorizonIds[0] || "";
 }
 
 function buildRunGroups(runs) {
@@ -300,65 +344,13 @@ function buildRunGroups(runs) {
   for (const run of runs) {
     const label = getRunGroupLabel(run);
     if (!byLabel.has(label)) {
-      const group = { label, allRuns: [], runs: [], familyOrder: [], families: new Map() };
+      const group = { label, runs: [] };
       byLabel.set(label, group);
       ordered.push(group);
     }
-    const group = byLabel.get(label);
-    group.allRuns.push(run);
-    const familyId = getRunFamilyId(run);
-    if (!group.families.has(familyId)) {
-      group.families.set(familyId, []);
-      group.familyOrder.push(familyId);
-    }
-    group.families.get(familyId).push(run);
-  }
-
-  for (const group of ordered) {
-    const horizonOrder = [];
-    const horizonLabels = new Map();
-    for (const familyId of group.familyOrder) {
-      const familyRuns = group.families.get(familyId) || [];
-      const byHorizon = new Map();
-      for (const run of familyRuns) {
-        const horizonId = getRunHorizonId(run);
-        if (horizonId && !horizonOrder.includes(horizonId)) {
-          horizonOrder.push(horizonId);
-        }
-        if (horizonId && !horizonLabels.has(horizonId)) {
-          horizonLabels.set(horizonId, getRunHorizonLabel(run));
-        }
-        if (!byHorizon.has(horizonId)) {
-          byHorizon.set(horizonId, run);
-        }
-      }
-      group.families.set(familyId, byHorizon);
-    }
-    const toggleHorizonIds = horizonOrder.filter(
-      (horizonId) => horizonId && group.familyOrder.every((familyId) => group.families.get(familyId)?.has(horizonId)),
-    );
-    group.toggleHorizons = toggleHorizonIds.map((horizonId) => ({
-      id: horizonId,
-      label: horizonLabels.get(horizonId) || horizonId.toUpperCase(),
-    }));
-    group.activeHorizonId = group.toggleHorizons.length >= 2
-      ? resolveGroupActiveHorizon(group.label, toggleHorizonIds)
-      : "";
-    if (group.toggleHorizons.length >= 2) {
-      state.groupHorizons[group.label] = group.activeHorizonId;
-      group.runs = group.familyOrder
-        .map((familyId) => group.families.get(familyId)?.get(group.activeHorizonId))
-        .filter(Boolean);
-    } else {
-      delete state.groupHorizons[group.label];
-      group.runs = group.allRuns;
-    }
+    byLabel.get(label).runs.push(run);
   }
   return ordered;
-}
-
-function getActiveRunMeta() {
-  return buildRunGroups(state.runMeta).flatMap((group) => group.runs);
 }
 
 async function ensureRunsLoaded(runIds) {
@@ -608,29 +600,6 @@ function createRunGroupSection(group) {
 
   const actions = document.createElement("div");
   actions.className = "run-group-actions";
-  if (group.toggleHorizons?.length >= 2) {
-    const toggle = document.createElement("div");
-    toggle.className = "run-horizon-toggle";
-    toggle.setAttribute("role", "group");
-    toggle.setAttribute("aria-label", `${group.label} horizon`);
-    for (const option of group.toggleHorizons) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "run-horizon-button";
-      if (option.id === group.activeHorizonId) {
-        button.classList.add("is-active");
-      }
-      button.textContent = option.label;
-      button.addEventListener("click", async () => {
-        if (option.id === group.activeHorizonId) {
-          return;
-        }
-        await applyGroupHorizon(group.label, option.id);
-      });
-      toggle.appendChild(button);
-    }
-    actions.appendChild(toggle);
-  }
   for (const [label, mode] of [["All", "all"], ["None", "none"]]) {
     const button = document.createElement("button");
     button.type = "button";
@@ -706,9 +675,51 @@ function collapseRunSelect() {
   setRunSelectExpanded(false);
 }
 
+function syncHorizonControls() {
+  if (!dom.horizonControls) {
+    return;
+  }
+  const horizonIds = getAvailableHorizonIds();
+  dom.horizonControls.hidden = horizonIds.length <= 1;
+  dom.horizonControls.innerHTML = "";
+  for (const horizonId of horizonIds) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `segmented-button${state.activeHorizonId === horizonId ? " active" : ""}`;
+    button.textContent = getHorizonLabel(horizonId);
+    button.setAttribute("aria-pressed", state.activeHorizonId === horizonId ? "true" : "false");
+    button.addEventListener("click", async () => {
+      await setActiveHorizon(horizonId);
+    });
+    dom.horizonControls.appendChild(button);
+  }
+}
+
+async function setActiveHorizon(horizonId) {
+  if (!horizonId || state.activeHorizonId === horizonId) {
+    return;
+  }
+  state.activeHorizonId = horizonId;
+  const normalized = normalizeSelectedRunIdsForActiveHorizon(state.selectedRunIds);
+  const fallback = normalized.length > 0
+    ? normalized
+    : normalizeSelectedRunIdsForActiveHorizon(state.manifest.default_run_ids || []);
+  state.selectedRunIds = fallback;
+  await ensureRunsLoaded(state.selectedRunIds);
+  const nextRunInfo = getRunForActiveHorizon(getRunMeta(state.selectedRunInfoId));
+  state.selectedRunInfoId = state.selectedRunIds.includes(nextRunInfo?.run_id)
+    ? nextRunInfo.run_id
+    : (state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "");
+  syncHorizonControls();
+  syncRunSelect();
+  syncRunInfoSelect();
+  renderCharts();
+  renderEquationCharts();
+  renderRunInfo();
+}
+
 async function applyRunSelection(selected) {
-  const activeRuns = getActiveRunMeta();
-  state.selectedRunIds = activeRuns
+  state.selectedRunIds = getVisibleRunMeta()
     .map((item) => item.run_id)
     .filter((runId) => selected.has(runId));
   await ensureRunsLoaded(state.selectedRunIds);
@@ -718,60 +729,9 @@ async function applyRunSelection(selected) {
   for (const equation of state.equations) {
     sanitizeEquationConfig(equation.id, state.equationConfigs.get(equation.id));
   }
-  if (!activeRuns.some((run) => run.run_id === state.selectedRunInfoId)) {
-    state.selectedRunInfoId = state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
+  if (!state.selectedRunIds.includes(state.selectedRunInfoId)) {
+    state.selectedRunInfoId = state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "";
   }
-  syncRunSelect();
-  syncRunInfoSelect();
-  renderCharts();
-  renderEquationCharts();
-  renderRunInfo();
-}
-
-async function applyGroupHorizon(groupLabel, horizonId) {
-  state.groupHorizons[groupLabel] = horizonId;
-  const groups = buildRunGroups(state.runMeta);
-  const activeRuns = groups.flatMap((group) => group.runs);
-  const visibleByGroupFamily = new Map();
-  for (const group of groups) {
-    for (const run of group.runs) {
-      visibleByGroupFamily.set(`${group.label}::${getRunFamilyId(run)}`, run);
-    }
-  }
-
-  const nextSelected = new Set();
-  for (const runId of state.selectedRunIds) {
-    const run = getRunMeta(runId);
-    if (!run) {
-      continue;
-    }
-    const replacement = visibleByGroupFamily.get(`${getRunGroupLabel(run)}::${getRunFamilyId(run)}`);
-    if (replacement) {
-      nextSelected.add(replacement.run_id);
-    }
-  }
-
-  state.selectedRunIds = activeRuns
-    .map((run) => run.run_id)
-    .filter((runId) => nextSelected.has(runId));
-  await ensureRunsLoaded(state.selectedRunIds);
-  for (const variable of state.selectedVariables) {
-    sanitizeVariableConfig(variable, state.variableConfigs.get(variable));
-  }
-  for (const equation of state.equations) {
-    sanitizeEquationConfig(equation.id, state.equationConfigs.get(equation.id));
-  }
-
-  const currentInfoRun = getRunMeta(state.selectedRunInfoId);
-  if (currentInfoRun) {
-    const nextInfoRun = visibleByGroupFamily.get(
-      `${getRunGroupLabel(currentInfoRun)}::${getRunFamilyId(currentInfoRun)}`,
-    );
-    state.selectedRunInfoId = nextInfoRun?.run_id || state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
-  } else {
-    state.selectedRunInfoId = state.selectedRunIds[0] || activeRuns[0]?.run_id || "";
-  }
-
   syncRunSelect();
   syncRunInfoSelect();
   renderCharts();
@@ -781,7 +741,7 @@ async function applyGroupHorizon(groupLabel, horizonId) {
 
 function syncRunSelect() {
   dom.runSelect.innerHTML = "";
-  const groups = buildRunGroups(state.runMeta);
+  const groups = buildRunGroups(getVisibleRunMeta());
   if (state.runSelectExpanded) {
     const columnCount = getRunSelectColumnCount();
     dom.runSelect.style.setProperty("--run-select-columns", `${columnCount}`);
@@ -840,7 +800,7 @@ function syncPresetSelect() {
 
 function syncRunInfoSelect() {
   dom.runInfoSelect.innerHTML = "";
-  for (const group of buildRunGroups(state.runMeta)) {
+  for (const group of buildRunGroups(getVisibleRunMeta())) {
     const optgroup = document.createElement("optgroup");
     optgroup.label = group.label;
     for (const run of group.runs) {
@@ -993,7 +953,7 @@ function createChartControls({ seriesKey, cfg, onConfigChange, onRender }) {
         label: "Ref",
         value: cfg.referenceRunId,
         variable: seriesKey,
-        options: getActiveRunMeta().map((run) => ({
+        options: state.selectedRunIds.map((runId) => getRunMeta(runId)).filter(Boolean).map((run) => ({
           value: run.run_id,
           label: run.label,
         })),
@@ -1029,7 +989,6 @@ function renderRunInfo() {
   card.innerHTML = `
     <p class="run-info-title">${run.label}</p>
     ${run.group ? `<p class="run-info-text">Group: ${run.group}</p>` : ""}
-    ${run.horizon_label ? `<p class="run-info-text">Horizon: ${run.horizon_label}</p>` : ""}
     <p class="run-info-text">Scenario: ${run.scenario_name || "Unknown"}</p>
     <p class="run-info-text">Forecast: ${run.forecast_start || "?"} to ${run.forecast_end || "?"}</p>
     ${run.summary ? `<p class="run-info-text">${run.summary}</p>` : ""}
@@ -1864,7 +1823,9 @@ async function initialize() {
   state.equationCatalog = new Map(
     Object.values(dictionaryPayload.equations || {}).map((value) => [`${value.id}`, value]),
   );
-  state.selectedRunIds = [...(manifest.default_run_ids || [])];
+  const horizonIds = getAvailableHorizonIds();
+  state.activeHorizonId = horizonIds[0] || "";
+  state.selectedRunIds = normalizeSelectedRunIdsForActiveHorizon(manifest.default_run_ids || []);
   state.selectedPresetIds = [...(manifest.default_preset_ids || [])];
 
   const selectedPresets = state.presets.filter((preset) => state.selectedPresetIds.includes(preset.id));
@@ -1875,11 +1836,12 @@ async function initialize() {
 
   dom.pageTitle.textContent = manifest.title || "Model Runs Explorer";
 
+  syncHorizonControls();
   syncRunSelectExpansion();
   syncRunSelect();
   syncPresetSelect();
   syncVariableSelect();
-  state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
+  state.selectedRunInfoId = state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "";
   syncRunInfoSelect();
 
   await ensureRunsLoaded(state.selectedRunIds);
