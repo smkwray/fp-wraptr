@@ -212,6 +212,7 @@
     "JGWAJLOL",
     "JGWFADJ",
     "JGWFPASS",
+    "JGWPHASE",
     "JHGSZ",
     "JHIA0",
     "JHIJH",
@@ -265,7 +266,6 @@
     "LHF1",
     "LHFL1A",
     "LHO",
-    "LIBTZ",
     "LIHHZ",
     "LIMZ",
     "LJF1",
@@ -327,6 +327,7 @@
     "MUH",
     "MWBCOST",
     "MWBEN",
+    "MWCOLA",
     "NICD",
     "NNF",
     "NNG",
@@ -426,6 +427,7 @@
     "RSB",
     "RSLMRSL2",
     "RSMRSL2",
+    "RSX",
     "SB",
     "SF",
     "SG",
@@ -525,12 +527,12 @@
     "pse-economy"
   ],
   "default_run_ids": [
-    "pse2025_base",
-    "pse2025_high_20h_3pct",
-    "pse2025_low_20h_3pct"
+    "pse2025_base_stock_pf",
+    "pse2025_high_20h_3pct_stock_pf",
+    "pse2025_low_20h_3pct_stock_pf"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-03T14:17:19Z",
+  "generated_at": "2026-04-15T17:40:35Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -541,593 +543,455 @@
       "family_id": "stock_fm_baseline",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "Reference",
+      "group": "Stock FAIR Model",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "Stock FM 2/2026",
+      "label": "Stock FAIR Model 2/2026",
       "run_id": "stock_fm_baseline",
       "scenario_name": "stock_fm_baseline",
-      "summary": "Stock model reference run.",
-      "timestamp": "20260327_132322"
+      "summary": "Untouched stock FAIR model reference run.",
+      "timestamp": "20260415_161658"
     },
     {
-      "data_path": "runs/pse2025_base.json",
+      "data_path": "runs/pse2025_base_stock_pf.json",
       "details": [
-        "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
-        "UBGH=0.5 for consistency with the replacement family."
+        "JGSWITCH=0, JGPHASE=0, JGHILO=0.",
+        "PSE accounting, imports, and JG identities remain unchanged.",
+        "This is a PSE hybrid run, not the pure stock FAIR model.",
+        "Only the PF equation block is swapped to the stock FM form."
       ],
-      "family_id": "pse2025_base",
+      "family_id": "pse2025_base_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "Standard 2026",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "PSE2026.2 Base",
-      "run_id": "pse2025_base",
-      "scenario_name": "pse2025_base",
-      "summary": "Baseline with the Job Guarantee switched off.",
-      "timestamp": "20260327_134341"
+      "label": "PSE2026.2 Base (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_base_stock_pf",
+      "scenario_name": "pse2025_base_stock_pf",
+      "summary": "PSE base using the stock FM PF equation and LCUSTZ term.",
+      "timestamp": "20260415_161728"
     },
     {
-      "data_path": "runs/pse2025_base_10y.json",
+      "data_path": "runs/pse2025_base_stock_pf_10y.json",
       "details": [
-        "Exact 10-year extension of the published 5-year base run.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
+        "Exact 10-year extension of the PSE-with-stock-PF base variant.",
+        "The first 2025.4 to 2029.4 path should match the 5-year PSE-with-stock-PF base run."
       ],
-      "family_id": "pse2025_base",
+      "family_id": "pse2025_base_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
-      "group": "Standard 2026",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "10y",
       "horizon_label": "10Y",
       "horizon_years": 10,
-      "label": "PSE2026.2 Base",
-      "run_id": "pse2025_base_10y",
-      "scenario_name": "pse2025_base_10y",
-      "summary": "Baseline with the Job Guarantee switched off.",
-      "timestamp": "20260401_122236"
+      "label": "PSE2026.2 Base (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_base_stock_pf_10y",
+      "scenario_name": "pse2025_base_stock_pf_10y",
+      "summary": "PSE base using the stock FM PF equation and LCUSTZ term.",
+      "timestamp": "20260415_164722"
     },
     {
-      "data_path": "runs/pse2025_high_20h_3pct.json",
+      "data_path": "runs/pse2025_high_20h_3pct_stock_pf.json",
       "details": [
         "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
         "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
-      ],
-      "family_id": "pse2025_high_20h_3pct",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 High $20/h 3%",
-      "run_id": "pse2025_high_20h_3pct",
-      "scenario_name": "pse2025_high_20h_3pct",
-      "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_high_20h_3pct_10y.json",
-      "details": [
-        "Exact 10-year extension of the published 5-year high $20/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
-      ],
-      "family_id": "pse2025_high_20h_3pct",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 High $20/h 3%",
-      "run_id": "pse2025_high_20h_3pct_10y",
-      "scenario_name": "pse2025_high_20h_3pct_10y",
-      "summary": "High take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_low_20h_3pct.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
-        "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward."
-      ],
-      "family_id": "pse2025_low_20h_3pct",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Low $20/h 3%",
-      "run_id": "pse2025_low_20h_3pct",
-      "scenario_name": "pse2025_low_20h_3pct",
-      "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_low_20h_3pct_10y.json",
-      "details": [
-        "Exact 10-year extension of the published 5-year low $20/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
-      ],
-      "family_id": "pse2025_low_20h_3pct",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Low $20/h 3%",
-      "run_id": "pse2025_low_20h_3pct_10y",
-      "scenario_name": "pse2025_low_20h_3pct_10y",
-      "summary": "Low take-up with a $20/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_high_15h_3pct.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
-        "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
-      ],
-      "family_id": "pse2025_high_15h_3pct",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 High $15/h 3%",
-      "run_id": "pse2025_high_15h_3pct",
-      "scenario_name": "pse2025_high_15h_3pct",
-      "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_high_15h_3pct_10y.json",
-      "details": [
-        "Exact 10-year extension of the published 5-year high $15/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
-      ],
-      "family_id": "pse2025_high_15h_3pct",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 High $15/h 3%",
-      "run_id": "pse2025_high_15h_3pct_10y",
-      "scenario_name": "pse2025_high_15h_3pct_10y",
-      "summary": "High take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_low_15h_3pct.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
-        "JGPHASE keeps the standard 5-step ramp.",
-        "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward."
-      ],
-      "family_id": "pse2025_low_15h_3pct",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Low $15/h 3%",
-      "run_id": "pse2025_low_15h_3pct",
-      "scenario_name": "pse2025_low_15h_3pct",
-      "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_low_15h_3pct_10y.json",
-      "details": [
-        "Exact 10-year extension of the published 5-year low $15/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
-      ],
-      "family_id": "pse2025_low_15h_3pct",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "Standard 2026",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Low $15/h 3%",
-      "run_id": "pse2025_low_15h_3pct_10y",
-      "scenario_name": "pse2025_low_15h_3pct_10y",
-      "summary": "Low take-up with a $15/hour start and 3% annual wage growth.",
-      "timestamp": "20260402_211700"
-    },
-    {
-      "data_path": "runs/pse2025_base_intgadj04.json",
-      "details": [
-        "Matches the standard 2026 base setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
-        "JGSWITCH=0, JGPHASE=0, JGHILO=0, and UBGH=0.5 remain unchanged."
-      ],
-      "family_id": "pse2025_base_intgadj04",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Base INTGADJ 0.4",
-      "run_id": "pse2025_base_intgadj04",
-      "scenario_name": "pse2025_base_intgadj04",
-      "summary": "Standard 2026 baseline with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_134728"
-    },
-    {
-      "data_path": "runs/pse2025_base_intgadj04_10y.json",
-      "details": [
-        "Exact 10-year extension of the INTGADJ 0.4 base variant.",
-        "INTGADJ is overridden to 0.4 in every forecast quarter."
-      ],
-      "family_id": "pse2025_base_intgadj04",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Base INTGADJ 0.4",
-      "run_id": "pse2025_base_intgadj04_10y",
-      "scenario_name": "pse2025_base_intgadj04_10y",
-      "summary": "Standard 2026 baseline with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_141549"
-    },
-    {
-      "data_path": "runs/pse2025_high_20h_3pct_intgadj04.json",
-      "details": [
-        "Matches the standard 2026 high $20/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
-        "JGSWITCH=1, JGHILO=1, and UBGH=0.5 remain unchanged."
-      ],
-      "family_id": "pse2025_high_20h_3pct_intgadj04",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 High $20/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_high_20h_3pct_intgadj04",
-      "scenario_name": "pse2025_high_20h_3pct_intgadj04",
-      "summary": "Standard high $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_134741"
-    },
-    {
-      "data_path": "runs/pse2025_high_20h_3pct_intgadj04_10y.json",
-      "details": [
-        "Exact 10-year extension of the INTGADJ 0.4 high $20/hour 3% variant.",
-        "INTGADJ is overridden to 0.4 in every forecast quarter."
-      ],
-      "family_id": "pse2025_high_20h_3pct_intgadj04",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 High $20/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_high_20h_3pct_intgadj04_10y",
-      "scenario_name": "pse2025_high_20h_3pct_intgadj04_10y",
-      "summary": "Standard high $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_141611"
-    },
-    {
-      "data_path": "runs/pse2025_low_20h_3pct_intgadj04.json",
-      "details": [
-        "Matches the standard 2026 low $20/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
-        "JGSWITCH=1, JGHILO=0, and UBGH=0.5 remain unchanged."
-      ],
-      "family_id": "pse2025_low_20h_3pct_intgadj04",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Low $20/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_low_20h_3pct_intgadj04",
-      "scenario_name": "pse2025_low_20h_3pct_intgadj04",
-      "summary": "Standard low $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_134751"
-    },
-    {
-      "data_path": "runs/pse2025_low_20h_3pct_intgadj04_10y.json",
-      "details": [
-        "Exact 10-year extension of the INTGADJ 0.4 low $20/hour 3% variant.",
-        "INTGADJ is overridden to 0.4 in every forecast quarter."
-      ],
-      "family_id": "pse2025_low_20h_3pct_intgadj04",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Low $20/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_low_20h_3pct_intgadj04_10y",
-      "scenario_name": "pse2025_low_20h_3pct_intgadj04_10y",
-      "summary": "Standard low $20/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_141630"
-    },
-    {
-      "data_path": "runs/pse2025_high_15h_3pct_intgadj04.json",
-      "details": [
-        "Matches the standard 2026 high $15/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
-        "JGSWITCH=1, JGHILO=1, and UBGH=0.5 remain unchanged."
-      ],
-      "family_id": "pse2025_high_15h_3pct_intgadj04",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 High $15/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_high_15h_3pct_intgadj04",
-      "scenario_name": "pse2025_high_15h_3pct_intgadj04",
-      "summary": "Standard high $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_134800"
-    },
-    {
-      "data_path": "runs/pse2025_high_15h_3pct_intgadj04_10y.json",
-      "details": [
-        "Exact 10-year extension of the INTGADJ 0.4 high $15/hour 3% variant.",
-        "INTGADJ is overridden to 0.4 in every forecast quarter."
-      ],
-      "family_id": "pse2025_high_15h_3pct_intgadj04",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 High $15/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_high_15h_3pct_intgadj04_10y",
-      "scenario_name": "pse2025_high_15h_3pct_intgadj04_10y",
-      "summary": "Standard high $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_141601"
-    },
-    {
-      "data_path": "runs/pse2025_low_15h_3pct_intgadj04.json",
-      "details": [
-        "Matches the standard 2026 low $15/hour 3% setup except INTGADJ is overridden to 0.4 in every forecast quarter.",
-        "JGSWITCH=1, JGHILO=0, and UBGH=0.5 remain unchanged."
-      ],
-      "family_id": "pse2025_low_15h_3pct_intgadj04",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Low $15/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_low_15h_3pct_intgadj04",
-      "scenario_name": "pse2025_low_15h_3pct_intgadj04",
-      "summary": "Standard low $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_134810"
-    },
-    {
-      "data_path": "runs/pse2025_low_15h_3pct_intgadj04_10y.json",
-      "details": [
-        "Exact 10-year extension of the INTGADJ 0.4 low $15/hour 3% variant.",
-        "INTGADJ is overridden to 0.4 in every forecast quarter."
-      ],
-      "family_id": "pse2025_low_15h_3pct_intgadj04",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "2026 INTGADJ 0.4",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Low $15/h 3% INTGADJ 0.4",
-      "run_id": "pse2025_low_15h_3pct_intgadj04_10y",
-      "scenario_name": "pse2025_low_15h_3pct_intgadj04_10y",
-      "summary": "Standard low $15/hour 3% scenario with INTGADJ fixed at 0.4 for the full forecast window.",
-      "timestamp": "20260403_141620"
-    },
-    {
-      "data_path": "runs/pse2025_base_rsexog.json",
-      "details": [
-        "JGSWITCH=0, JGPHASE=0, and JGHILO=0.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
-      ],
-      "family_id": "pse2025_base_rsexog",
-      "forecast_end": "2029.4",
-      "forecast_start": "2025.4",
-      "group": "RS Exogenous",
-      "horizon_id": "5y",
-      "horizon_label": "5Y",
-      "horizon_years": 5,
-      "label": "PSE2026.2 Base RS Exog",
-      "run_id": "pse2025_base_rsexog",
-      "scenario_name": "pse2025_base_rsexog",
-      "summary": "Baseline with the Job Guarantee switched off and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_200805"
-    },
-    {
-      "data_path": "runs/pse2025_base_rsexog_10y.json",
-      "details": [
-        "Exact 10-year extension of the published 5-year base RS-exogenous scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
-      ],
-      "family_id": "pse2025_base_rsexog",
-      "forecast_end": "2034.4",
-      "forecast_start": "2025.4",
-      "group": "RS Exogenous",
-      "horizon_id": "10y",
-      "horizon_label": "10Y",
-      "horizon_years": 10,
-      "label": "PSE2026.2 Base RS Exog",
-      "run_id": "pse2025_base_rsexog_10y",
-      "scenario_name": "pse2025_base_rsexog_10y",
-      "summary": "Baseline with the Job Guarantee switched off and an exogenous RS descent to 2%.",
-      "timestamp": "20260403_005918"
-    },
-    {
-      "data_path": "runs/pse2025_high_20h_3pct_rsexog.json",
-      "details": [
-        "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
+        "This is a PSE hybrid run, not the pure stock FAIR model.",
+        "Only the PF equation block is swapped to the stock FM form."
       ],
-      "family_id": "pse2025_high_20h_3pct_rsexog",
+      "family_id": "pse2025_high_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "PSE2026.2 High $20/h 3% RS Exog",
-      "run_id": "pse2025_high_20h_3pct_rsexog",
-      "scenario_name": "pse2025_high_20h_3pct_rsexog",
-      "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 High $20/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_high_20h_3pct_stock_pf",
+      "scenario_name": "pse2025_high_20h_3pct_stock_pf",
+      "summary": "High take-up with a $20/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_161832"
     },
     {
-      "data_path": "runs/pse2025_high_20h_3pct_rsexog_10y.json",
+      "data_path": "runs/pse2025_high_20h_3pct_stock_pf_10y.json",
       "details": [
-        "Exact 10-year extension of the published 5-year RS-exogenous high $20/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
+        "Exact 10-year extension of the PSE-with-stock-PF high $20/hour 3% variant.",
+        "The first 2025.4 to 2029.4 path should match the 5-year PSE-with-stock-PF run."
       ],
-      "family_id": "pse2025_high_20h_3pct_rsexog",
+      "family_id": "pse2025_high_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "10y",
       "horizon_label": "10Y",
       "horizon_years": 10,
-      "label": "PSE2026.2 High $20/h 3% RS Exog",
-      "run_id": "pse2025_high_20h_3pct_rsexog_10y",
-      "scenario_name": "pse2025_high_20h_3pct_rsexog_10y",
-      "summary": "High take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 High $20/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_high_20h_3pct_stock_pf_10y",
+      "scenario_name": "pse2025_high_20h_3pct_stock_pf_10y",
+      "summary": "High take-up with a $20/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_164846"
     },
     {
-      "data_path": "runs/pse2025_low_20h_3pct_rsexog.json",
+      "data_path": "runs/pse2025_low_20h_3pct_stock_pf.json",
       "details": [
         "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
+        "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.020 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
+        "This is a PSE hybrid run, not the pure stock FAIR model.",
+        "Only the PF equation block is swapped to the stock FM form."
       ],
-      "family_id": "pse2025_low_20h_3pct_rsexog",
+      "family_id": "pse2025_low_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "PSE2026.2 Low $20/h 3% RS Exog",
-      "run_id": "pse2025_low_20h_3pct_rsexog",
-      "scenario_name": "pse2025_low_20h_3pct_rsexog",
-      "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 Low $20/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_low_20h_3pct_stock_pf",
+      "scenario_name": "pse2025_low_20h_3pct_stock_pf",
+      "summary": "Low take-up with a $20/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_161954"
     },
     {
-      "data_path": "runs/pse2025_low_20h_3pct_rsexog_10y.json",
+      "data_path": "runs/pse2025_low_20h_3pct_stock_pf_10y.json",
       "details": [
-        "Exact 10-year extension of the published 5-year RS-exogenous low $20/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
+        "Exact 10-year extension of the PSE-with-stock-PF low $20/hour 3% variant.",
+        "The first 2025.4 to 2029.4 path should match the 5-year PSE-with-stock-PF run."
       ],
-      "family_id": "pse2025_low_20h_3pct_rsexog",
+      "family_id": "pse2025_low_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "10y",
       "horizon_label": "10Y",
       "horizon_years": 10,
-      "label": "PSE2026.2 Low $20/h 3% RS Exog",
-      "run_id": "pse2025_low_20h_3pct_rsexog_10y",
-      "scenario_name": "pse2025_low_20h_3pct_rsexog_10y",
-      "summary": "Low take-up with a $20/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 Low $20/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_low_20h_3pct_stock_pf_10y",
+      "scenario_name": "pse2025_low_20h_3pct_stock_pf_10y",
+      "summary": "Low take-up with a $20/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_164938"
     },
     {
-      "data_path": "runs/pse2025_high_15h_3pct_rsexog.json",
+      "data_path": "runs/pse2025_high_15h_3pct_stock_pf.json",
       "details": [
         "JGSWITCH=1, JGHILO=1, and UBGH=0.5.",
+        "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
+        "This is a PSE hybrid run, not the pure stock FAIR model.",
+        "Only the PF equation block is swapped to the stock FM form."
       ],
-      "family_id": "pse2025_high_15h_3pct_rsexog",
+      "family_id": "pse2025_high_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "PSE2026.2 High $15/h 3% RS Exog",
-      "run_id": "pse2025_high_15h_3pct_rsexog",
-      "scenario_name": "pse2025_high_15h_3pct_rsexog",
-      "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 High $15/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_high_15h_3pct_stock_pf",
+      "scenario_name": "pse2025_high_15h_3pct_stock_pf",
+      "summary": "High take-up with a $15/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_162107"
     },
     {
-      "data_path": "runs/pse2025_high_15h_3pct_rsexog_10y.json",
+      "data_path": "runs/pse2025_high_15h_3pct_stock_pf_10y.json",
       "details": [
-        "Exact 10-year extension of the published 5-year RS-exogenous high $15/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
+        "Exact 10-year extension of the PSE-with-stock-PF high $15/hour 3% variant.",
+        "The first 2025.4 to 2029.4 path should match the 5-year PSE-with-stock-PF run."
       ],
-      "family_id": "pse2025_high_15h_3pct_rsexog",
+      "family_id": "pse2025_high_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "10y",
       "horizon_label": "10Y",
       "horizon_years": 10,
-      "label": "PSE2026.2 High $15/h 3% RS Exog",
-      "run_id": "pse2025_high_15h_3pct_rsexog_10y",
-      "scenario_name": "pse2025_high_15h_3pct_rsexog_10y",
-      "summary": "High take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 High $15/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_high_15h_3pct_stock_pf_10y",
+      "scenario_name": "pse2025_high_15h_3pct_stock_pf_10y",
+      "summary": "High take-up with a $15/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_165008"
     },
     {
-      "data_path": "runs/pse2025_low_15h_3pct_rsexog.json",
+      "data_path": "runs/pse2025_low_15h_3pct_stock_pf.json",
       "details": [
         "JGSWITCH=1, JGHILO=0, and UBGH=0.5.",
+        "JGPHASE keeps the standard 5-step ramp.",
         "JGW starts at 0.015 and JGCOLA applies 3% annualized growth from 2026.1 onward.",
-        "RS is held exogenous, stepping down 25bp per quarter from the 2025.4 forecast level until it reaches 2.0, then staying at 2.0."
+        "This is a PSE hybrid run, not the pure stock FAIR model.",
+        "Only the PF equation block is swapped to the stock FM form."
       ],
-      "family_id": "pse2025_low_15h_3pct_rsexog",
+      "family_id": "pse2025_low_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "5y",
       "horizon_label": "5Y",
       "horizon_years": 5,
-      "label": "PSE2026.2 Low $15/h 3% RS Exog",
-      "run_id": "pse2025_low_15h_3pct_rsexog",
-      "scenario_name": "pse2025_low_15h_3pct_rsexog",
-      "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 Low $15/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_low_15h_3pct_stock_pf",
+      "scenario_name": "pse2025_low_15h_3pct_stock_pf",
+      "summary": "Low take-up with a $15/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_162221"
     },
     {
-      "data_path": "runs/pse2025_low_15h_3pct_rsexog_10y.json",
+      "data_path": "runs/pse2025_low_15h_3pct_stock_pf_10y.json",
       "details": [
-        "Exact 10-year extension of the published 5-year RS-exogenous low $15/hour scenario.",
-        "The first 2025.4 to 2029.4 path matches the 5-year public run exactly."
+        "Exact 10-year extension of the PSE-with-stock-PF low $15/hour 3% variant.",
+        "The first 2025.4 to 2029.4 path should match the 5-year PSE-with-stock-PF run."
       ],
-      "family_id": "pse2025_low_15h_3pct_rsexog",
+      "family_id": "pse2025_low_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
-      "group": "RS Exogenous",
+      "group": "PSE With Stock PF Equation",
       "horizon_id": "10y",
       "horizon_label": "10Y",
       "horizon_years": 10,
-      "label": "PSE2026.2 Low $15/h 3% RS Exog",
-      "run_id": "pse2025_low_15h_3pct_rsexog_10y",
-      "scenario_name": "pse2025_low_15h_3pct_rsexog_10y",
-      "summary": "Low take-up with a $15/hour start, 3% wage growth, and an exogenous RS descent to 2%.",
-      "timestamp": "20260402_211700"
+      "label": "PSE2026.2 Low $15/h 3% (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_low_15h_3pct_stock_pf_10y",
+      "scenario_name": "pse2025_low_15h_3pct_stock_pf_10y",
+      "summary": "Low take-up with a $15/hour start and 3% annual wage growth, using the stock PF equation inside the PSE deck.",
+      "timestamp": "20260415_165034"
+    },
+    {
+      "data_path": "runs/pse2025_20h_3pct_wageonly_stock_pf.json",
+      "details": [
+        "JGSWITCH=0, JGPHASE=0, and JGHILO=0 so the JG employment block stays off.",
+        "JGWPHASE carries the standard 5-step ramp used by the JG scenarios.",
+        "JGW starts at 0.020, JGCOLA applies 3% annualized growth, and MWCOLA keeps MINWAGE on the same quarterly path.",
+        "JG wage feedback stays active through JGWFADJ without turning on JG jobs, JG income, or JG spending."
+      ],
+      "family_id": "pse2025_20h_3pct_wageonly_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "Wage-Only Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 $20/h 3% Wage-Only (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_20h_3pct_wageonly_stock_pf",
+      "scenario_name": "pse2025_20h_3pct_wageonly_stock_pf",
+      "summary": "Wage-only counterfactual in the PSE deck with a $20/hour start and 3% annual wage growth, using the stock PF equation.",
+      "timestamp": "20260415_162359"
+    },
+    {
+      "data_path": "runs/pse2025_20h_3pct_wageonly_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the PSE-with-stock-PF $20/hour wage-only counterfactual.",
+        "The first 2025.4 to 2029.4 path should match the 5-year wage-only run."
+      ],
+      "family_id": "pse2025_20h_3pct_wageonly_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "Wage-Only Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 $20/h 3% Wage-Only (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_20h_3pct_wageonly_stock_pf_10y",
+      "scenario_name": "pse2025_20h_3pct_wageonly_stock_pf_10y",
+      "summary": "Wage-only counterfactual in the PSE deck with a $20/hour start and 3% annual wage growth, using the stock PF equation.",
+      "timestamp": "20260415_165104"
+    },
+    {
+      "data_path": "runs/pse2025_15h_3pct_wageonly_stock_pf.json",
+      "details": [
+        "JGSWITCH=0, JGPHASE=0, and JGHILO=0 so the JG employment block stays off.",
+        "JGWPHASE carries the standard 5-step ramp used by the JG scenarios.",
+        "JGW starts at 0.015, JGCOLA applies 3% annualized growth, and MWCOLA keeps MINWAGE on the same quarterly path.",
+        "JG wage feedback stays active through JGWFADJ without turning on JG jobs, JG income, or JG spending."
+      ],
+      "family_id": "pse2025_15h_3pct_wageonly_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "Wage-Only Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 $15/h 3% Wage-Only (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_15h_3pct_wageonly_stock_pf",
+      "scenario_name": "pse2025_15h_3pct_wageonly_stock_pf",
+      "summary": "Wage-only counterfactual in the PSE deck with a $15/hour start and 3% annual wage growth, using the stock PF equation.",
+      "timestamp": "20260415_162524"
+    },
+    {
+      "data_path": "runs/pse2025_15h_3pct_wageonly_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the PSE-with-stock-PF $15/hour wage-only counterfactual.",
+        "The first 2025.4 to 2029.4 path should match the 5-year wage-only run."
+      ],
+      "family_id": "pse2025_15h_3pct_wageonly_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "Wage-Only Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 $15/h 3% Wage-Only (PSE + Stock PF Eq.)",
+      "run_id": "pse2025_15h_3pct_wageonly_stock_pf_10y",
+      "scenario_name": "pse2025_15h_3pct_wageonly_stock_pf_10y",
+      "summary": "Wage-only counterfactual in the PSE deck with a $15/hour start and 3% annual wage growth, using the stock PF equation.",
+      "timestamp": "20260415_165137"
+    },
+    {
+      "data_path": "runs/pse2025_high_20h_3pct_rsexog_stock_pf.json",
+      "details": [
+        "Keeps the full JG high-take-up $20/hour 3% setup.",
+        "Forces RS quarter by quarter to the corresponding $20/hour wage-only run.",
+        "Leaves JG employment, spending, and wage channels otherwise active."
+      ],
+      "family_id": "pse2025_high_20h_3pct_rsexog_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 High $20/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_high_20h_3pct_rsexog_stock_pf",
+      "scenario_name": "pse2025_high_20h_3pct_rsexog_stock_pf",
+      "summary": "High take-up $20/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173731"
+    },
+    {
+      "data_path": "runs/pse2025_high_20h_3pct_rsexog_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the high $20/hour RS-exogenous counterfactual.",
+        "RS matches the corresponding $20/hour wage-only run through 2034.4."
+      ],
+      "family_id": "pse2025_high_20h_3pct_rsexog_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 High $20/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_high_20h_3pct_rsexog_stock_pf_10y",
+      "scenario_name": "pse2025_high_20h_3pct_rsexog_stock_pf_10y",
+      "summary": "High take-up $20/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173745"
+    },
+    {
+      "data_path": "runs/pse2025_low_20h_3pct_rsexog_stock_pf.json",
+      "details": [
+        "Keeps the full JG low-take-up $20/hour 3% setup.",
+        "Forces RS quarter by quarter to the corresponding $20/hour wage-only run.",
+        "Leaves JG employment, spending, and wage channels otherwise active."
+      ],
+      "family_id": "pse2025_low_20h_3pct_rsexog_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 Low $20/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_low_20h_3pct_rsexog_stock_pf",
+      "scenario_name": "pse2025_low_20h_3pct_rsexog_stock_pf",
+      "summary": "Low take-up $20/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173758"
+    },
+    {
+      "data_path": "runs/pse2025_low_20h_3pct_rsexog_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the low $20/hour RS-exogenous counterfactual.",
+        "RS matches the corresponding $20/hour wage-only run through 2034.4."
+      ],
+      "family_id": "pse2025_low_20h_3pct_rsexog_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 Low $20/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_low_20h_3pct_rsexog_stock_pf_10y",
+      "scenario_name": "pse2025_low_20h_3pct_rsexog_stock_pf_10y",
+      "summary": "Low take-up $20/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173813"
+    },
+    {
+      "data_path": "runs/pse2025_high_15h_3pct_rsexog_stock_pf.json",
+      "details": [
+        "Keeps the full JG high-take-up $15/hour 3% setup.",
+        "Forces RS quarter by quarter to the corresponding $15/hour wage-only run.",
+        "Leaves JG employment, spending, and wage channels otherwise active."
+      ],
+      "family_id": "pse2025_high_15h_3pct_rsexog_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 High $15/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_high_15h_3pct_rsexog_stock_pf",
+      "scenario_name": "pse2025_high_15h_3pct_rsexog_stock_pf",
+      "summary": "High take-up $15/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173826"
+    },
+    {
+      "data_path": "runs/pse2025_high_15h_3pct_rsexog_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the high $15/hour RS-exogenous counterfactual.",
+        "RS matches the corresponding $15/hour wage-only run through 2034.4."
+      ],
+      "family_id": "pse2025_high_15h_3pct_rsexog_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 High $15/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_high_15h_3pct_rsexog_stock_pf_10y",
+      "scenario_name": "pse2025_high_15h_3pct_rsexog_stock_pf_10y",
+      "summary": "High take-up $15/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173838"
+    },
+    {
+      "data_path": "runs/pse2025_low_15h_3pct_rsexog_stock_pf.json",
+      "details": [
+        "Keeps the full JG low-take-up $15/hour 3% setup.",
+        "Forces RS quarter by quarter to the corresponding $15/hour wage-only run.",
+        "Leaves JG employment, spending, and wage channels otherwise active."
+      ],
+      "family_id": "pse2025_low_15h_3pct_rsexog_stock_pf",
+      "forecast_end": "2029.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "5y",
+      "horizon_label": "5Y",
+      "horizon_years": 5,
+      "label": "PSE2026.2 Low $15/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_low_15h_3pct_rsexog_stock_pf",
+      "scenario_name": "pse2025_low_15h_3pct_rsexog_stock_pf",
+      "summary": "Low take-up $15/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173852"
+    },
+    {
+      "data_path": "runs/pse2025_low_15h_3pct_rsexog_stock_pf_10y.json",
+      "details": [
+        "Exact 10-year extension of the low $15/hour RS-exogenous counterfactual.",
+        "RS matches the corresponding $15/hour wage-only run through 2034.4."
+      ],
+      "family_id": "pse2025_low_15h_3pct_rsexog_stock_pf",
+      "forecast_end": "2034.4",
+      "forecast_start": "2025.4",
+      "group": "RS-Exogenous Counterfactuals",
+      "horizon_id": "10y",
+      "horizon_label": "10Y",
+      "horizon_years": 10,
+      "label": "PSE2026.2 Low $15/h 3% (RS from Wage-Only)",
+      "run_id": "pse2025_low_15h_3pct_rsexog_stock_pf_10y",
+      "scenario_name": "pse2025_low_15h_3pct_rsexog_stock_pf_10y",
+      "summary": "Low take-up $15/hour JG run with the T-bill path replaced by the matching wage-only counterfactual.",
+      "timestamp": "20260415_173907"
     }
   ],
   "schema_version": 1,

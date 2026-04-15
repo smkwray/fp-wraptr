@@ -1,4 +1,4 @@
-const APP_VERSION = "2026.03.07";
+const APP_VERSION = "2026.04.03.0045";
 
 const TRANSFORM_LEVEL = "level";
 const TRANSFORM_PCT_OF = "pct_of";
@@ -125,7 +125,6 @@ const state = {
   dictionary: new Map(),
   equationCatalog: new Map(),
   runMeta: [],
-  activeHorizonId: "",
   selectedRunIds: [],
   selectedPresetIds: [],
   selectedVariables: [],
@@ -144,7 +143,6 @@ const dom = {
   runPanelBackdrop: document.querySelector("#runPanelBackdrop"),
   runSelect: document.querySelector("#runSelect"),
   runSelectToggle: document.querySelector("#runSelectToggle"),
-  horizonControls: document.querySelector("#horizonControls"),
   presetSelect: document.querySelector("#presetSelect"),
   applyPresetButton: document.querySelector("#applyPresetButton"),
   variableSearch: document.querySelector("#variableSearch"),
@@ -161,62 +159,7 @@ const dom = {
   dictionaryResults: document.querySelector("#dictionaryResults"),
   equationSearch: document.querySelector("#equationSearch"),
   equationExplorerResults: document.querySelector("#equationExplorerResults"),
-  themeToggle: document.querySelector("#themeToggle"),
 };
-
-/* ── Theme toggle ─────────────────────────────────────────────── */
-
-const THEME_KEY = "rptr-theme";
-
-const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
-const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-
-function isLightMode() {
-  return document.documentElement.getAttribute("data-theme") === "light";
-}
-
-function getPlotlyTheme() {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    paper_bgcolor: "rgba(0,0,0,0)",
-    plot_bgcolor: style.getPropertyValue("--plot-bg").trim(),
-    font: { family: "IBM Plex Sans, sans-serif", color: style.getPropertyValue("--plot-text").trim() },
-    gridcolor: style.getPropertyValue("--plot-grid").trim(),
-    zerolinecolor: style.getPropertyValue("--plot-zero").trim(),
-  };
-}
-
-function relayoutAllCharts() {
-  const theme = getPlotlyTheme();
-  const surfaces = document.querySelectorAll(".chart-surface");
-  for (const el of surfaces) {
-    if (el.data) {
-      Plotly.relayout(el, {
-        paper_bgcolor: theme.paper_bgcolor,
-        plot_bgcolor: theme.plot_bgcolor,
-        font: theme.font,
-        "yaxis.gridcolor": theme.gridcolor,
-        "yaxis.zerolinecolor": theme.zerolinecolor,
-      });
-    }
-  }
-}
-
-function syncThemeIcon() {
-  if (!dom.themeToggle) return;
-  dom.themeToggle.innerHTML = isLightMode() ? ICON_MOON : ICON_SUN;
-  dom.themeToggle.setAttribute("aria-label", isLightMode() ? "Switch to dark mode" : "Switch to light mode");
-}
-
-function toggleTheme() {
-  const next = isLightMode() ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem(THEME_KEY, next);
-  syncThemeIcon();
-  relayoutAllCharts();
-}
-
-syncThemeIcon();
 
 function resolveAssetUrl(relativePath) {
   return new URL(relativePath, window.location.href).toString();
@@ -261,77 +204,6 @@ function unique(values) {
 
 function getRunMeta(runId) {
   return state.runMeta.find((item) => item.run_id === runId) || null;
-}
-
-function getReferenceRuns() {
-  return state.runMeta.filter((run) => {
-    const horizonId = `${run?.horizon_id || ""}`.trim();
-    const group = `${run?.group || ""}`.trim().toLowerCase();
-    const familyId = `${run?.family_id || ""}`.trim();
-    return !horizonId || group === "reference" || familyId === "stock_fm_baseline";
-  });
-}
-
-function getAvailableHorizonIds() {
-  const ids = unique(
-    state.runMeta
-      .map((run) => `${run?.horizon_id || ""}`.trim())
-      .filter(Boolean),
-  );
-  return ids.sort((left, right) => {
-    const leftYears = Number.parseInt(left, 10);
-    const rightYears = Number.parseInt(right, 10);
-    if (Number.isFinite(leftYears) && Number.isFinite(rightYears) && leftYears !== rightYears) {
-      return leftYears - rightYears;
-    }
-    return left.localeCompare(right);
-  });
-}
-
-function getHorizonLabel(horizonId) {
-  const match = state.runMeta.find((run) => `${run?.horizon_id || ""}`.trim() === horizonId);
-  return `${match?.horizon_label || horizonId}`.trim() || horizonId.toUpperCase();
-}
-
-function getVisibleRunMeta() {
-  return state.runMeta.filter((run) => {
-    const horizonId = `${run?.horizon_id || ""}`.trim();
-    if (getReferenceRuns().some((item) => item.run_id === run.run_id)) {
-      return true;
-    }
-    return !horizonId || !state.activeHorizonId || horizonId === state.activeHorizonId;
-  });
-}
-
-function getRunForActiveHorizon(run) {
-  if (!run) {
-    return null;
-  }
-  const familyId = `${run?.family_id || ""}`.trim();
-  const horizonId = `${run?.horizon_id || ""}`.trim();
-  if (getReferenceRuns().some((item) => item.run_id === run.run_id)) {
-    return run;
-  }
-  if (!familyId || !horizonId || !state.activeHorizonId || horizonId === state.activeHorizonId) {
-    return run;
-  }
-  return state.runMeta.find((item) => {
-    return `${item?.family_id || ""}`.trim() === familyId && `${item?.horizon_id || ""}`.trim() === state.activeHorizonId;
-  }) || run;
-}
-
-function normalizeSelectedRunIdsForActiveHorizon(runIds) {
-  const visibleRunIds = new Set(getVisibleRunMeta().map((run) => run.run_id));
-  const mapped = new Set();
-  for (const runId of runIds) {
-    const target = getRunForActiveHorizon(getRunMeta(runId));
-    if (target && visibleRunIds.has(target.run_id)) {
-      mapped.add(target.run_id);
-    }
-  }
-  return getVisibleRunMeta()
-    .map((run) => run.run_id)
-    .filter((runId) => mapped.has(runId));
 }
 
 function getRunGroupLabel(run) {
@@ -675,51 +547,8 @@ function collapseRunSelect() {
   setRunSelectExpanded(false);
 }
 
-function syncHorizonControls() {
-  if (!dom.horizonControls) {
-    return;
-  }
-  const horizonIds = getAvailableHorizonIds();
-  dom.horizonControls.hidden = horizonIds.length <= 1;
-  dom.horizonControls.innerHTML = "";
-  for (const horizonId of horizonIds) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `segmented-button${state.activeHorizonId === horizonId ? " active" : ""}`;
-    button.textContent = getHorizonLabel(horizonId);
-    button.setAttribute("aria-pressed", state.activeHorizonId === horizonId ? "true" : "false");
-    button.addEventListener("click", async () => {
-      await setActiveHorizon(horizonId);
-    });
-    dom.horizonControls.appendChild(button);
-  }
-}
-
-async function setActiveHorizon(horizonId) {
-  if (!horizonId || state.activeHorizonId === horizonId) {
-    return;
-  }
-  state.activeHorizonId = horizonId;
-  const normalized = normalizeSelectedRunIdsForActiveHorizon(state.selectedRunIds);
-  const fallback = normalized.length > 0
-    ? normalized
-    : normalizeSelectedRunIdsForActiveHorizon(state.manifest.default_run_ids || []);
-  state.selectedRunIds = fallback;
-  await ensureRunsLoaded(state.selectedRunIds);
-  const nextRunInfo = getRunForActiveHorizon(getRunMeta(state.selectedRunInfoId));
-  state.selectedRunInfoId = state.selectedRunIds.includes(nextRunInfo?.run_id)
-    ? nextRunInfo.run_id
-    : (state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "");
-  syncHorizonControls();
-  syncRunSelect();
-  syncRunInfoSelect();
-  renderCharts();
-  renderEquationCharts();
-  renderRunInfo();
-}
-
 async function applyRunSelection(selected) {
-  state.selectedRunIds = getVisibleRunMeta()
+  state.selectedRunIds = state.runMeta
     .map((item) => item.run_id)
     .filter((runId) => selected.has(runId));
   await ensureRunsLoaded(state.selectedRunIds);
@@ -730,7 +559,7 @@ async function applyRunSelection(selected) {
     sanitizeEquationConfig(equation.id, state.equationConfigs.get(equation.id));
   }
   if (!state.selectedRunIds.includes(state.selectedRunInfoId)) {
-    state.selectedRunInfoId = state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "";
+    state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
   }
   syncRunSelect();
   syncRunInfoSelect();
@@ -741,7 +570,7 @@ async function applyRunSelection(selected) {
 
 function syncRunSelect() {
   dom.runSelect.innerHTML = "";
-  const groups = buildRunGroups(getVisibleRunMeta());
+  const groups = buildRunGroups(state.runMeta);
   if (state.runSelectExpanded) {
     const columnCount = getRunSelectColumnCount();
     dom.runSelect.style.setProperty("--run-select-columns", `${columnCount}`);
@@ -800,7 +629,7 @@ function syncPresetSelect() {
 
 function syncRunInfoSelect() {
   dom.runInfoSelect.innerHTML = "";
-  for (const group of buildRunGroups(getVisibleRunMeta())) {
+  for (const group of buildRunGroups(state.runMeta)) {
     const optgroup = document.createElement("optgroup");
     optgroup.label = group.label;
     for (const run of group.runs) {
@@ -953,7 +782,7 @@ function createChartControls({ seriesKey, cfg, onConfigChange, onRender }) {
         label: "Ref",
         value: cfg.referenceRunId,
         variable: seriesKey,
-        options: state.selectedRunIds.map((runId) => getRunMeta(runId)).filter(Boolean).map((run) => ({
+        options: state.runMeta.map((run) => ({
           value: run.run_id,
           label: run.label,
         })),
@@ -1223,23 +1052,22 @@ function renderCharts() {
     card.appendChild(controls);
     dom.charts.appendChild(card);
 
-    const pt = getPlotlyTheme();
     Plotly.newPlot(
       chart,
       traces,
       {
         margin: { t: 30, r: 12, b: 46, l: 54 },
-        paper_bgcolor: pt.paper_bgcolor,
-        plot_bgcolor: pt.plot_bgcolor,
-        font: pt.font,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.72)",
+        font: { family: "IBM Plex Sans, sans-serif", color: "#18201b" },
         xaxis: {
           title: { text: "Period" },
           automargin: true,
         },
         yaxis: {
           title: { text: titleMeta.units || variable },
-          zerolinecolor: pt.zerolinecolor,
-          gridcolor: pt.gridcolor,
+          zerolinecolor: "rgba(24,32,27,0.16)",
+          gridcolor: "rgba(24,32,27,0.08)",
           automargin: true,
         },
         legend: {
@@ -1784,20 +1612,19 @@ function renderEquationCharts() {
     card.appendChild(eqControls);
     dom.equationCharts.appendChild(card);
 
-    const pt2 = getPlotlyTheme();
     Plotly.newPlot(
       chart,
       traces,
       {
         margin: { t: 30, r: 12, b: 46, l: 54 },
-        paper_bgcolor: pt2.paper_bgcolor,
-        plot_bgcolor: pt2.plot_bgcolor,
-        font: pt2.font,
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(255,255,255,0.72)",
+        font: { family: "IBM Plex Sans, sans-serif", color: "#18201b" },
         xaxis: { title: { text: "Period" }, automargin: true },
         yaxis: {
           title: { text: titleMeta.units || eq.expression },
-          zerolinecolor: pt2.zerolinecolor,
-          gridcolor: pt2.gridcolor,
+          zerolinecolor: "rgba(24,32,27,0.16)",
+          gridcolor: "rgba(24,32,27,0.08)",
           automargin: true,
         },
         legend: { orientation: "h", yanchor: "bottom", y: 1.02, xanchor: "left", x: 0 },
@@ -1823,9 +1650,7 @@ async function initialize() {
   state.equationCatalog = new Map(
     Object.values(dictionaryPayload.equations || {}).map((value) => [`${value.id}`, value]),
   );
-  const horizonIds = getAvailableHorizonIds();
-  state.activeHorizonId = horizonIds[0] || "";
-  state.selectedRunIds = normalizeSelectedRunIdsForActiveHorizon(manifest.default_run_ids || []);
+  state.selectedRunIds = [...(manifest.default_run_ids || [])];
   state.selectedPresetIds = [...(manifest.default_preset_ids || [])];
 
   const selectedPresets = state.presets.filter((preset) => state.selectedPresetIds.includes(preset.id));
@@ -1836,12 +1661,11 @@ async function initialize() {
 
   dom.pageTitle.textContent = manifest.title || "Model Runs Explorer";
 
-  syncHorizonControls();
   syncRunSelectExpansion();
   syncRunSelect();
   syncPresetSelect();
   syncVariableSelect();
-  state.selectedRunInfoId = state.selectedRunIds[0] || getVisibleRunMeta()[0]?.run_id || "";
+  state.selectedRunInfoId = state.selectedRunIds[0] || state.runMeta[0]?.run_id || "";
   syncRunInfoSelect();
 
   await ensureRunsLoaded(state.selectedRunIds);
@@ -1912,10 +1736,6 @@ dom.equationSearch.addEventListener("input", () => {
 dom.equationPlotButton.addEventListener("click", () => {
   addEquation(dom.equationInput.value);
 });
-
-if (dom.themeToggle) {
-  dom.themeToggle.addEventListener("click", toggleTheme);
-}
 
 dom.equationInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {

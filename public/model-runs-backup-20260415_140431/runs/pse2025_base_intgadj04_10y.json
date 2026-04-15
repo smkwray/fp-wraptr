@@ -20,8 +20,8 @@
     "2029.3",
     "2029.4"
   ],
-  "run_id": "pse2025_base_intgadj04",
-  "scenario_name": "pse2025_base_intgadj04",
+  "run_id": "pse2025_base_intgadj04_10y",
+  "scenario_name": "pse2025_base_intgadj04_10y",
   "schema_version": 1,
   "series": {
     "AA": [
@@ -9886,5 +9886,5 @@
       0.0
     ]
   },
-  "timestamp": "20260403_134728"
+  "timestamp": "20260403_200649"
 }
