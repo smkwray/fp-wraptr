@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import shutil
 from collections import OrderedDict
 from pathlib import Path
@@ -10,7 +9,6 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PUBLIC_MANIFEST_PATH = REPO_ROOT / "public" / "model-runs" / "manifest.json"
 SOURCE_ARTIFACTS_ROOT = REPO_ROOT / "artifacts-pse2026"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "projects_local" / "pse2025_exact_10y"
 
@@ -67,18 +65,20 @@ def _period_range(start_exclusive: str, end_inclusive: str) -> list[str]:
     return out
 
 
-def _load_manifest_index(path: Path) -> dict[str, dict[str, object]]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    return {str(item["run_id"]): item for item in payload.get("runs", [])}
-
-
-def _source_run_dir(run_id: str, manifest_index: dict[str, dict[str, object]]) -> Path:
-    record = manifest_index[run_id]
-    timestamp = str(record["timestamp"])
-    path = SOURCE_ARTIFACTS_ROOT / f"{run_id}_{timestamp}"
-    if not path.exists():
-        raise FileNotFoundError(f"Missing published source artifact for {run_id}: {path}")
-    return path
+def _latest_source_run_dir(run_id: str, artifacts_root: Path) -> Path:
+    candidates = sorted(
+        (
+            path
+            for path in artifacts_root.glob(f"{run_id}_*")
+            if path.is_dir() and (path / "scenario.yaml").exists() and (path / "work").exists()
+        ),
+        key=lambda path: path.name,
+    )
+    if not candidates:
+        raise FileNotFoundError(
+            f"Missing source artifact for {run_id} under {artifacts_root}"
+        )
+    return candidates[-1]
 
 
 def _copy_support_tree(*, source_work_dir: Path, dest_overlay_dir: Path, entry_input_file: str) -> None:
@@ -349,6 +349,8 @@ def _patch_fmexog(text: str) -> str:
     replacements = {
         "SMPL 2026.1 2029.4;": f"SMPL 2026.1 {TARGET_END};",
         "SMPL 2025.4 2029.4;": f"SMPL 2025.4 {TARGET_END};",
+        "JGPHASE ADDDIFABS": "JGPHASE SAMEVALUE",
+        "JGWPHASE ADDDIFABS": "JGWPHASE SAMEVALUE",
     }
     for source, target in replacements.items():
         text = text.replace(source, target)
@@ -394,14 +396,18 @@ def _write_scenario_yaml(
     scenario_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
 
-def build_exact_inputs(*, output_root: Path, artifacts_root: str) -> list[Path]:
-    manifest_index = _load_manifest_index(PUBLIC_MANIFEST_PATH)
+def build_exact_inputs(
+    *,
+    output_root: Path,
+    artifacts_root: str,
+    source_artifacts_root: Path,
+) -> list[Path]:
     scenarios_root = output_root / "scenarios"
     overlays_root = output_root / "overlays"
     created: list[Path] = []
 
     for run_id in PSE_RUN_IDS:
-        source_run_dir = _source_run_dir(run_id, manifest_index)
+        source_run_dir = _latest_source_run_dir(run_id, source_artifacts_root)
         source_work_dir = source_run_dir / "work"
         source_scenario_path = source_run_dir / "scenario.yaml"
         source_scenario = yaml.safe_load(source_scenario_path.read_text(encoding="utf-8")) or {}
@@ -471,11 +477,18 @@ def main() -> None:
         default="artifacts-pse2026",
         help="Artifacts root written into the generated scenario yamls.",
     )
+    parser.add_argument(
+        "--source-artifacts-root",
+        type=Path,
+        default=SOURCE_ARTIFACTS_ROOT,
+        help="Directory containing the latest 5-year source artifacts to extend.",
+    )
     args = parser.parse_args()
 
     scenario_paths = build_exact_inputs(
         output_root=args.output_root.resolve(),
         artifacts_root=str(args.artifacts_root),
+        source_artifacts_root=args.source_artifacts_root.resolve(),
     )
     for path in scenario_paths:
         print(path)

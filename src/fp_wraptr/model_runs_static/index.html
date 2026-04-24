@@ -11,13 +11,20 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260424-pf-equation-link" />
+    <script>
+      (function () {
+        var saved = localStorage.getItem("rptr-theme");
+        document.documentElement.setAttribute("data-theme", saved === "light" ? "light" : "dark");
+      })();
+    </script>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=20260424-pf-equation-link"></script>
   </head>
   <body>
     <div class="shell">
       <header class="hero">
+        <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle light mode"></button>
         <div>
           <div class="hero-title-row">
             <h1 id="pageTitle">Model Runs Explorer</h1>
@@ -44,6 +51,7 @@
               <h2>Runs</h2>
               <button id="runSelectToggle" type="button" class="panel-toggle-button">Expand</button>
             </div>
+            <div id="horizonControls" class="segmented-control" aria-label="Forecast horizon"></div>
             <div id="runSelect" class="checklist" aria-label="Runs"></div>
             <p class="hint">Select one or more exported runs to overlay.</p>
           </section>
