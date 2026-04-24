@@ -1331,7 +1331,13 @@ function collectEquationRefsForVariable(variable) {
 
   const linkedDefinition = normalizeEquationRef(record.defined_by_equation);
   if (linkedDefinition) {
-    defining.add(linkedDefinition);
+    const linkedEquation = getEquationRecord(linkedDefinition);
+    const linkedLhs = `${linkedEquation?.lhs_expr || ""}`.trim().toUpperCase();
+    if (!linkedEquation || linkedLhs === variable) {
+      defining.add(linkedDefinition);
+    } else {
+      usage.add(linkedDefinition);
+    }
   }
   for (const value of Array.isArray(record.used_in_equations) ? record.used_in_equations : []) {
     const normalized = normalizeEquationRef(value);
@@ -1382,6 +1388,87 @@ function compareEquationIds(left, right) {
   return left.localeCompare(right);
 }
 
+function equationSourceRunCount(equationId) {
+  const record = getEquationRecord(equationId);
+  return Array.isArray(record?.source_runs) ? record.source_runs.length : 0;
+}
+
+function equationFormulaLength(equationId) {
+  const record = getEquationRecord(equationId);
+  return `${record?.formula || ""}`.length;
+}
+
+function isStructuralModelEquation(record) {
+  return record?.type === "scenario_equation" && record.model_eq_id !== undefined && record.model_eq_id !== null;
+}
+
+function compareDefiningEquationIds(left, right) {
+  const leftRecord = getEquationRecord(left);
+  const rightRecord = getEquationRecord(right);
+  const leftStructural = isStructuralModelEquation(leftRecord);
+  const rightStructural = isStructuralModelEquation(rightRecord);
+  if (leftStructural !== rightStructural) {
+    return leftStructural ? -1 : 1;
+  }
+  const leftRuns = equationSourceRunCount(left);
+  const rightRuns = equationSourceRunCount(right);
+  if ((leftRuns > 0) !== (rightRuns > 0)) {
+    return leftRuns > 0 ? -1 : 1;
+  }
+  if (leftRuns !== rightRuns) {
+    return rightRuns - leftRuns;
+  }
+  const leftLength = equationFormulaLength(left);
+  const rightLength = equationFormulaLength(right);
+  if (leftLength !== rightLength) {
+    return rightLength - leftLength;
+  }
+  return compareEquationIds(left, right);
+}
+
+function getPfPriceEquationIds() {
+  return [...state.equationCatalog.values()]
+    .filter((equation) => {
+      const lhs = `${equation.lhs_expr || ""}`.trim().toUpperCase();
+      const formula = `${equation.formula || ""}`.trim().toUpperCase();
+      return lhs === "LPF" && isStructuralModelEquation(equation) && formula.startsWith("LPF ");
+    })
+    .map((equation) => `${equation.id}`)
+    .sort(compareDefiningEquationIds);
+}
+
+function isPfPriceEquationQuery(rawQuery) {
+  const normalized = `${rawQuery || ""}`.trim().toUpperCase().replace(/\s+/g, " ");
+  return ["PF EQUATION", "PRICE EQUATION", "LPF LPF", "EQ 10 LPF"].includes(normalized);
+}
+
+function collectDirectInputDefinitionIds(equationIds, rootVariable) {
+  const inputDefinitionIds = new Set();
+  const rootIds = new Set(equationIds.map((value) => `${value}`));
+  const root = `${rootVariable || ""}`.trim().toUpperCase();
+  for (const equationId of rootIds) {
+    const equation = getEquationRecord(equationId);
+    const rhsVariables = Array.isArray(equation?.rhs_variables) ? equation.rhs_variables : [];
+    for (const rhsVariable of rhsVariables) {
+      const variable = `${rhsVariable}`.trim().toUpperCase();
+      if (!variable || !state.manifest.available_variables.includes(variable)) {
+        continue;
+      }
+      for (const definitionId of collectEquationRefsForVariable(variable).defining) {
+        const normalized = `${definitionId}`;
+        const definition = getEquationRecord(normalized);
+        const definitionRhsVariables = Array.isArray(definition?.rhs_variables)
+          ? definition.rhs_variables.map((name) => `${name}`.trim().toUpperCase())
+          : [];
+        if (!rootIds.has(normalized) && (!root || !definitionRhsVariables.includes(root))) {
+          inputDefinitionIds.add(normalized);
+        }
+      }
+    }
+  }
+  return [...inputDefinitionIds].sort(compareDefiningEquationIds);
+}
+
 function formatEquationId(record) {
   if (record.display_id) {
     return record.display_id;
@@ -1408,6 +1495,24 @@ function createTextElement(tagName, text, className = "") {
   return element;
 }
 
+function formatEquationText(value) {
+  return `${value || ""}`
+    .replace(/\\{2,}/g, "\n")
+    .replace(/\\\(/g, "")
+    .replace(/\\\)/g, "")
+    .replace(/\\cdot/g, " x ")
+    .replace(/\\left/g, "")
+    .replace(/\\right/g, "")
+    .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)")
+    .replace(/\\frac\s*\{/g, "")
+    .replace(/\{tabular\}/g, "")
+    .replace(/·/g, " x ")
+    .replace(/[ \t\f\v]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/\\+\s*(?=\n|$)/g, "")
+    .trim();
+}
+
 function createEquationCard(record, note = "") {
   const card = document.createElement("article");
   card.className = "equation-card";
@@ -1426,20 +1531,20 @@ function createEquationCard(record, note = "") {
 
   const heading = createTextElement(
     "h4",
-    record.label || record.lhs_expr || `Equation ${record.id}`,
+    formatEquationText(record.label || record.lhs_expr || `Equation ${record.id}`),
   );
   card.appendChild(heading);
 
   const lhs = createTextElement(
     "p",
-    `LHS: ${record.lhs_expr || "Unavailable"}`,
+    `LHS: ${formatEquationText(record.lhs_expr) || "Unavailable"}`,
     "equation-code",
   );
   card.appendChild(lhs);
 
   const formula = createTextElement(
     "p",
-    `Formula: ${record.formula || "Unavailable"}`,
+    `Formula:\n${formatEquationText(record.formula) || "Unavailable"}`,
     "equation-code",
   );
   card.appendChild(formula);
@@ -1493,12 +1598,28 @@ function appendEquationGroup(container, title, cards) {
   container.appendChild(section);
 }
 
+function createPfPriceEquationCards(note) {
+  return getPfPriceEquationIds()
+    .map((equationId) => getEquationRecord(equationId))
+    .filter(Boolean)
+    .map((equation) => createEquationCard(equation, note));
+}
+
 function renderEquationExplorerEmpty(message) {
   dom.equationExplorerResults.innerHTML = "";
   const empty = document.createElement("div");
   empty.className = "empty-state";
   empty.textContent = message;
   dom.equationExplorerResults.appendChild(empty);
+}
+
+function renderPfPriceEquationLookup() {
+  dom.equationExplorerResults.innerHTML = "";
+  appendEquationGroup(
+    dom.equationExplorerResults,
+    "PF Price Equations (LPF)",
+    createPfPriceEquationCards("This is the structural price equation; PF is EXP(LPF)."),
+  );
 }
 
 function renderVariableEquationLookup(variable) {
@@ -1521,7 +1642,7 @@ function renderVariableEquationLookup(variable) {
   dom.equationExplorerResults.appendChild(summary);
 
   const refs = collectEquationRefsForVariable(variable);
-  const definingIds = refs.defining.sort(compareEquationIds);
+  const definingIds = refs.defining.sort(compareDefiningEquationIds);
   const usedIds = refs.usage.sort(compareEquationIds);
 
   const definingCards = [];
@@ -1551,9 +1672,29 @@ function renderVariableEquationLookup(variable) {
   }
 
   appendEquationGroup(dom.equationExplorerResults, "Defines This Variable", definingCards);
+
+  if (variable === "PF" || variable === "LPF") {
+    appendEquationGroup(
+      dom.equationExplorerResults,
+      "PF Price Equations (LPF)",
+      createPfPriceEquationCards(variable === "PF" ? "This is the structural price equation; PF is EXP(LPF)." : "This is the structural price equation."),
+    );
+  }
+
+  const directInputCards = [];
+  if (variable !== "PF" && variable !== "LPF") {
+    for (const inputDefinitionId of collectDirectInputDefinitionIds(definingIds, variable)) {
+      const equation = getEquationRecord(inputDefinitionId);
+      if (equation) {
+        directInputCards.push(createEquationCard(equation, `Defines an input used to define ${variable}.`));
+      }
+    }
+  }
+  appendEquationGroup(dom.equationExplorerResults, "Direct Input Definitions", directInputCards);
+
   appendEquationGroup(dom.equationExplorerResults, "Uses This Variable", usageCards);
 
-  if (definingCards.length === 0 && usageCards.length === 0) {
+  if (definingCards.length === 0 && directInputCards.length === 0 && usageCards.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
     empty.textContent =
@@ -1565,15 +1706,18 @@ function renderVariableEquationLookup(variable) {
 function scoreEquationMatch(record, rawQuery) {
   const query = rawQuery.toLowerCase();
   const queryUpper = rawQuery.toUpperCase();
+  const sourceRunCount = Array.isArray(record.source_runs) ? record.source_runs.length : 0;
   let score = 0;
   if ((record.label || "").toUpperCase() === queryUpper) score += 120;
   if ((record.lhs_expr || "").toUpperCase() === queryUpper) score += 110;
+  if ((record.lhs_expr || "").toUpperCase() === queryUpper && sourceRunCount > 0) score += 140;
   if ((record.rhs_variables || []).includes(queryUpper)) score += 100;
   if (`${record.id}` === rawQuery || `${record.display_id || ""}`.toUpperCase() === queryUpper) score += 95;
   if ((record.label || "").toLowerCase().startsWith(query)) score += 20;
   if ((record.lhs_expr || "").toLowerCase().includes(query)) score += 15;
   if ((record.formula || "").toLowerCase().includes(query)) score += 10;
   if ((`${record.display_id || ""}`).toLowerCase().includes(query)) score += 12;
+  if (sourceRunCount > 0) score += 5;
   if ((record.rhs_variables || []).some((name) => `${name}`.toLowerCase().includes(query))) {
     score += 8;
   }
@@ -1588,6 +1732,11 @@ function renderEquationExplorer() {
   const rawQuery = `${dom.equationSearch.value || ""}`.trim();
   if (!rawQuery) {
     renderEquationExplorerEmpty("Search for a variable like GDP or an equation like 82.");
+    return;
+  }
+
+  if (isPfPriceEquationQuery(rawQuery)) {
+    renderPfPriceEquationLookup();
     return;
   }
 
@@ -1646,6 +1795,15 @@ function renderEquationExplorer() {
     `Matching Equations (${matches.length})`,
     matches.map((record) => createEquationCard(record)),
   );
+}
+
+function applyDeepLinkedEquationSearch() {
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("eq") || params.get("equation");
+  if (!query || !dom.equationSearch) {
+    return;
+  }
+  dom.equationSearch.value = query;
 }
 
 function addEquation(expression) {
@@ -1848,6 +2006,7 @@ async function initialize() {
   renderRunInfo();
   renderCharts();
   renderDictionary();
+  applyDeepLinkedEquationSearch();
   renderEquationExplorer();
 }
 
