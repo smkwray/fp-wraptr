@@ -25,15 +25,14 @@
       ]
     },
     {
-      "id": "households-demand",
-      "label": "Households & Demand",
+      "id": "pse-controls",
+      "label": "PSE Controls",
       "variables": [
-        "YD",
-        "SH",
-        "CN",
-        "CS",
-        "CD",
-        "AH"
+        "JGWFADJ",
+        "JGW",
+        "MINWAGE",
+        "JGCOLA",
+        "MWCOLA"
       ]
     }
   ],

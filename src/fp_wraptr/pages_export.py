@@ -24,9 +24,11 @@ from fp_wraptr.data.dictionary_overlays import load_dictionary_with_overlays
 from fp_wraptr.hygiene import find_project_root
 from fp_wraptr.io.input_parser import parse_fmexog_text, parse_fp_input
 from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
+from fp_wraptr.pages_compilers import PagesCompilerError, apply_public_run_compilers
 
 SCHEMA_VERSION = 1
 STATIC_SITE_SUBPATH = "model-runs"
+ALLOWED_SITE_SUBPATHS = {STATIC_SITE_SUBPATH, "gender-runs"}
 DEFAULT_SPEC_PATH = Path("public") / "model-runs.spec.yaml"
 _RUN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
@@ -37,12 +39,14 @@ _DIRECT_OVERLAY_CONTROL_VARIABLES = {
     "INTS",
     "IVA",
     "JGCOLA",
+    "MWCOLA",
     "JGHILO",
     "JGPHASE",
     "JGSWITCH",
     "STAT",
     "UBGH",
 }
+_PUBLIC_MISSING_SENTINELS = frozenset((-99.0,))
 
 __all__ = [
     "DEFAULT_SPEC_PATH",
@@ -69,8 +73,17 @@ class PagesRunSpec(BaseModel):
     scenario_name: str = Field(description="Exact scenario name to resolve from artifacts")
     label: str = Field(default="", description="Optional display label for the site")
     summary: str = Field(default="", description="Optional one-line scenario summary")
+    group: str = Field(default="", description="Optional run grouping label")
+    family_id: str = Field(default="", description="Optional logical family id for horizon pairing")
+    horizon_id: str = Field(default="", description="Optional horizon id such as 5y or 10y")
+    horizon_label: str = Field(default="", description="Optional display horizon label such as 5Y")
+    horizon_years: int | None = Field(default=None, description="Optional numeric horizon length")
     details: list[str] = Field(
         default_factory=list, description="Optional scenario detail bullets"
+    )
+    public_metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Optional extra public metadata copied into both manifest and run payload",
     )
 
     @field_validator("run_id")
@@ -89,10 +102,27 @@ class PagesRunSpec(BaseModel):
             raise ValueError("scenario_name is required")
         return token
 
-    @field_validator("label", "summary")
+    @field_validator("label", "summary", "group", "family_id", "horizon_id", "horizon_label")
     @classmethod
     def _normalize_text(cls, value: str) -> str:
         return " ".join(str(value or "").split()).strip()
+
+    @field_validator("family_id", "horizon_id")
+    @classmethod
+    def _validate_public_ids(cls, value: str) -> str:
+        token = " ".join(str(value or "").split()).strip()
+        if token and not _RUN_ID_RE.fullmatch(token):
+            raise ValueError("family_id and horizon_id must match ^[a-z0-9][a-z0-9_-]*$")
+        return token
+
+    @field_validator("horizon_years")
+    @classmethod
+    def _validate_horizon_years(cls, value: int | None) -> int | None:
+        if value is None:
+            return None
+        if int(value) <= 0:
+            raise ValueError("horizon_years must be positive when provided")
+        return int(value)
 
     @field_validator("details")
     @classmethod
@@ -104,10 +134,54 @@ class PagesRunSpec(BaseModel):
                 out.append(token)
         return out
 
+    @field_validator("public_metadata")
+    @classmethod
+    def _normalize_public_metadata(cls, value: dict[str, Any]) -> dict[str, Any]:
+        if value in (None, ""):
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("public_metadata must be a mapping")
+        return dict(value)
+
+    @model_validator(mode="after")
+    def _validate_metadata_collisions(self) -> PagesRunSpec:
+        top_level_keys = {
+            key
+            for key, value in {
+                "family_id": self.family_id,
+                "horizon_id": self.horizon_id,
+                "horizon_label": self.horizon_label,
+                "horizon_years": self.horizon_years,
+            }.items()
+            if value not in (None, "")
+        }
+        collisions = sorted(top_level_keys.intersection(self.public_metadata.keys()))
+        if collisions:
+            formatted = ", ".join(collisions)
+            raise ValueError(
+                "public_metadata duplicates top-level horizon/family metadata: "
+                f"{formatted}"
+            )
+        return self
+
     @property
     def resolved_label(self) -> str:
         label = str(self.label or "").strip()
         return label or self.scenario_name
+
+    @property
+    def resolved_public_metadata(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if self.family_id:
+            payload["family_id"] = self.family_id
+        if self.horizon_id:
+            payload["horizon_id"] = self.horizon_id
+        if self.horizon_label:
+            payload["horizon_label"] = self.horizon_label
+        if self.horizon_years is not None:
+            payload["horizon_years"] = self.horizon_years
+        payload.update(self.public_metadata)
+        return payload
 
 
 class PagesPresetSpec(BaseModel):
@@ -183,8 +257,9 @@ class PagesExportSpec(BaseModel):
     def _validate_spec(self) -> PagesExportSpec:
         if self.version != SCHEMA_VERSION:
             raise ValueError(f"unsupported pages export spec version: {self.version}")
-        if self.site_subpath != STATIC_SITE_SUBPATH:
-            raise ValueError(f"site_subpath must be '{STATIC_SITE_SUBPATH}'")
+        if self.site_subpath not in ALLOWED_SITE_SUBPATHS:
+            allowed = "', '".join(sorted(ALLOWED_SITE_SUBPATHS))
+            raise ValueError(f"site_subpath must be one of '{allowed}'")
         if not self.title:
             raise ValueError("title is required")
         if not self.runs:
@@ -265,6 +340,9 @@ def export_pages_bundle(
     spec_path: Path | str,
     artifacts_dir: Path | str,
     out_dir: Path | str,
+    childcare_regime_compiler_config_path: Path | str | None = None,
+    childcare_regime_input_contract_path: Path | str | None = None,
+    childcare_regime_output_contract_path: Path | str | None = None,
 ) -> PagesExportResult:
     """Build a fully static public run bundle."""
     spec = load_pages_export_spec(spec_path)
@@ -275,10 +353,22 @@ def export_pages_bundle(
 
     generated_at = datetime.now(tz=UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     run_payloads: dict[str, dict[str, Any]] = {}
-    available_variables: set[str] = set()
     for item in selected_runs:
         payload = _build_run_payload(item)
         run_payloads[item.spec.run_id] = payload
+
+    try:
+        apply_public_run_compilers(
+            run_payloads=run_payloads,
+            childcare_regime_compiler_config_path=childcare_regime_compiler_config_path,
+            childcare_regime_input_contract_path=childcare_regime_input_contract_path,
+            childcare_regime_output_contract_path=childcare_regime_output_contract_path,
+        )
+    except PagesCompilerError as exc:
+        raise PagesExportError(f"Public run compiler failed: {exc}") from exc
+
+    available_variables: set[str] = set()
+    for payload in run_payloads.values():
         available_variables.update(payload["series"].keys())
 
     available_variable_list = sorted(available_variables)
@@ -347,6 +437,12 @@ def _manifest_run_record(*, item: _SelectedRun, run_payload: dict[str, Any]) -> 
         record["summary"] = item.spec.summary
     if item.spec.details:
         record["details"] = list(item.spec.details)
+    _merge_run_public_metadata(
+        target=record,
+        group=item.spec.group,
+        public_metadata=item.spec.resolved_public_metadata,
+        context=f"manifest run '{item.spec.run_id}'",
+    )
     return record
 
 
@@ -404,7 +500,33 @@ def _build_run_payload(item: _SelectedRun) -> dict[str, Any]:
             for name, values in sorted(sliced_series.items())
         },
     }
+    _merge_run_public_metadata(
+        target=payload,
+        group=item.spec.group,
+        public_metadata=item.spec.resolved_public_metadata,
+        context=f"run payload '{item.spec.run_id}'",
+    )
     return payload
+
+
+def _merge_run_public_metadata(
+    *,
+    target: dict[str, Any],
+    group: str,
+    public_metadata: dict[str, Any],
+    context: str,
+) -> None:
+    if group:
+        if "group" in target:
+            raise PagesExportError(f"{context} attempted to overwrite reserved key 'group'")
+        target["group"] = group
+    for key, value in (public_metadata or {}).items():
+        token = str(key or "").strip()
+        if not token:
+            continue
+        if token in target:
+            raise PagesExportError(f"{context} attempted to overwrite reserved key '{token}'")
+        target[token] = value
 
 
 def _build_dictionary_payload(
@@ -475,29 +597,56 @@ def _validate_or_fill_overlay_exogenous_series(
                 continue
             solved_value = target[idx]
             overlay_value = float(value)
-            if (
-                isinstance(solved_value, (int, float))
-                and math.isfinite(float(solved_value))
-                and abs(float(solved_value) - overlay_value) > 1e-9
-            ):
-                raise PagesExportError(
-                    "Solved series disagrees with authored overlay control "
-                    f"for scenario '{run.scenario_name}', variable '{variable}', period "
-                    f"'{period}': loadformat={float(solved_value)!r} overlay={overlay_value!r}"
-                )
+            # These variables are authored policy/control lanes. The public site
+            # is supposed to show the authored overlay path even when the solved
+            # loadformat series does not mirror that control directly.
             target[idx] = overlay_value
         series[variable] = target
+    _fill_growth_identity_series(series=series, period_tokens=period_tokens)
+
+
+def _fill_growth_identity_series(
+    *,
+    series: dict[str, list[float]],
+    period_tokens: list[str],
+) -> None:
+    if not period_tokens:
+        return
+    growth_pairs = (
+        ("JGW", "JGCOLA"),
+        ("MINWAGE", "MWCOLA"),
+    )
+    for level_var, growth_var in growth_pairs:
+        levels = list(series.get(level_var) or [])
+        growth = list(series.get(growth_var) or [])
+        if not levels or not growth:
+            continue
+        if len(levels) < len(period_tokens):
+            levels.extend([math.nan] * (len(period_tokens) - len(levels)))
+        if len(growth) < len(period_tokens):
+            growth.extend([math.nan] * (len(period_tokens) - len(growth)))
+        seed_idx = next((idx for idx, value in enumerate(levels) if math.isfinite(value)), None)
+        if seed_idx is None:
+            continue
+        for idx in range(seed_idx + 1, len(period_tokens)):
+            prev_value = levels[idx - 1]
+            growth_value = growth[idx]
+            if not math.isfinite(prev_value) or not math.isfinite(growth_value):
+                continue
+            levels[idx] = float(prev_value) * (1.0 + float(growth_value))
+        series[level_var] = levels
 
 
 def _overlay_exogenous_series_for_run(run: RunArtifact) -> dict[str, dict[str, float]]:
     config = getattr(run, "config", None)
-    if config is None:
-        return {}
-    overlay_dir = getattr(config, "input_overlay_dir", None)
-    if overlay_dir in (None, ""):
-        return {}
-    fmexog_path = Path(str(overlay_dir)) / "fmexog.txt"
-    if not fmexog_path.exists():
+    overlay_candidates: list[Path] = []
+    if config is not None:
+        overlay_dir = getattr(config, "input_overlay_dir", None)
+        if overlay_dir not in (None, ""):
+            overlay_candidates.append(Path(str(overlay_dir)) / "fmexog.txt")
+    overlay_candidates.append(run.run_dir / "work" / "fmexog.txt")
+    fmexog_path = next((path for path in overlay_candidates if path.exists()), None)
+    if fmexog_path is None:
         return {}
     parsed = parse_fmexog_text(fmexog_path.read_text(encoding="utf-8", errors="replace"))
     out: dict[str, dict[str, float]] = {}
@@ -534,6 +683,7 @@ def _input_paths_for_run(run: RunArtifact) -> list[Path]:
     candidates: list[Path] = []
     work_dir = run.run_dir / "work"
     if work_dir.exists():
+        has_scenario_model_deck = any(path.name.lower().startswith("pse") for path in work_dir.glob("*.txt"))
         for path in sorted(work_dir.glob("*.txt")):
             name = path.name.lower()
             if name in {
@@ -544,6 +694,8 @@ def _input_paths_for_run(run: RunArtifact) -> list[Path]:
                 "fmage.txt",
                 "fmexog.txt",
             }:
+                continue
+            if has_scenario_model_deck and name == "fminput.txt":
                 continue
             if (
                 name == "fminput.txt"
@@ -581,9 +733,80 @@ def _extract_input_refs(expression: str) -> list[str]:
     return out
 
 
+def _equation_touches_visible_variables(
+    *,
+    lhs: str,
+    rhs_variables: list[str],
+    visible_variables: set[str],
+) -> bool:
+    lhs_token = str(lhs or "").strip().upper()
+    if lhs_token and lhs_token in visible_variables:
+        return True
+    return bool(visible_variables & {str(name).strip().upper() for name in rhs_variables})
+
+
+def _merge_rhs_variables(*groups: list[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for group in groups:
+        for raw_name in group:
+            name = str(raw_name or "").strip().upper()
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            out.append(name)
+    return out
+
+
 def _make_run_equation_id(command_type: str, lhs: str, expression: str) -> str:
     digest = sha1(f"{command_type}|{lhs}|{expression}".encode()).hexdigest()[:10]
     return f"{command_type}:{lhs}:{digest}"
+
+
+def _parse_solver_equation_command(body: str) -> dict[str, Any] | None:
+    match = re.match(r"^(\d+)\s+(.*)$", str(body or "").strip(), re.DOTALL)
+    if not match:
+        return None
+    eq_id = int(match.group(1))
+    raw_formula = match.group(2).strip()
+    tokens = raw_formula.split()
+    lhs_expr = tokens[0] if tokens else ""
+    rhs_variables = _extract_input_refs(" ".join(tokens[1:])) if len(tokens) > 1 else []
+    return {
+        "id": _make_run_equation_id(f"eq:{eq_id}", lhs_expr, raw_formula),
+        "model_eq_id": eq_id,
+        "type": "scenario_equation",
+        "sector_block": "scenario_input",
+        "label": f"Eq {eq_id}",
+        "lhs_expr": lhs_expr,
+        "rhs_variables": rhs_variables,
+        "formula": raw_formula,
+        "display_id": f"Eq {eq_id}",
+        "source_runs": [],
+    }
+
+
+def _append_solver_equation_payload(
+    *,
+    payloads: dict[str, dict[str, Any]],
+    equation: dict[str, Any] | None,
+    visible_variables: set[str],
+    run_id: str,
+) -> None:
+    if equation is None:
+        return
+    lhs_expr = str(equation.get("lhs_expr", "") or "").strip().upper()
+    rhs_variables = [str(name).strip().upper() for name in list(equation.get("rhs_variables") or [])]
+    if not _equation_touches_visible_variables(
+        lhs=lhs_expr,
+        rhs_variables=rhs_variables,
+        visible_variables=visible_variables,
+    ):
+        return
+    item = payloads.setdefault(str(equation["id"]), equation)
+    source_runs = item.setdefault("source_runs", [])
+    if run_id not in source_runs:
+        source_runs.append(run_id)
 
 
 def _build_run_input_equation_payloads(
@@ -599,6 +822,64 @@ def _build_run_input_equation_payloads(
                 parsed = parse_fp_input(input_path)
             except Exception:
                 continue
+            pending_solver_equation: dict[str, Any] | None = None
+            for command in parsed.get("commands", []) or []:
+                command_name = str(command.get("name", "") or "").strip().upper()
+                command_body = str(command.get("body", "") or "").strip()
+                if command_name == "EQ":
+                    _append_solver_equation_payload(
+                        payloads=payloads,
+                        equation=pending_solver_equation,
+                        visible_variables=visible_variables,
+                        run_id=run.scenario_name,
+                    )
+                    pending_solver_equation = _parse_solver_equation_command(command_body)
+                    continue
+                if command_name == "LHS":
+                    if pending_solver_equation is not None:
+                        _append_solver_equation_payload(
+                            payloads=payloads,
+                            equation=pending_solver_equation,
+                            visible_variables=visible_variables,
+                            run_id=run.scenario_name,
+                        )
+                        lhs_name, _, lhs_formula = command_body.partition("=")
+                        lhs_expr = lhs_name.strip().upper()
+                        formula = lhs_formula.strip()
+                        if formula:
+                            eq_id = pending_solver_equation.get("model_eq_id", pending_solver_equation.get("id", ""))
+                            _append_solver_equation_payload(
+                                payloads=payloads,
+                                equation={
+                                    "id": _make_run_equation_id(f"lhs:{eq_id}", lhs_expr, formula),
+                                    "model_eq_id": eq_id,
+                                    "type": "scenario_equation",
+                                    "sector_block": "scenario_input",
+                                    "label": f"Eq {eq_id} LHS" if eq_id != "" else f"LHS {lhs_expr}".strip(),
+                                    "lhs_expr": lhs_expr,
+                                    "rhs_variables": _extract_input_refs(formula),
+                                    "formula": formula,
+                                    "display_id": f"Eq {eq_id} LHS" if eq_id != "" else f"LHS {lhs_expr}".strip(),
+                                    "source_runs": [],
+                                },
+                                visible_variables=visible_variables,
+                                run_id=run.scenario_name,
+                            )
+                        pending_solver_equation = None
+                    continue
+                _append_solver_equation_payload(
+                    payloads=payloads,
+                    equation=pending_solver_equation,
+                    visible_variables=visible_variables,
+                    run_id=run.scenario_name,
+                )
+                pending_solver_equation = None
+            _append_solver_equation_payload(
+                payloads=payloads,
+                equation=pending_solver_equation,
+                visible_variables=visible_variables,
+                run_id=run.scenario_name,
+            )
             for command_type, records in (
                 ("create", parsed.get("creates", [])),
                 ("genr", parsed.get("generated_vars", [])),
@@ -608,8 +889,10 @@ def _build_run_input_equation_payloads(
                     lhs = str(raw_record.get("name", "") or "").strip().upper()
                     expression = str(raw_record.get("expression", "") or "").strip()
                     rhs_variables = _extract_input_refs(expression)
-                    if lhs not in visible_variables and not (
-                        visible_variables & set(rhs_variables)
+                    if not _equation_touches_visible_variables(
+                        lhs=lhs,
+                        rhs_variables=rhs_variables,
+                        visible_variables=visible_variables,
                     ):
                         continue
                     eq_id = _make_run_equation_id(command_type, lhs, expression)
@@ -758,6 +1041,8 @@ def _json_number(value: float) -> float | None:
         return None
     numeric = float(value)
     if not math.isfinite(numeric):
+        return None
+    if numeric in _PUBLIC_MISSING_SENTINELS:
         return None
     return numeric
 

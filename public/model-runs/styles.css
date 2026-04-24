@@ -838,6 +838,7 @@ input[type="search"] {
 .equation-code {
   font-family: "IBM Plex Mono", "IBM Plex Sans", monospace;
   font-size: 0.86rem;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
