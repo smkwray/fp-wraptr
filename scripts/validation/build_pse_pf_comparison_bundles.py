@@ -39,6 +39,12 @@ LABELS = {
 }
 
 THREE_PERCENT_QUARTERLY = 0.007417071777732875
+JG_TAKEUP_COEFFICIENTS = {
+    # Calibrate the fixed SAMEVALUE JGPHASE deck back toward the intended
+    # terminal headcounts without adding new control variables.
+    "JHIA0": 0.219407,
+    "JLOA0": 0.204159,
+}
 COMBINED_ROOT = REPO / "do" / "pse_rebased_2026_pf_comparison"
 COMBINED_ARTIFACTS = REPO / "do" / "artifacts-pse2026-pf-comparison"
 COMBINED_EXPORT = REPO / "do" / "model-runs-pse2026-pf-comparison"
@@ -149,6 +155,13 @@ def patch_psereb(text: str, *, pf_mode: str) -> str:
         "EQ 10 FSR LPF(-1) LWFD5(-1) C T LPIM(-1) ONEZUR(-1) UR(-1)",
         "EQ 10 FSR LPF(-1) LWFD5(-1) C T LPIM(-1) UR(-1)",
     )
+    return text
+
+
+def patch_ptcoef(text: str) -> str:
+    for name, value in JG_TAKEUP_COEFFICIENTS.items():
+        text = text.replace(f"CREATE {name}=0.198907;", f"CREATE {name}={value:.6f};")
+        text = text.replace(f"CREATE {name}=0.189759;", f"CREATE {name}={value:.6f};")
     return text
 
 
@@ -387,6 +400,9 @@ def prepare_bundle(bundle: Bundle) -> None:
         psereb = overlay_dir / "psereb.txt"
         if psereb.exists():
             psereb.write_text(patch_psereb(psereb.read_text(), pf_mode=bundle.pf_mode))
+        ptcoef = overlay_dir / "ptcoef.txt"
+        if ptcoef.exists():
+            ptcoef.write_text(patch_ptcoef(ptcoef.read_text()))
     write_spec(bundle)
 
     if bundle.artifacts.exists():
