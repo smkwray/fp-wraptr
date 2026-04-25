@@ -7,6 +7,8 @@ from pathlib import Path
 
 import yaml
 
+from fp_wraptr.io.loadformat import read_loadformat
+
 
 REPO = Path(__file__).resolve().parents[2]
 SOURCE = REPO / "do" / "pse_rebased_2026"
@@ -84,15 +86,6 @@ BUNDLES = [
         export_name="model-runs-pse2026-pf-onezur-nocola",
     ),
     Bundle(
-        key="ur-nocola",
-        title="PSE Stock PF UR, No COLA",
-        pf_mode="ur",
-        cola=0.0,
-        root_name="pse_rebased_2026_pf_ur_nocola",
-        artifact_name="artifacts-pse2026-pf-ur-nocola",
-        export_name="model-runs-pse2026-pf-ur-nocola",
-    ),
-    Bundle(
         key="onezur-cola3",
         title="PSE Stock PF 1/UR, 3% JG and MW COLA",
         pf_mode="onezur",
@@ -101,30 +94,32 @@ BUNDLES = [
         artifact_name="artifacts-pse2026-pf-onezur-cola3",
         export_name="model-runs-pse2026-pf-onezur-cola3",
     ),
-    Bundle(
-        key="ur-cola3",
-        title="PSE Stock PF UR, 3% JG and MW COLA",
-        pf_mode="ur",
-        cola=THREE_PERCENT_QUARTERLY,
-        root_name="pse_rebased_2026_pf_ur_cola3",
-        artifact_name="artifacts-pse2026-pf-ur-cola3",
-        export_name="model-runs-pse2026-pf-ur-cola3",
-    ),
 ]
 
 GROUP_TITLES = {
-    "onezur-nocola": "PSE PF 1/UR, no COLA",
-    "ur-nocola": "PSE PF UR, no COLA",
-    "onezur-cola3": "PSE PF 1/UR, 3% JG + MW COLA",
-    "ur-cola3": "PSE PF UR, 3% JG + MW COLA",
+    "onezur-nocola-endogrs": "PSE PF 1/UR, no COLA, endogenous RS",
+    "onezur-nocola-basers": "PSE PF 1/UR, no COLA, RS follows PSE base",
+    "onezur-cola3-endogrs": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
+    "onezur-cola3-basers": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
 }
 
 KEY_PREFIXES = {
     "onezur-nocola": "onezur_nocola",
-    "ur-nocola": "ur_nocola",
     "onezur-cola3": "onezur_cola3",
-    "ur-cola3": "ur_cola3",
 }
+
+COMBINED_GROUPS = [
+    ("onezur-nocola", "endogrs", "onezur_nocola_endogrs"),
+    ("onezur-nocola", "basers", "onezur_nocola_basers"),
+    ("onezur-cola3", "endogrs", "onezur_cola3_endogrs"),
+    ("onezur-cola3", "basers", "onezur_cola3_basers"),
+]
+
+BASE_RS_EXPORT_FALLBACKS = [
+    REPO / "tmp-pse-jg-calibration-export" / "runs",
+    REPO / "public" / "model-runs" / "runs",
+    REPO / "do" / "model-runs-pse2026-pf-comparison" / "runs",
+]
 
 
 def periods(start: str, end: str) -> list[str]:
@@ -138,6 +133,95 @@ def periods(start: str, end: str) -> list[str]:
             y += 1
             q = 1
     return out
+
+
+def _bundle_by_key() -> dict[str, Bundle]:
+    return {bundle.key: bundle for bundle in BUNDLES}
+
+
+def _base_scenario_for(scenario_name: str) -> str:
+    return "pse2025_base_stock_pf_10y" if scenario_name.endswith("_10y") else "pse2025_base_stock_pf"
+
+
+def _rs_helper_blocks(rs_values: list[tuple[str, float]]) -> str:
+    lines: list[str] = []
+    for period, value in rs_values:
+        lines.extend(
+            [
+                f"SMPL {period} {period};",
+                "CHANGEVAR;",
+                "RSX SAMEVALUE",
+                f"{value:.10f}",
+                ";",
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _rs_values_from_exported_run(run_id: str, *, forecast_end: str) -> list[tuple[str, float]] | None:
+    for runs_dir in BASE_RS_EXPORT_FALLBACKS:
+        path = runs_dir / f"{run_id}.json"
+        if not path.exists():
+            continue
+        payload = json.loads(path.read_text())
+        values = []
+        for period, value in zip(payload["periods"], payload["series"]["RS"], strict=False):
+            if "2025.4" <= period <= forecast_end:
+                values.append((period, float(value)))
+        if values:
+            return values
+    return None
+
+
+def _rs_values_from_existing_artifact(run_id: str, *, forecast_end: str) -> list[tuple[str, float]] | None:
+    matches = sorted(path for path in COMBINED_ARTIFACTS.glob(f"{run_id}_*") if path.is_dir())
+    if not matches:
+        return None
+    loadformat = matches[-1] / "LOADFORMAT.DAT"
+    if not loadformat.exists():
+        return None
+    periods_out, series = read_loadformat(loadformat)
+    rs_series = series.get("RS")
+    if rs_series is None:
+        return None
+    values = []
+    for period, value in zip(periods_out, rs_series, strict=False):
+        if "2025.4" <= period <= forecast_end:
+            values.append((period, float(value)))
+    return values or None
+
+
+def _base_rs_values(*, base_prefix: str, scenario_name: str, forecast_end: str) -> list[tuple[str, float]]:
+    base_run_id = f"{base_prefix}__{_base_scenario_for(scenario_name)}"
+    values = _rs_values_from_existing_artifact(base_run_id, forecast_end=forecast_end)
+    if values is None:
+        values = _rs_values_from_exported_run(base_run_id, forecast_end=forecast_end)
+    if values is None:
+        raise FileNotFoundError(f"Missing base RS path for {base_run_id}")
+    return values
+
+
+def patch_psereb_rs_exog(text: str, *, forecast_end: str) -> str:
+    text = text.replace(
+        "GENR INTGZ=INTG/AAG;\nGENR RQG=",
+        "GENR INTGZ=INTG/AAG;\nCREATE RSX=0;\nGENR RQG=",
+    )
+    text = text.replace(
+        "EQ 30 RS  C RS(-1) PCPD UR UR1 PCM1L1B PCM1L1A RS1(-1) RS1(-2) ;\nLHS RS=(ABS(RS-.0)+RS-.0)/2.+.0;",
+        "EQ 30 RSX  C RSX(-1) PCPD UR UR1 PCM1L1B PCM1L1A RS1(-1) RS1(-2) ;\nLHS RSX=(ABS(RSX-.0)+RSX-.0)/2.+.0;",
+    )
+    text = text.replace("IDENT PX=(PF*(X-FA)+PFA*FA)/X;", "IDENT RS=RSX;\nIDENT PX=(PF*(X-FA)+PFA*FA)/X;")
+    text = text.replace(
+        "EQ 30 FSR  C RS(-1) PCPD(-1) UR(-1) UR1(-1) \nPCM1L1B PCM1L1A RS1(-1) RS1(-2) ",
+        "EQ 30 FSR  C RSX(-1) PCPD(-1) UR(-1) UR1(-1) \nPCM1L1B PCM1L1A RS1(-1) RS1(-2) ",
+    )
+    text = text.replace("@EXOGENOUS VARIABLE=RS;", "EXOGENOUS VARIABLE=RSX;")
+    text = text.replace(
+        "SMPL 2026.1 2029.4;\nEXOGENOUS VARIABLE=LUB;",
+        f"SMPL 2026.1 {forecast_end};\nEXOGENOUS VARIABLE=LUB;",
+    )
+    return text
 
 
 def patch_psereb(text: str, *, pf_mode: str) -> str:
@@ -268,15 +352,15 @@ def write_spec(bundle: Bundle) -> None:
     (bundle.root / "model-runs.spec.yaml").write_text(yaml.safe_dump(spec, sort_keys=False))
 
 
-def combined_scenario_name(bundle: Bundle, scenario_name: str) -> str:
-    return f"{KEY_PREFIXES[bundle.key]}__{scenario_name}"
+def combined_scenario_name(prefix: str, scenario_name: str) -> str:
+    return f"{prefix}__{scenario_name}"
 
 
-def combined_label(scenario_name: str, bundle: Bundle) -> str:
+def combined_label(scenario_name: str, bundle: Bundle, *, rs_mode: str) -> str:
     base = LABELS.get(scenario_family(scenario_name), scenario_name)
-    pf = "PF 1/UR" if bundle.pf_mode == "onezur" else "PF UR"
     cola = "3% COLA" if bundle.cola else "no COLA"
-    return f"{base} ({pf}, {cola})"
+    rs = "base RS" if rs_mode == "basers" else "endogenous RS"
+    return f"{base} (PF 1/UR, {cola}, {rs})"
 
 
 def write_combined_spec() -> None:
@@ -295,20 +379,22 @@ def write_combined_spec() -> None:
         }
     ]
     default_run_ids: list[str] = []
-    for bundle in BUNDLES:
-        group = GROUP_TITLES[bundle.key]
-        prefix = KEY_PREFIXES[bundle.key]
+    bundles = _bundle_by_key()
+    for bundle_key, rs_mode, prefix in COMBINED_GROUPS:
+        bundle = bundles[bundle_key]
+        group = GROUP_TITLES[f"{bundle_key}-{rs_mode}"]
         for scenario_name, _overlay, _input, horizon_id, horizon_label, horizon_years in SCENARIOS:
             family = scenario_family(scenario_name)
-            run_id = combined_scenario_name(bundle, scenario_name)
-            if bundle.key == "ur-nocola" and horizon_id == "5y":
+            run_id = combined_scenario_name(prefix, scenario_name)
+            if bundle_key == "onezur-nocola" and rs_mode == "endogrs" and horizon_id == "5y":
                 default_run_ids.append(run_id)
             wage = "$20/hour" if "_20h_" in scenario_name else "$15/hour" if "_15h_" in scenario_name else "base"
             takeup = "high take-up" if "_high_" in scenario_name else "low take-up" if "_low_" in scenario_name else "base"
+            rs_summary = "RS is endogenous" if rs_mode == "endogrs" else "RS is forced to the matching PSE base path"
             runs.append(
                 {
                     "run_id": run_id,
-                    "label": combined_label(scenario_name, bundle),
+                    "label": combined_label(scenario_name, bundle, rs_mode=rs_mode),
                     "group": group,
                     "family_id": f"{prefix}__{family}",
                     "horizon_id": horizon_id,
@@ -319,6 +405,7 @@ def write_combined_spec() -> None:
                     "details": [
                         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
                         f"JGCOLA and MWCOLA are both set to {bundle.cola}.",
+                        rs_summary + ".",
                     ],
                 }
             )
@@ -344,22 +431,42 @@ def prepare_combined_bundle() -> None:
     COMBINED_ROOT.mkdir(parents=True)
     (COMBINED_ROOT / "overlays").mkdir()
 
-    for bundle in BUNDLES:
-        for scenario_name, overlay_name, _input, _horizon_id, _horizon_label, _horizon_years in SCENARIOS:
+    bundles = _bundle_by_key()
+    for bundle_key, rs_mode, prefix in COMBINED_GROUPS:
+        bundle = bundles[bundle_key]
+        group = GROUP_TITLES[f"{bundle_key}-{rs_mode}"]
+        for scenario_name, overlay_name, input_file, _horizon_id, _horizon_label, _horizon_years in SCENARIOS:
             src_overlay = bundle.root / "overlays" / overlay_name
-            dst_overlay = COMBINED_ROOT / "overlays" / f"{KEY_PREFIXES[bundle.key]}__{overlay_name}"
+            dst_overlay = COMBINED_ROOT / "overlays" / f"{prefix}__{overlay_name}"
             shutil.copytree(src_overlay, dst_overlay)
+            forecast_end = "2034.4" if input_file == "apsreb10.txt" else "2029.4"
+            if rs_mode == "basers":
+                rs_values = _base_rs_values(
+                    base_prefix=KEY_PREFIXES[bundle.key],
+                    scenario_name=scenario_name,
+                    forecast_end=forecast_end,
+                )
+                (dst_overlay / "rshelper.txt").write_text(_rs_helper_blocks(rs_values))
+                wrapper_path = dst_overlay / input_file
+                wrapper_path.write_text(
+                    wrapper_path.read_text().replace(
+                        "INPUT FILE=fmexog.txt;",
+                        "INPUT FILE=fmexog.txt;\nINPUT FILE=rshelper.txt;",
+                    )
+                )
+                psereb_path = dst_overlay / "psereb.txt"
+                psereb_path.write_text(patch_psereb_rs_exog(psereb_path.read_text(), forecast_end=forecast_end))
 
             src_yaml = bundle.root / f"{scenario_name}.yaml"
             data = yaml.safe_load(src_yaml.read_text())
-            run_id = combined_scenario_name(bundle, scenario_name)
+            run_id = combined_scenario_name(prefix, scenario_name)
             data["name"] = run_id
             data["input_overlay_dir"] = str(dst_overlay)
             data["artifacts_root"] = str(Path("do") / COMBINED_ARTIFACTS.name)
-            data["description"] = f"{data.get('description', '').rstrip()} [{GROUP_TITLES[bundle.key]}]"
+            data["description"] = f"{data.get('description', '').rstrip()} [{group}]"
             if "track_variables" in data:
                 tracked = list(data["track_variables"])
-                for variable in ("JGCOLA", "MWCOLA", "JGPHASE"):
+                for variable in ("JGCOLA", "MWCOLA", "JGPHASE", "RSX"):
                     if variable not in tracked:
                         tracked.append(variable)
                 data["track_variables"] = tracked
