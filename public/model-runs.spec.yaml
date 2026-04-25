@@ -13,532 +13,599 @@ runs:
   summary: Untouched stock FAIR model reference run.
   details:
   - Forecast 2025.4 to 2029.4 using the stock FM input deck.
-- run_id: onezur_nocola__pse2025_base_stock_pf
-  label: PSE2026.2 Base (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_base_stock_pf
+- run_id: onezur_nocola_endogrs__pse2025_base_stock_pf
+  label: PSE2026.2 Base (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_base_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_nocola__pse2025_base_stock_pf
-  summary: 5Y base base PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_base_stock_pf
+  summary: 5Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_base_stock_pf_10y
-  label: PSE2026.2 Base (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_base_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_base_stock_pf_10y
+  label: PSE2026.2 Base (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_base_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_nocola__pse2025_base_stock_pf_10y
-  summary: 10Y base base PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_base_stock_pf_10y
+  summary: 10Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_high_20h_3pct_stock_pf
-  label: PSE2026.2 High $20/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_high_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf
+  label: PSE2026.2 High $20/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_nocola__pse2025_high_20h_3pct_stock_pf
-  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf
+  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_high_20h_3pct_stock_pf_10y
-  label: PSE2026.2 High $20/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_high_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y
+  label: PSE2026.2 High $20/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_nocola__pse2025_high_20h_3pct_stock_pf_10y
-  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y
+  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_low_20h_3pct_stock_pf
-  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_low_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf
+  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_nocola__pse2025_low_20h_3pct_stock_pf
-  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf
+  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_low_20h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_low_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_nocola__pse2025_low_20h_3pct_stock_pf_10y
-  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y
+  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_high_15h_3pct_stock_pf
-  label: PSE2026.2 High $15/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_high_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf
+  label: PSE2026.2 High $15/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_nocola__pse2025_high_15h_3pct_stock_pf
-  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf
+  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_high_15h_3pct_stock_pf_10y
-  label: PSE2026.2 High $15/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_high_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y
+  label: PSE2026.2 High $15/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_nocola__pse2025_high_15h_3pct_stock_pf_10y
-  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y
+  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_low_15h_3pct_stock_pf
-  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_low_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf
+  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_nocola__pse2025_low_15h_3pct_stock_pf
-  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf
+  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_nocola__pse2025_low_15h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA)
-  group: PSE PF 1/UR, no COLA
-  family_id: onezur_nocola__pse2025_low_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA, endogenous RS)
+  group: PSE PF 1/UR, no COLA, endogenous RS
+  family_id: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_nocola__pse2025_low_15h_3pct_stock_pf_10y
-  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA.
+  scenario_name: onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y
+  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_base_stock_pf
-  label: PSE2026.2 Base (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_base_stock_pf
+  - RS is endogenous.
+- run_id: onezur_nocola_basers__pse2025_base_stock_pf
+  label: PSE2026.2 Base (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_base_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_nocola__pse2025_base_stock_pf
-  summary: 5Y base base PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_base_stock_pf
+  summary: 5Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_base_stock_pf_10y
-  label: PSE2026.2 Base (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_base_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_base_stock_pf_10y
+  label: PSE2026.2 Base (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_base_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_nocola__pse2025_base_stock_pf_10y
-  summary: 10Y base base PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_base_stock_pf_10y
+  summary: 10Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_high_20h_3pct_stock_pf
-  label: PSE2026.2 High $20/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_high_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf
+  label: PSE2026.2 High $20/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_nocola__pse2025_high_20h_3pct_stock_pf
-  summary: 5Y high take-up $20/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf
+  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_high_20h_3pct_stock_pf_10y
-  label: PSE2026.2 High $20/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_high_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y
+  label: PSE2026.2 High $20/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_nocola__pse2025_high_20h_3pct_stock_pf_10y
-  summary: 10Y high take-up $20/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y
+  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_low_20h_3pct_stock_pf
-  label: PSE2026.2 Low $20/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_low_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf
+  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_nocola__pse2025_low_20h_3pct_stock_pf
-  summary: 5Y low take-up $20/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf
+  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_low_20h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $20/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_low_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $20/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_nocola__pse2025_low_20h_3pct_stock_pf_10y
-  summary: 10Y low take-up $20/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y
+  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_high_15h_3pct_stock_pf
-  label: PSE2026.2 High $15/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_high_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf
+  label: PSE2026.2 High $15/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_nocola__pse2025_high_15h_3pct_stock_pf
-  summary: 5Y high take-up $15/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf
+  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_high_15h_3pct_stock_pf_10y
-  label: PSE2026.2 High $15/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_high_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y
+  label: PSE2026.2 High $15/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_nocola__pse2025_high_15h_3pct_stock_pf_10y
-  summary: 10Y high take-up $15/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y
+  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_low_15h_3pct_stock_pf
-  label: PSE2026.2 Low $15/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_low_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf
+  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_nocola__pse2025_low_15h_3pct_stock_pf
-  summary: 5Y low take-up $15/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf
+  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: ur_nocola__pse2025_low_15h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $15/h (PF UR, no COLA)
-  group: PSE PF UR, no COLA
-  family_id: ur_nocola__pse2025_low_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $15/h (PF 1/UR, no COLA, base RS)
+  group: PSE PF 1/UR, no COLA, RS follows PSE base
+  family_id: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_nocola__pse2025_low_15h_3pct_stock_pf_10y
-  summary: 10Y low take-up $15/hour PSE run for PSE PF UR, no COLA.
+  scenario_name: onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y
+  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.0.
-- run_id: onezur_cola3__pse2025_base_stock_pf
-  label: PSE2026.2 Base (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_base_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_endogrs__pse2025_base_stock_pf
+  label: PSE2026.2 Base (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_base_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_cola3__pse2025_base_stock_pf
-  summary: 5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_base_stock_pf
+  summary: 5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_base_stock_pf_10y
-  label: PSE2026.2 Base (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_base_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_base_stock_pf_10y
+  label: PSE2026.2 Base (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_base_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_cola3__pse2025_base_stock_pf_10y
-  summary: 10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_base_stock_pf_10y
+  summary: 10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_high_20h_3pct_stock_pf
-  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_high_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf
+  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_cola3__pse2025_high_20h_3pct_stock_pf
-  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf
+  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_high_20h_3pct_stock_pf_10y
-  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_high_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y
+  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_cola3__pse2025_high_20h_3pct_stock_pf_10y
-  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y
+  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_low_20h_3pct_stock_pf
-  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_low_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf
+  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_cola3__pse2025_low_20h_3pct_stock_pf
-  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf
+  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_low_20h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_low_20h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_cola3__pse2025_low_20h_3pct_stock_pf_10y
-  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y
+  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_high_15h_3pct_stock_pf
-  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_high_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf
+  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_cola3__pse2025_high_15h_3pct_stock_pf
-  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf
+  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_high_15h_3pct_stock_pf_10y
-  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_high_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y
+  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_cola3__pse2025_high_15h_3pct_stock_pf_10y
-  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y
+  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_low_15h_3pct_stock_pf
-  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_low_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf
+  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: onezur_cola3__pse2025_low_15h_3pct_stock_pf
-  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf
+  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: onezur_cola3__pse2025_low_15h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA)
-  group: PSE PF 1/UR, 3% JG + MW COLA
-  family_id: onezur_cola3__pse2025_low_15h_3pct_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, endogenous RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, endogenous RS
+  family_id: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: onezur_cola3__pse2025_low_15h_3pct_stock_pf_10y
-  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y
+  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous
+    RS.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_base_stock_pf
-  label: PSE2026.2 Base (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_base_stock_pf
+  - RS is endogenous.
+- run_id: onezur_cola3_basers__pse2025_base_stock_pf
+  label: PSE2026.2 Base (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_base_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_cola3__pse2025_base_stock_pf
-  summary: 5Y base base PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_base_stock_pf
+  summary: 5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_base_stock_pf_10y
-  label: PSE2026.2 Base (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_base_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_base_stock_pf_10y
+  label: PSE2026.2 Base (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_base_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_cola3__pse2025_base_stock_pf_10y
-  summary: 10Y base base PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_base_stock_pf_10y
+  summary: 10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE
+    base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_high_20h_3pct_stock_pf
-  label: PSE2026.2 High $20/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_high_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf
+  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_cola3__pse2025_high_20h_3pct_stock_pf
-  summary: 5Y high take-up $20/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf
+  summary: 5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_high_20h_3pct_stock_pf_10y
-  label: PSE2026.2 High $20/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_high_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y
+  label: PSE2026.2 High $20/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_cola3__pse2025_high_20h_3pct_stock_pf_10y
-  summary: 10Y high take-up $20/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y
+  summary: 10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS
+    follows PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_low_20h_3pct_stock_pf
-  label: PSE2026.2 Low $20/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_low_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf
+  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_cola3__pse2025_low_20h_3pct_stock_pf
-  summary: 5Y low take-up $20/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf
+  summary: 5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_low_20h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $20/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_low_20h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_cola3__pse2025_low_20h_3pct_stock_pf_10y
-  summary: 10Y low take-up $20/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y
+  summary: 10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_high_15h_3pct_stock_pf
-  label: PSE2026.2 High $15/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_high_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf
+  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_cola3__pse2025_high_15h_3pct_stock_pf
-  summary: 5Y high take-up $15/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf
+  summary: 5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_high_15h_3pct_stock_pf_10y
-  label: PSE2026.2 High $15/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_high_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y
+  label: PSE2026.2 High $15/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_cola3__pse2025_high_15h_3pct_stock_pf_10y
-  summary: 10Y high take-up $15/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y
+  summary: 10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS
+    follows PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_low_15h_3pct_stock_pf
-  label: PSE2026.2 Low $15/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_low_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf
+  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf
   horizon_id: 5y
   horizon_label: 5Y
   horizon_years: 5
-  scenario_name: ur_cola3__pse2025_low_15h_3pct_stock_pf
-  summary: 5Y low take-up $15/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf
+  summary: 5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
-- run_id: ur_cola3__pse2025_low_15h_3pct_stock_pf_10y
-  label: PSE2026.2 Low $15/h (PF UR, 3% COLA)
-  group: PSE PF UR, 3% JG + MW COLA
-  family_id: ur_cola3__pse2025_low_15h_3pct_stock_pf
+  - RS is forced to the matching PSE base path.
+- run_id: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y
+  label: PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, base RS)
+  group: PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base
+  family_id: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf
   horizon_id: 10y
   horizon_label: 10Y
   horizon_years: 10
-  scenario_name: ur_cola3__pse2025_low_15h_3pct_stock_pf_10y
-  summary: 10Y low take-up $15/hour PSE run for PSE PF UR, 3% JG + MW COLA.
+  scenario_name: onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y
+  summary: 10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows
+    PSE base.
   details:
   - Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than
     once without doubling the ramp.
   - JGCOLA and MWCOLA are both set to 0.007417071777732875.
+  - RS is forced to the matching PSE base path.
 default_run_ids:
-- ur_nocola__pse2025_base_stock_pf
-- ur_nocola__pse2025_high_20h_3pct_stock_pf
-- ur_nocola__pse2025_low_20h_3pct_stock_pf
-- ur_nocola__pse2025_high_15h_3pct_stock_pf
-- ur_nocola__pse2025_low_15h_3pct_stock_pf
+- onezur_nocola_endogrs__pse2025_base_stock_pf
+- onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf
+- onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf
+- onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf
+- onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf
 presets:
 - id: pse-economy
   label: Economy
