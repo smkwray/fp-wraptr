@@ -35,7 +35,7 @@ jobs:
       - run: uv sync --extra docs
       - run: uv run mkdocs build --strict
       - run: test -f public/model-runs/manifest.json
-      - run: test -f public/model-runs/runs/ur_nocola__pse2025_base_stock_pf.json
+      - run: test -f public/model-runs/runs/onezur_nocola_endogrs__pse2025_base_stock_pf.json
       - run: mkdir -p site/model-runs
       - run: cp -R public/model-runs/. site/model-runs/
       - uses: actions/upload-pages-artifact@v3
