@@ -1,5 +1,5 @@
 version: 1
-title: PSE PF Equation Comparison
+title: FP Wraptor Runs Explorer
 site_subpath: model-runs
 runs:
 - run_id: stock_fm_baseline
