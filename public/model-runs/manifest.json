@@ -533,7 +533,7 @@
     "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-25T14:46:21Z",
+  "generated_at": "2026-04-30T20:33:14Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -572,7 +572,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_base_stock_pf",
       "scenario_name": "onezur_nocola_endogrs__pse2025_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144304"
+      "timestamp": "20260430_201637"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_base_stock_pf_10y.json",
@@ -592,7 +592,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_base_stock_pf_10y",
       "scenario_name": "onezur_nocola_endogrs__pse2025_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144314"
+      "timestamp": "20260430_201647"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf.json",
@@ -612,7 +612,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144345"
+      "timestamp": "20260430_201717"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y.json",
@@ -632,7 +632,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144355"
+      "timestamp": "20260430_201727"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf.json",
@@ -652,7 +652,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144426"
+      "timestamp": "20260430_201758"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y.json",
@@ -672,7 +672,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144436"
+      "timestamp": "20260430_201808"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf.json",
@@ -692,7 +692,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144325"
+      "timestamp": "20260430_201657"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y.json",
@@ -712,7 +712,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144335"
+      "timestamp": "20260430_201707"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf.json",
@@ -732,7 +732,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144406"
+      "timestamp": "20260430_201737"
     },
     {
       "data_path": "runs/onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y.json",
@@ -752,7 +752,7 @@
       "run_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260425_144415"
+      "timestamp": "20260430_201747"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_base_stock_pf.json",
@@ -772,7 +772,7 @@
       "run_id": "onezur_nocola_basers__pse2025_base_stock_pf",
       "scenario_name": "onezur_nocola_basers__pse2025_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144123"
+      "timestamp": "20260430_201456"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_base_stock_pf_10y.json",
@@ -792,7 +792,7 @@
       "run_id": "onezur_nocola_basers__pse2025_base_stock_pf_10y",
       "scenario_name": "onezur_nocola_basers__pse2025_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144133"
+      "timestamp": "20260430_201505"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf.json",
@@ -812,7 +812,7 @@
       "run_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144203"
+      "timestamp": "20260430_201536"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y.json",
@@ -832,7 +832,7 @@
       "run_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144213"
+      "timestamp": "20260430_201546"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf.json",
@@ -852,7 +852,7 @@
       "run_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144244"
+      "timestamp": "20260430_201617"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y.json",
@@ -872,7 +872,7 @@
       "run_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144254"
+      "timestamp": "20260430_201627"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf.json",
@@ -892,7 +892,7 @@
       "run_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144143"
+      "timestamp": "20260430_201516"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y.json",
@@ -912,7 +912,7 @@
       "run_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144153"
+      "timestamp": "20260430_201525"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf.json",
@@ -932,7 +932,7 @@
       "run_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
       "scenario_name": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144224"
+      "timestamp": "20260430_201556"
     },
     {
       "data_path": "runs/onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y.json",
@@ -952,7 +952,7 @@
       "run_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260425_144234"
+      "timestamp": "20260430_201607"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_base_stock_pf.json",
@@ -972,7 +972,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_base_stock_pf",
       "scenario_name": "onezur_cola3_endogrs__pse2025_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_143942"
+      "timestamp": "20260430_201315"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_base_stock_pf_10y.json",
@@ -992,7 +992,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_base_stock_pf_10y",
       "scenario_name": "onezur_cola3_endogrs__pse2025_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_143952"
+      "timestamp": "20260430_201325"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf.json",
@@ -1012,7 +1012,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144022"
+      "timestamp": "20260430_201355"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y.json",
@@ -1032,7 +1032,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144032"
+      "timestamp": "20260430_201405"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf.json",
@@ -1052,7 +1052,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144103"
+      "timestamp": "20260430_201435"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y.json",
@@ -1072,7 +1072,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144112"
+      "timestamp": "20260430_201445"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf.json",
@@ -1092,7 +1092,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144002"
+      "timestamp": "20260430_201335"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y.json",
@@ -1112,7 +1112,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144012"
+      "timestamp": "20260430_201345"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf.json",
@@ -1132,7 +1132,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144042"
+      "timestamp": "20260430_201416"
     },
     {
       "data_path": "runs/onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y.json",
@@ -1152,7 +1152,7 @@
       "run_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260425_144052"
+      "timestamp": "20260430_201425"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_base_stock_pf.json",
@@ -1172,7 +1172,7 @@
       "run_id": "onezur_cola3_basers__pse2025_base_stock_pf",
       "scenario_name": "onezur_cola3_basers__pse2025_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143759"
+      "timestamp": "20260430_201131"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_base_stock_pf_10y.json",
@@ -1192,7 +1192,7 @@
       "run_id": "onezur_cola3_basers__pse2025_base_stock_pf_10y",
       "scenario_name": "onezur_cola3_basers__pse2025_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143810"
+      "timestamp": "20260430_201144"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf.json",
@@ -1212,7 +1212,7 @@
       "run_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143842"
+      "timestamp": "20260430_201215"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y.json",
@@ -1232,7 +1232,7 @@
       "run_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143852"
+      "timestamp": "20260430_201224"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf.json",
@@ -1252,7 +1252,7 @@
       "run_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143922"
+      "timestamp": "20260430_201255"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y.json",
@@ -1272,7 +1272,7 @@
       "run_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143932"
+      "timestamp": "20260430_201305"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf.json",
@@ -1292,7 +1292,7 @@
       "run_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143821"
+      "timestamp": "20260430_201154"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y.json",
@@ -1312,7 +1312,7 @@
       "run_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143832"
+      "timestamp": "20260430_201204"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf.json",
@@ -1332,7 +1332,7 @@
       "run_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
       "scenario_name": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143902"
+      "timestamp": "20260430_201235"
     },
     {
       "data_path": "runs/onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y.json",
@@ -1352,7 +1352,7 @@
       "run_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y",
       "scenario_name": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260425_143912"
+      "timestamp": "20260430_201244"
     }
   ],
   "schema_version": 1,
