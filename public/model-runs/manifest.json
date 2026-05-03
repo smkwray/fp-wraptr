@@ -526,14 +526,14 @@
     "pse-economy"
   ],
   "default_run_ids": [
-    "onezur_nocola_endogrs__pse2025_base_stock_pf",
-    "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
-    "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
-    "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
-    "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf"
+    "onezur_nocola_endogrs__pse2026_base_stock_pf",
+    "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf",
+    "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf",
+    "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf",
+    "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf"
   ],
   "dictionary_path": "dictionary.json",
-  "generated_at": "2026-04-30T22:04:55Z",
+  "generated_at": "2026-05-03T22:21:39Z",
   "presets_path": "presets.json",
   "runs": [
     {
@@ -555,13 +555,13 @@
       "timestamp": "20260415_161658"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_base_stock_pf.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_base_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_base_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_base_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -569,19 +569,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Base (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_base_stock_pf",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_base_stock_pf",
+      "run_id": "onezur_nocola_endogrs__pse2026_base_stock_pf",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_213937"
+      "timestamp": "20260503_221944"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_base_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_base_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_base_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_base_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -589,19 +589,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Base (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_base_stock_pf_10y",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_base_stock_pf_10y",
+      "run_id": "onezur_nocola_endogrs__pse2026_base_stock_pf_10y",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_213947"
+      "timestamp": "20260503_221954"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -609,19 +609,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $20/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "run_id": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214017"
+      "timestamp": "20260503_222025"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -629,19 +629,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $20/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214027"
+      "timestamp": "20260503_222035"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -649,19 +649,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "run_id": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214057"
+      "timestamp": "20260503_222105"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -669,19 +669,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214107"
+      "timestamp": "20260503_222115"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -689,19 +689,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $15/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "run_id": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_213957"
+      "timestamp": "20260503_222004"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -709,19 +709,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $15/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214007"
+      "timestamp": "20260503_222014"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -729,19 +729,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "run_id": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214037"
+      "timestamp": "20260503_222045"
     },
     {
-      "data_path": "runs/onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, endogenous RS",
@@ -749,19 +749,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, no COLA, endogenous RS)",
-      "run_id": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_endogrs__pse2026_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, endogenous RS.",
-      "timestamp": "20260430_214047"
+      "timestamp": "20260503_222055"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_base_stock_pf.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_base_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_base_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_base_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -769,19 +769,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Base (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_base_stock_pf",
-      "scenario_name": "onezur_nocola_basers__pse2025_base_stock_pf",
+      "run_id": "onezur_nocola_basers__pse2026_base_stock_pf",
+      "scenario_name": "onezur_nocola_basers__pse2026_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213757"
+      "timestamp": "20260503_221803"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_base_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_base_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_base_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_base_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -789,19 +789,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Base (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_base_stock_pf_10y",
-      "scenario_name": "onezur_nocola_basers__pse2025_base_stock_pf_10y",
+      "run_id": "onezur_nocola_basers__pse2026_base_stock_pf_10y",
+      "scenario_name": "onezur_nocola_basers__pse2026_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213807"
+      "timestamp": "20260503_221813"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -809,19 +809,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $20/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
+      "run_id": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213837"
+      "timestamp": "20260503_221843"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -829,19 +829,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $20/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_basers__pse2025_high_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_basers__pse2026_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213847"
+      "timestamp": "20260503_221853"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -849,19 +849,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
+      "run_id": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213917"
+      "timestamp": "20260503_221924"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -869,19 +869,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_basers__pse2025_low_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_basers__pse2026_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213927"
+      "timestamp": "20260503_221934"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -889,19 +889,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $15/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
+      "run_id": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213817"
+      "timestamp": "20260503_221823"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -909,19 +909,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $15/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_basers__pse2025_high_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_basers__pse2026_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213827"
+      "timestamp": "20260503_221833"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -929,19 +929,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
-      "scenario_name": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
+      "run_id": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf",
+      "scenario_name": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213857"
+      "timestamp": "20260503_221903"
     },
     {
-      "data_path": "runs/onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.0.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, no COLA, RS follows PSE base",
@@ -949,19 +949,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, no COLA, base RS)",
-      "run_id": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_nocola_basers__pse2025_low_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_nocola_basers__pse2026_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, no COLA, RS follows PSE base.",
-      "timestamp": "20260430_213907"
+      "timestamp": "20260503_221913"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_base_stock_pf.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_base_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_base_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_base_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -969,19 +969,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Base (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_base_stock_pf",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_base_stock_pf",
+      "run_id": "onezur_cola3_endogrs__pse2026_base_stock_pf",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213616"
+      "timestamp": "20260503_221621"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_base_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_base_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_base_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_base_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -989,19 +989,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Base (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_base_stock_pf_10y",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_base_stock_pf_10y",
+      "run_id": "onezur_cola3_endogrs__pse2026_base_stock_pf_10y",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213626"
+      "timestamp": "20260503_221631"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1009,19 +1009,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $20/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "run_id": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213656"
+      "timestamp": "20260503_221702"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1029,19 +1029,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $20/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_high_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213706"
+      "timestamp": "20260503_221712"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1049,19 +1049,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "run_id": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213737"
+      "timestamp": "20260503_221743"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1069,19 +1069,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_low_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213747"
+      "timestamp": "20260503_221753"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1089,19 +1089,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $15/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "run_id": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213636"
+      "timestamp": "20260503_221641"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1109,19 +1109,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $15/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_high_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213646"
+      "timestamp": "20260503_221651"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1129,19 +1129,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "run_id": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213717"
+      "timestamp": "20260503_221723"
     },
     {
-      "data_path": "runs/onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is endogenous."
       ],
-      "family_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, endogenous RS",
@@ -1149,19 +1149,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, endogenous RS)",
-      "run_id": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_endogrs__pse2025_low_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_endogrs__pse2026_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, endogenous RS.",
-      "timestamp": "20260430_213727"
+      "timestamp": "20260503_221733"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_base_stock_pf.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_base_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_base_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_base_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1169,19 +1169,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Base (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_base_stock_pf",
-      "scenario_name": "onezur_cola3_basers__pse2025_base_stock_pf",
+      "run_id": "onezur_cola3_basers__pse2026_base_stock_pf",
+      "scenario_name": "onezur_cola3_basers__pse2026_base_stock_pf",
       "summary": "5Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213433"
+      "timestamp": "20260503_221440"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_base_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_base_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_base_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_base_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1189,19 +1189,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Base (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_base_stock_pf_10y",
-      "scenario_name": "onezur_cola3_basers__pse2025_base_stock_pf_10y",
+      "run_id": "onezur_cola3_basers__pse2026_base_stock_pf_10y",
+      "scenario_name": "onezur_cola3_basers__pse2026_base_stock_pf_10y",
       "summary": "10Y base base PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213445"
+      "timestamp": "20260503_221452"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1209,19 +1209,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $20/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
+      "run_id": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf",
       "summary": "5Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213516"
+      "timestamp": "20260503_221521"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1229,19 +1229,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $20/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_basers__pse2025_high_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_basers__pse2026_high_20h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213526"
+      "timestamp": "20260503_221531"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1249,19 +1249,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
+      "run_id": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf",
       "summary": "5Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213556"
+      "timestamp": "20260503_221601"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1269,19 +1269,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $20/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_basers__pse2025_low_20h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_basers__pse2026_low_20h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $20/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213606"
+      "timestamp": "20260503_221611"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1289,19 +1289,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 High $15/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
+      "run_id": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf",
       "summary": "5Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213456"
+      "timestamp": "20260503_221502"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1309,19 +1309,19 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 High $15/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_basers__pse2025_high_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_basers__pse2026_high_15h_3pct_stock_pf_10y",
       "summary": "10Y high take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213506"
+      "timestamp": "20260503_221511"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2029.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1329,19 +1329,19 @@
       "horizon_label": "5Y",
       "horizon_years": 5,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
-      "scenario_name": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
+      "run_id": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf",
+      "scenario_name": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf",
       "summary": "5Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213536"
+      "timestamp": "20260503_221541"
     },
     {
-      "data_path": "runs/onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y.json",
+      "data_path": "runs/onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf_10y.json",
       "details": [
         "Phase paths are exact SAMEVALUE controls, so the deck can read fmexog more than once without doubling the ramp.",
         "JGCOLA and MWCOLA are both set to 0.007417071777732875.",
         "RS is forced to the matching PSE base path."
       ],
-      "family_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf",
+      "family_id": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf",
       "forecast_end": "2034.4",
       "forecast_start": "2025.4",
       "group": "PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base",
@@ -1349,10 +1349,10 @@
       "horizon_label": "10Y",
       "horizon_years": 10,
       "label": "PSE2026.2 Low $15/h (PF 1/UR, 3% COLA, base RS)",
-      "run_id": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y",
-      "scenario_name": "onezur_cola3_basers__pse2025_low_15h_3pct_stock_pf_10y",
+      "run_id": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf_10y",
+      "scenario_name": "onezur_cola3_basers__pse2026_low_15h_3pct_stock_pf_10y",
       "summary": "10Y low take-up $15/hour PSE run for PSE PF 1/UR, 3% JG + MW COLA, RS follows PSE base.",
-      "timestamp": "20260430_213546"
+      "timestamp": "20260503_221551"
     }
   ],
   "schema_version": 1,
