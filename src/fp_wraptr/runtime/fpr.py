@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import re
@@ -47,6 +48,9 @@ class FpRBackend:
     rscript_path: Path | None = None
     timeout_seconds: int = 1200
     semantics_profile: str = "compat"
+    exogenous_equation_target_policy: str | None = None
+    outside_carry_exclude_targets: tuple[str, ...] | list[str] | None = None
+    equation_term_overrides: tuple[dict[str, object], ...] | list[dict[str, object]] | None = None
 
     def _resolve_bundle_path(self) -> Path | None:
         bundle = self.bundle_path
@@ -334,6 +338,13 @@ class FpRBackend:
                 "mode": "bundle" if bundle is not None else "raw_input",
                 "rscript_path": str(rscript) if rscript is not None else "",
                 "semantics_profile": profile.name,
+                "exogenous_equation_target_policy": str(self.exogenous_equation_target_policy or ""),
+                "outside_carry_exclude_targets": [
+                    str(item) for item in (self.outside_carry_exclude_targets or []) if str(item).strip()
+                ],
+                "equation_term_overrides": [
+                    dict(item) for item in (self.equation_term_overrides or []) if dict(item)
+                ],
             },
         )
 
@@ -355,6 +366,26 @@ class FpRBackend:
         command: list[str]
         mode: str
         staged_input: Path | None = None
+        equation_term_overrides_path: Path | None = None
+        if self.equation_term_overrides:
+            equation_term_overrides_path = work_dir / "equation_term_overrides.csv"
+            with equation_term_overrides_path.open("w", encoding="utf-8", newline="") as handle:
+                writer = csv.DictWriter(
+                    handle,
+                    fieldnames=["target", "variable", "coefficient", "lag", "mode"],
+                )
+                writer.writeheader()
+                for item in self.equation_term_overrides:
+                    payload = dict(item)
+                    writer.writerow(
+                        {
+                            "target": str(payload.get("target", "")),
+                            "variable": str(payload.get("variable", "")),
+                            "coefficient": payload.get("coefficient", ""),
+                            "lag": payload.get("lag", 0),
+                            "mode": str(payload.get("mode", "replace")),
+                        }
+                    )
         if bundle_path is not None and bundle_path.exists():
             runner_script = self._resolve_runner_script()
             if not runner_script.exists():
@@ -369,6 +400,27 @@ class FpRBackend:
                 "--semantics-profile",
                 profile.name,
             ]
+            if self.exogenous_equation_target_policy not in (None, ""):
+                command.extend(
+                    [
+                        "--exogenous-equation-target-policy",
+                        str(self.exogenous_equation_target_policy),
+                    ]
+                )
+            if self.outside_carry_exclude_targets:
+                command.extend(
+                    [
+                        "--outside-carry-exclude-targets",
+                        ",".join(str(item).strip() for item in self.outside_carry_exclude_targets if str(item).strip()),
+                    ]
+                )
+            if equation_term_overrides_path is not None:
+                command.extend(
+                    [
+                        "--equation-term-overrides-file",
+                        str(equation_term_overrides_path.resolve()),
+                    ]
+                )
             mode = "bundle"
         else:
             if input_file is None:
@@ -392,6 +444,27 @@ class FpRBackend:
                 "--semantics-profile",
                 profile.name,
             ]
+            if self.exogenous_equation_target_policy not in (None, ""):
+                command.extend(
+                    [
+                        "--exogenous-equation-target-policy",
+                        str(self.exogenous_equation_target_policy),
+                    ]
+                )
+            if self.outside_carry_exclude_targets:
+                command.extend(
+                    [
+                        "--outside-carry-exclude-targets",
+                        ",".join(str(item).strip() for item in self.outside_carry_exclude_targets if str(item).strip()),
+                    ]
+                )
+            if equation_term_overrides_path is not None:
+                command.extend(
+                    [
+                        "--equation-term-overrides-file",
+                        str(equation_term_overrides_path.resolve()),
+                    ]
+                )
             for flag, name in (
                 ("--fmdata", "fmdata.txt"),
                 ("--fmexog", "fmexog.txt"),
@@ -409,6 +482,7 @@ class FpRBackend:
             work_dir=work_dir,
             semantics_profile=profile.name,
             entry_input=staged_input,
+            exogenous_equation_target_policy=self.exogenous_equation_target_policy,
         )
 
         runtime_payload = {
@@ -418,6 +492,20 @@ class FpRBackend:
             "runner_script": str(runner_script),
             "rscript_path": str(rscript),
             "semantics_profile": profile.name,
+            "exogenous_equation_target_policy": (
+                str(self.exogenous_equation_target_policy)
+                if self.exogenous_equation_target_policy not in (None, "")
+                else None
+            ),
+            "outside_carry_exclude_targets": [
+                str(item) for item in (self.outside_carry_exclude_targets or []) if str(item).strip()
+            ],
+            "equation_term_overrides": [
+                dict(item) for item in (self.equation_term_overrides or []) if dict(item)
+            ],
+            "equation_term_overrides_path": (
+                str(equation_term_overrides_path.resolve()) if equation_term_overrides_path is not None else None
+            ),
             "input_file": str(Path(input_file).resolve()) if input_file is not None else None,
             "effective_input_file": str(staged_input) if staged_input is not None else None,
             "fp_home": str(Path(self.fp_home).expanduser().resolve()),
@@ -431,31 +519,71 @@ class FpRBackend:
         runtime_path.write_text(json.dumps(runtime_payload, indent=2) + "\n", encoding="utf-8")
 
         start = time.perf_counter()
-        completed = subprocess.run(
-            command,
-            cwd=str(work_dir),
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=self.timeout_seconds,
-            check=False,
-        )
+        timed_out = False
+        timeout_exception: subprocess.TimeoutExpired | None = None
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=str(work_dir),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_seconds,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            timed_out = True
+            timeout_exception = exc
+            completed = subprocess.CompletedProcess(
+                args=command,
+                returncode=124,
+                stdout=exc.stdout or "",
+                stderr=exc.stderr or "",
+            )
         duration = time.perf_counter() - start
 
         output_file = _select_primary_output(work_dir)
+        fp_r_series_exists = (work_dir / "fp_r_series.csv").exists()
+        fp_r_report_exists = (work_dir / "fp_r_report.txt").exists()
+        if timed_out and output_file is None and not fp_r_series_exists:
+            message = f"fp-r timed out after {self.timeout_seconds}s without salvageable outputs"
+            if timeout_exception is not None:
+                stderr_parts = [str(completed.stderr or "").strip(), message]
+                completed.stderr = "\n".join(part for part in stderr_parts if part)
+            raise subprocess.TimeoutExpired(
+                command,
+                self.timeout_seconds,
+                output=completed.stdout,
+                stderr=completed.stderr,
+            )
         if int(completed.returncode) == 0:
             missing: list[str] = []
             if output_file is None:
                 missing.append("PABEV.TXT or PACEV.TXT")
-            if not (work_dir / "fp_r_series.csv").exists():
+            if not fp_r_series_exists:
                 missing.append("fp_r_series.csv")
-            if not (work_dir / "fp_r_report.txt").exists():
+            if not fp_r_report_exists:
                 missing.append("fp_r_report.txt")
             if missing:
                 raise FpRBackendError(
                     "fp-r backend completed without required artifacts: "
                     + ", ".join(missing)
                 )
+        if timed_out and timeout_exception is not None:
+            stderr_parts = [str(completed.stderr or "").strip()]
+            salvage_parts: list[str] = []
+            if output_file is not None:
+                salvage_parts.append(output_file.name)
+            if fp_r_series_exists:
+                salvage_parts.append("fp_r_series.csv")
+            if fp_r_report_exists:
+                salvage_parts.append("fp_r_report.txt")
+            message = (
+                f"fp-r timed out after {self.timeout_seconds}s; salvaging partial outputs: "
+                + (", ".join(salvage_parts) if salvage_parts else "none")
+            )
+            stderr_parts.append(message)
+            completed.stderr = "\n".join(part for part in stderr_parts if part)
 
         return RunResult(
             return_code=int(completed.returncode),

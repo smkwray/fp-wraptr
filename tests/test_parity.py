@@ -7,6 +7,7 @@ from pathlib import Path
 from fp_wraptr.analysis.parity import (
     DriftConfig,
     GateConfig,
+    _prepare_bundle,
     _drift_check_from_period_stats,
     _fingerprint_matches,
     _scan_fpexe_solution_errors,
@@ -91,6 +92,38 @@ def test_scan_fpexe_solution_errors_accepts_short_format(tmp_path) -> None:
     assert rows[0].get("period") is None
 
 
+def test_prepare_bundle_overlay_model_files_replace_fp_home(tmp_path: Path) -> None:
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    overlay = tmp_path / "overlay"
+    overlay.mkdir()
+
+    (fp_home / "fminput.txt").write_text("TITLE BASE\nINPUT FILE=fmexog.txt;\n", encoding="utf-8")
+    (overlay / "fminput.txt").write_text(
+        "TITLE OVERLAY\nINPUT FILE=fmexog.txt;\n", encoding="utf-8"
+    )
+    (fp_home / "fmdata.txt").write_text("@ base fmdata\n", encoding="utf-8")
+    (fp_home / "fmage.txt").write_text("@ base fmage\n", encoding="utf-8")
+    (fp_home / "fmexog.txt").write_text("@ base fmexog\nRETURN;\n", encoding="utf-8")
+    (fp_home / "fmout.txt").write_text("@ base fmout\n", encoding="utf-8")
+    (overlay / "fmexog.txt").write_text("@ overlay fmexog\nRETURN;\n", encoding="utf-8")
+
+    config = ScenarioConfig(
+        name="bundle_overlay_precedence",
+        fp_home=fp_home,
+        input_overlay_dir=overlay,
+        forecast_start="2025.4",
+        forecast_end="2029.4",
+    )
+
+    bundle_dir, manifest = _prepare_bundle(config, tmp_path / "bundle")
+
+    assert manifest.entry_input_file == "fminput.txt"
+    assert (bundle_dir / "fminput.txt").read_text(encoding="utf-8").startswith("TITLE OVERLAY")
+    assert (bundle_dir / "fmexog.txt").read_text(encoding="utf-8").startswith("@ overlay fmexog")
+    assert (bundle_dir / "fmout.txt").read_text(encoding="utf-8").startswith("@ base fmout")
+
+
 def test_run_parity_does_not_mutate_input_config_fp_home(tmp_path, monkeypatch) -> None:
     original_home = tmp_path / "orig_home"
     override_home = tmp_path / "override_home"
@@ -100,7 +133,7 @@ def test_run_parity_does_not_mutate_input_config_fp_home(tmp_path, monkeypatch) 
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
         assert work_dir is not None
-        _write_single_period_pabev(work_dir / "PABEV.TXT", period="2020.1")
+        _write_single_period_pabev(work_dir / "PABEV.TXT", period="2025.4")
         (work_dir / "fp-exe.stdout.txt").write_text("", encoding="utf-8")
         (work_dir / "fp-exe.stderr.txt").write_text("", encoding="utf-8")
         return RunResult(
@@ -223,13 +256,18 @@ def test_run_parity_records_fppy_num_threads_and_structural_cache(tmp_path, monk
 def test_run_parity_supports_fpexe_vs_fpr_pair(tmp_path, monkeypatch) -> None:
     fp_home = tmp_path / "fp_home"
     fp_home.mkdir()
-    bundle_path = tmp_path / "bundle.R"
-    bundle_path.write_text("# fake fp-r bundle\n", encoding="utf-8")
+    for name, text in {
+        "fminput.txt": "TITLE TEST\nQUIT;\n",
+        "fmdata.txt": "@ data\n",
+        "fmage.txt": "@ age\n",
+        "fmexog.txt": "@ exog\nRETURN;\n",
+    }.items():
+        (fp_home / name).write_text(text, encoding="utf-8")
     config = ScenarioConfig(
         name="fpr_pair",
         fp_home=fp_home,
         forecast_end="2025.4",
-        fpr={"bundle_path": str(bundle_path)},
+        semantics_profile="canonical",
     )
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
@@ -249,14 +287,19 @@ def test_run_parity_supports_fpexe_vs_fpr_pair(tmp_path, monkeypatch) -> None:
 
     def fake_fpr_run(self, input_file=None, work_dir=None, extra_env=None):
         _ = self, input_file, extra_env
+        assert self.bundle_path is None
+        assert self.fp_home == fp_home
+        assert self.semantics_profile == "canonical"
         assert work_dir is not None
+        assert input_file == work_dir / "fminput.txt"
+        assert input_file.exists()
         _write_minimal_pabev(work_dir / "PACEV.TXT")
         return RunResult(
             return_code=0,
             stdout="",
             stderr="",
             working_dir=work_dir,
-            input_file=bundle_path,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
             output_file=work_dir / "PACEV.TXT",
             duration_seconds=0.0,
         )
@@ -288,19 +331,24 @@ def test_run_parity_supports_fpexe_vs_fpr_pair(tmp_path, monkeypatch) -> None:
     assert result.right_engine == "fp-r"
     assert set(result.engine_runs) == {"fpexe", "fp-r"}
     assert result.engine_runs["fp-r"].pabev_path.endswith("/work_fpr/PACEV.TXT")
+    assert result.engine_runs["fp-r"].details["semantics_profile"] == "canonical"
 
 
 def test_run_parity_defaults_compare_start_to_scenario_forecast_start(tmp_path, monkeypatch) -> None:
     fp_home = tmp_path / "fp_home"
     fp_home.mkdir()
-    bundle_path = tmp_path / "bundle.R"
-    bundle_path.write_text("# fake fp-r bundle\n", encoding="utf-8")
+    for name, text in {
+        "fminput.txt": "TITLE TEST\nQUIT;\n",
+        "fmdata.txt": "@ data\n",
+        "fmage.txt": "@ age\n",
+        "fmexog.txt": "@ exog\nRETURN;\n",
+    }.items():
+        (fp_home / name).write_text(text, encoding="utf-8")
     config = ScenarioConfig(
         name="fpr_pair_start_window",
         fp_home=fp_home,
         forecast_start="2020.1",
         forecast_end="2020.1",
-        fpr={"bundle_path": str(bundle_path)},
     )
     observed: dict[str, str] = {}
 
@@ -322,13 +370,17 @@ def test_run_parity_defaults_compare_start_to_scenario_forecast_start(tmp_path, 
     def fake_fpr_run(self, input_file=None, work_dir=None, extra_env=None):
         _ = self, input_file, extra_env
         assert work_dir is not None
+        assert self.bundle_path is None
+        assert self.fp_home == fp_home
+        assert input_file == work_dir / "fminput.txt"
+        assert input_file.exists()
         _write_single_period_pabev(work_dir / "PACEV.TXT", period="2020.1")
         return RunResult(
             return_code=0,
             stdout="",
             stderr="",
             working_dir=work_dir,
-            input_file=bundle_path,
+            input_file=Path(input_file) if input_file is not None else work_dir / "fminput.txt",
             output_file=work_dir / "PACEV.TXT",
             duration_seconds=0.0,
         )

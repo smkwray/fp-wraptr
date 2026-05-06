@@ -669,6 +669,22 @@ resolve_standard_input_semantics_profile <- function(profile = NULL) {
   )
 }
 
+resolve_outside_carry_exclude_targets <- function(value = NULL) {
+  raw <- value %||% getOption("fp_r.outside_carry_exclude_targets", character())
+  if (is.null(raw) || !length(raw)) {
+    return(character())
+  }
+  if (length(raw) == 1L) {
+    token <- as.character(raw[[1L]] %||% "")
+    if (!nzchar(token)) {
+      return(character())
+    }
+    raw <- strsplit(token, ",", fixed = TRUE)[[1L]]
+  }
+  targets <- unique(toupper(trimws(as.character(raw))))
+  targets[nzchar(targets)]
+}
+
 apply_semantics_profile_to_solve_control <- function(control, semantics_profile) {
   control$semantics_profile <- semantics_profile$name
   control$exogenous_equation_target_policy <- as.character(
@@ -722,11 +738,16 @@ apply_outside_carry_plan_frame <- function(
   protected_targets = character()
 ) {
   working <- frame
+  excluded_targets <- resolve_outside_carry_exclude_targets()
   if (isTRUE(semantics_profile$apply_outside_boundary_carry)) {
+    boundary_targets <- setdiff(
+      unique(toupper(as.character(plan$boundary_targets %||% character()))),
+      excluded_targets
+    )
     working <- apply_outside_boundary_carry_frame(
       working,
       sample_start = sample_start,
-      targets = plan$boundary_targets %||% character()
+      targets = boundary_targets
     )
   }
   if (isTRUE(semantics_profile$apply_outside_first_period_carry)) {
@@ -734,6 +755,10 @@ apply_outside_carry_plan_frame <- function(
       plan,
       semantics_profile,
       protected_targets = protected_targets
+    )
+    first_period_targets <- setdiff(
+      unique(toupper(as.character(first_period_targets %||% character()))),
+      excluded_targets
     )
     working <- apply_outside_first_period_carry_frame(
       working,
@@ -2835,6 +2860,20 @@ is_fmexog_like_text <- function(text) {
   all(commands %in% allowed_commands)
 }
 
+read_fmexog_rows_if_applicable <- function(path) {
+  if (is.null(path) || !nzchar(as.character(path %||% "")) || !file.exists(path)) {
+    return(NULL)
+  }
+  text <- tryCatch(
+    paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n"),
+    error = function(...) NULL
+  )
+  if (is.null(text) || !is_fmexog_like_text(text)) {
+    return(NULL)
+  }
+  tryCatch(parse_fmexog_text(text), error = function(...) NULL)
+}
+
 inline_changevar_payload_raw <- function(statements, index) {
   if (is.null(statements) || !length(statements)) {
     return("")
@@ -2914,7 +2953,7 @@ collect_runtime_input_targets <- function(statements, search_dirs = NULL) {
       input_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_input <- resolve_fp_source_path(input_name, search_dirs)
       if (!is.null(resolved_input)) {
-        rows <- tryCatch(parse_fmexog_file(resolved_input), error = function(...) NULL)
+        rows <- read_fmexog_rows_if_applicable(resolved_input)
         if (is.data.frame(rows) && nrow(rows) && "variable" %in% names(rows)) {
           targets <- c(targets, toupper(as.character(rows$variable)))
         }
@@ -2930,6 +2969,93 @@ collect_runtime_input_targets <- function(statements, search_dirs = NULL) {
   }
 
   unique(targets[nzchar(targets)])
+}
+
+expand_fmexog_row_values <- function(row, periods) {
+  values <- as.numeric(unlist(row$values[[1]]))
+  if (!length(values)) {
+    return(numeric())
+  }
+  if (isTRUE(row$is_vector[[1]])) {
+    if (length(values) == length(periods)) {
+      return(values)
+    }
+    if (length(values) > 1L) {
+      padded <- values[seq_len(min(length(values), length(periods)))]
+      if (length(padded) < length(periods)) {
+        padded <- c(padded, rep(tail(padded, 1L), length(periods) - length(padded)))
+      }
+      return(as.numeric(padded))
+    }
+    return(rep(values[[1]], length(periods)))
+  }
+  rep(values[[1]], length(periods))
+}
+
+filter_fmexog_rows_for_retained_targets <- function(rows, retained_targets = character(), active_window = NULL) {
+  if (!is.data.frame(rows) || !nrow(rows)) {
+    return(rows)
+  }
+  retained_targets <- unique(toupper(as.character(retained_targets %||% character())))
+  if (!length(retained_targets) || is.null(active_window) || length(active_window) < 2L) {
+    return(rows)
+  }
+  active_periods <- generate_smpl_periods(
+    as.character(active_window[[1]] %||% ""),
+    as.character(active_window[[2]] %||% "")
+  )
+  if (!length(active_periods)) {
+    return(rows)
+  }
+
+  split_contiguous_indices <- function(indices) {
+    if (!length(indices)) {
+      return(list())
+    }
+    groups <- cumsum(c(TRUE, diff(indices) != 1L))
+    split(indices, groups)
+  }
+
+  filtered <- list()
+  for (row_idx in seq_len(nrow(rows))) {
+    row <- rows[row_idx, , drop = FALSE]
+    variable <- toupper(trimws(as.character(row$variable[[1]] %||% "")))
+    if (!(variable %in% retained_targets)) {
+      filtered[[length(filtered) + 1L]] <- row
+      next
+    }
+    row_periods <- generate_smpl_periods(
+      as.character(row$window_start[[1]] %||% ""),
+      as.character(row$window_end[[1]] %||% "")
+    )
+    if (!length(row_periods)) {
+      next
+    }
+    keep_mask <- !(row_periods %in% active_periods)
+    if (all(keep_mask)) {
+      filtered[[length(filtered) + 1L]] <- row
+      next
+    }
+    keep_indices <- which(keep_mask)
+    if (!length(keep_indices)) {
+      next
+    }
+    expanded_values <- expand_fmexog_row_values(row, row_periods)
+    for (segment in split_contiguous_indices(keep_indices)) {
+      segment_periods <- row_periods[segment]
+      trimmed <- row
+      trimmed$window_start[[1]] <- segment_periods[[1]]
+      trimmed$window_end[[1]] <- segment_periods[[length(segment_periods)]]
+      trimmed$values[[1]] <- expanded_values[segment]
+      trimmed$is_vector[[1]] <- length(segment) > 1L
+      filtered[[length(filtered) + 1L]] <- trimmed
+    }
+  }
+
+  if (!length(filtered)) {
+    return(rows[0, , drop = FALSE])
+  }
+  do.call(rbind, filtered)
 }
 
 parse_setupsolve_options <- function(statement) {
@@ -2991,6 +3117,16 @@ parse_setupsolve_options <- function(statement) {
   }
   if (!is.null(parsed$TARGETLAGSUFFIX)) {
     control$eq_target_lag_suffix <- parsed$TARGETLAGSUFFIX
+  }
+  if (!is.null(parsed$RHORESIDTARGETS)) {
+    targets <- unique(toupper(trimws(strsplit(parsed$RHORESIDTARGETS, ",", fixed = TRUE)[[1L]])))
+    control$eq_rho_resid_targets <- targets[nzchar(targets)]
+  }
+  if (!is.null(parsed$TRANSFORMEDLHSPERCENTLOG)) {
+    control$transformed_lhs_percent_log_compat <- parsed$TRANSFORMEDLHSPERCENTLOG %in% c("1", "TRUE", "T", "YES", "ON")
+  }
+  if (!is.null(parsed$TRANSFORMEDLHSPERCENTLOGPATH)) {
+    control$transformed_lhs_percent_log_path_compat <- parsed$TRANSFORMEDLHSPERCENTLOGPATH %in% c("1", "TRUE", "T", "YES", "ON")
   }
   control
 }
@@ -3814,7 +3950,7 @@ apply_base_helper_overlay_to_tree <- function(entry_path, tree, search_dirs = NU
   tree
 }
 
-prepare_standard_runtime <- function(statements, frame, search_dirs, default_fmexog_path = NULL) {
+prepare_standard_runtime <- function(statements, frame, search_dirs, default_fmexog_path = NULL, progress_path = "", solve_stage = 0L, numeric_cache = NULL) {
   working <- sort_frame_by_period(frame)
   active_window <- NULL
   solve_snapshot <- NULL
@@ -3850,11 +3986,25 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
       load_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_load <- resolve_fp_source_path(load_name, search_dirs)
       if (!is.null(resolved_load)) {
+        step_started <- proc.time()[["elapsed"]]
+        parsed_load <- cached_parse_fm_numeric_file(
+          resolved_load,
+          block_name = basename(resolved_load),
+          cache = numeric_cache
+        )
         working <- merge_fm_numeric_frames(
           working,
-          parse_fm_numeric_file(resolved_load, block_name = basename(resolved_load))
+          parsed_load
         )
         working <- sort_frame_by_period(working)
+        append_solve_stage_progress_row(
+          progress_path,
+          solve_stage = solve_stage,
+          event = sprintf("runtime_preview_loaddata_%s", tolower(tools::file_path_sans_ext(basename(resolved_load)))),
+          sample_start = active_window[[1]] %||% "",
+          sample_end = active_window[[2]] %||% "",
+          elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started)
+        )
       }
       next
     }
@@ -3863,9 +4013,31 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
       input_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_input <- resolve_fp_source_path(input_name, search_dirs)
       if (!is.null(resolved_input)) {
-        saw_runtime_input <- TRUE
-        working <- apply_fmexog_rows(working, parse_fmexog_file(resolved_input))
-        working <- sort_frame_by_period(working)
+        step_started <- proc.time()[["elapsed"]]
+        fmexog_rows <- read_fmexog_rows_if_applicable(resolved_input)
+        if (is.data.frame(fmexog_rows) && nrow(fmexog_rows)) {
+          saw_runtime_input <- TRUE
+          working <- apply_fmexog_rows(working, fmexog_rows)
+          working <- sort_frame_by_period(working)
+          append_solve_stage_progress_row(
+            progress_path,
+            solve_stage = solve_stage,
+            event = sprintf("runtime_preview_input_%s", tolower(tools::file_path_sans_ext(basename(resolved_input)))),
+            sample_start = active_window[[1]] %||% "",
+            sample_end = active_window[[2]] %||% "",
+            elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started),
+            spec_count = nrow(fmexog_rows)
+          )
+        } else {
+          append_solve_stage_progress_row(
+            progress_path,
+            solve_stage = solve_stage,
+            event = sprintf("runtime_preview_input_skipped_%s", tolower(tools::file_path_sans_ext(basename(resolved_input)))),
+            sample_start = active_window[[1]] %||% "",
+            sample_end = active_window[[2]] %||% "",
+            elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started)
+          )
+        }
       }
       next
     }
@@ -3873,9 +4045,18 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
     if (identical(command, "CHANGEVAR")) {
       payload_raw <- inline_changevar_payload_raw(statements, idx)
       if (nzchar(payload_raw)) {
+        step_started <- proc.time()[["elapsed"]]
         saw_runtime_input <- TRUE
         working <- apply_inline_changevar_payload_frame(working, payload_raw, active_window)
         working <- sort_frame_by_period(working)
+        append_solve_stage_progress_row(
+          progress_path,
+          solve_stage = solve_stage,
+          event = "runtime_preview_changevar",
+          sample_start = active_window[[1]] %||% "",
+          sample_end = active_window[[2]] %||% "",
+          elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started)
+        )
       }
       next
     }
@@ -3898,12 +4079,22 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
 
     if (identical(command, "EXTRAPOLATE")) {
       if (!is.null(active_window)) {
+        step_started <- proc.time()[["elapsed"]]
         working <- apply_extrapolate_frame(
           working,
           window_start = active_window[[1]],
           window_end = active_window[[2]],
           variables = exogenous_targets,
           include_all_columns = TRUE
+        )
+        append_solve_stage_progress_row(
+          progress_path,
+          solve_stage = solve_stage,
+          event = "runtime_preview_extrapolate",
+          sample_start = active_window[[1]] %||% "",
+          sample_end = active_window[[2]] %||% "",
+          elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started),
+          spec_count = length(exogenous_targets)
         )
       }
       next
@@ -3927,12 +4118,27 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
         solve_option_text = solve_metadata$option_text,
         solve_watch_text = solve_metadata$watch_text
       )
+      append_solve_stage_progress_row(
+        progress_path,
+        solve_stage = solve_stage,
+        event = "runtime_preview_solve_snapshot",
+        sample_start = solve_snapshot$sample_start %||% "",
+        sample_end = solve_snapshot$sample_end %||% "",
+        spec_count = length(exogenous_targets)
+      )
     }
   }
 
   if (!saw_runtime_input && !is.null(default_fmexog_path) && nzchar(default_fmexog_path) && file.exists(default_fmexog_path)) {
+    step_started <- proc.time()[["elapsed"]]
     working <- apply_fmexog_rows(working, parse_fmexog_file(default_fmexog_path))
     working <- sort_frame_by_period(working)
+    append_solve_stage_progress_row(
+      progress_path,
+      solve_stage = solve_stage,
+      event = "runtime_preview_default_fmexog",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - step_started)
+    )
   }
 
   list(
@@ -4135,17 +4341,83 @@ runtime_assignment_references_target <- function(statement, target, compiled = N
   any(toupper(as.character(refs$name %||% character())) == toupper(target), na.rm = TRUE)
 }
 
+intersect_runtime_windows <- function(lhs = NULL, rhs = NULL) {
+  if (is.null(lhs) || length(lhs) < 2L || is.null(rhs) || length(rhs) < 2L) {
+    return(NULL)
+  }
+  lhs_start <- parse_period(lhs[[1]] %||% "")$index
+  lhs_end <- parse_period(lhs[[2]] %||% "")$index
+  rhs_start <- parse_period(rhs[[1]] %||% "")$index
+  rhs_end <- parse_period(rhs[[2]] %||% "")$index
+  if (!all(is.finite(c(lhs_start, lhs_end, rhs_start, rhs_end)))) {
+    return(NULL)
+  }
+  start_index <- max(lhs_start, rhs_start)
+  end_index <- min(lhs_end, rhs_end)
+  if (!is.finite(start_index) || !is.finite(end_index) || start_index > end_index) {
+    return(NULL)
+  }
+  c(format_period(start_index), format_period(end_index))
+}
+
+refresh_runtime_derived_assignments <- function(statements, frame, refresh_window = NULL, coef_values = NULL) {
+  if (!length(statements) || !nrow(frame) || is.null(refresh_window) || length(refresh_window) < 2L) {
+    return(sort_frame_by_period(frame))
+  }
+
+  working <- sort_frame_by_period(frame)
+  active_window <- NULL
+  for (statement in statements) {
+    command <- statement_command_runtime(statement)
+    raw <- statement$raw %||% ""
+    if (identical(command, "SMPL")) {
+      parsed_window <- parse_smpl_statement(raw)
+      if (!is.null(parsed_window)) {
+        active_window <- c(parsed_window$start, parsed_window$end)
+      }
+      next
+    }
+    if (!(command %in% c("GENR", "IDENT"))) {
+      next
+    }
+    target <- as.character(statement$name %||% statement$target %||% "")
+    expression <- statement$expression %||% NULL
+    if (!nzchar(target) || is.null(expression) || !nzchar(expression)) {
+      next
+    }
+    effective_window <- if (is.null(active_window) || length(active_window) < 2L) {
+      refresh_window
+    } else {
+      intersect_runtime_windows(active_window, refresh_window)
+    }
+    if (is.null(effective_window)) {
+      next
+    }
+    working <- apply_runtime_assignment_frame(
+      working,
+      statement,
+      active_window = effective_window,
+      coef_values = coef_values,
+      preserve_existing = FALSE
+    )
+    working <- sort_frame_by_period(working)
+  }
+  working
+}
+
 update_pre_solve_protected_target <- function(protected_frame, working, target) {
   target <- toupper(as.character(target %||% ""))
   if (!nzchar(target) || !nrow(working)) {
     return(protected_frame)
   }
-  protected <- ensure_frame_periods(
-    protected_frame,
-    as.character(working$period %||% character())
-  )
-  protected <- sort_frame_by_period(protected)
-  shared_periods <- intersect(as.character(protected$period), as.character(working$period))
+  working_periods <- as.character(working$period %||% character())
+  protected_periods <- as.character(protected_frame$period %||% character())
+  protected <- if (identical(protected_periods, working_periods)) {
+    protected_frame
+  } else {
+    sort_frame_by_period(ensure_frame_periods(protected_frame, working_periods))
+  }
+  shared_periods <- intersect(as.character(protected$period), working_periods)
   if (!length(shared_periods)) {
     return(protected)
   }
@@ -4420,11 +4692,34 @@ apply_runtime_assignment_state_frame <- function(frame, statement, active_window
   list(frame = working, state = state, changed = changed)
 }
 
-base_standard_input_frame <- function(fmdata_path) {
+new_standard_input_parse_cache <- function() {
+  new.env(parent = emptyenv())
+}
+
+cached_parse_fm_numeric_file <- function(path, block_name = NULL, cache = NULL) {
+  normalized_path <- normalizePath(path, winslash = "/", mustWork = TRUE)
+  resolved_block_name <- block_name %||% basename(normalized_path)
+  if (is.null(cache)) {
+    return(parse_fm_numeric_file(normalized_path, block_name = resolved_block_name))
+  }
+  key <- sprintf("numeric::%s", normalized_path)
+  if (exists(key, envir = cache, inherits = FALSE)) {
+    return(get(key, envir = cache, inherits = FALSE))
+  }
+  parsed <- parse_fm_numeric_file(normalized_path, block_name = resolved_block_name)
+  assign(key, parsed, envir = cache)
+  parsed
+}
+
+base_standard_input_frame <- function(fmdata_path, numeric_cache = NULL) {
   if (is.null(fmdata_path) || !nzchar(fmdata_path)) {
     return(data.frame(period = character(), stringsAsFactors = FALSE, check.names = FALSE))
   }
-  parse_fm_numeric_file(fmdata_path, block_name = basename(fmdata_path))
+  cached_parse_fm_numeric_file(
+    fmdata_path,
+    block_name = basename(fmdata_path),
+    cache = numeric_cache
+  )
 }
 
 filter_standard_specs_for_exogenous <- function(specs, exogenous_targets = character(), retained_targets = character()) {
@@ -4610,6 +4905,11 @@ partition_standard_solve_specs <- function(
   } else {
     character()
   }
+  retained_setup_targets <- if (identical(normalized_policy, "retain_reduced_eq_only")) {
+    retained_eq_targets
+  } else {
+    retained_candidate_targets
+  }
   list(
     specs = c(
       filter_standard_specs_for_exogenous(
@@ -4626,7 +4926,7 @@ partition_standard_solve_specs <- function(
     setup_only_assignments = filter_standard_specs_for_exogenous(
       setup_only_assignments,
       exogenous_targets = exogenous_targets,
-      retained_targets = character()
+      retained_targets = retained_setup_targets
     ),
     post_solve_assignments = filter_standard_specs_for_exogenous(
       post_solve_assignments,
@@ -4634,6 +4934,215 @@ partition_standard_solve_specs <- function(
       retained_targets = character()
     )
   )
+}
+
+transformed_lhs_percent_log_enabled <- function(setupsolve = list(), semantics_profile = list()) {
+  explicit <- setupsolve$transformed_lhs_percent_log_compat %||% NULL
+  if (!is.null(explicit)) {
+    return(isTRUE(explicit))
+  }
+  explicit <- semantics_profile$transformed_lhs_percent_log_compat %||% NULL
+  if (!is.null(explicit)) {
+    return(isTRUE(explicit))
+  }
+  isTRUE(getOption("fp_r.transformed_lhs_percent_log_compat", FALSE))
+}
+
+transformed_lhs_percent_log_path_enabled <- function(setupsolve = list(), semantics_profile = list()) {
+  explicit <- setupsolve$transformed_lhs_percent_log_path_compat %||% NULL
+  if (!is.null(explicit)) {
+    return(isTRUE(explicit))
+  }
+  explicit <- semantics_profile$transformed_lhs_percent_log_path_compat %||% NULL
+  if (!is.null(explicit)) {
+    return(isTRUE(explicit))
+  }
+  isTRUE(getOption("fp_r.transformed_lhs_percent_log_path_compat", FALSE))
+}
+
+extract_exp_product_factor <- function(expression, reduced_target) {
+  text <- gsub("\\s+", "", as.character(expression %||% ""), perl = TRUE)
+  target <- gsub("([][{}()+*^$.|?\\\\])", "\\\\\\1", as.character(reduced_target), perl = TRUE)
+  pattern_left <- sprintf("^EXP\\(%s\\)\\*(.+)$", target)
+  if (grepl(pattern_left, text, ignore.case = TRUE, perl = TRUE)) {
+    return(sub(pattern_left, "\\1", text, ignore.case = TRUE, perl = TRUE))
+  }
+  pattern_right <- sprintf("^(.+)\\*EXP\\(%s\\)$", target)
+  if (grepl(pattern_right, text, ignore.case = TRUE, perl = TRUE)) {
+    return(sub(pattern_right, "\\1", text, ignore.case = TRUE, perl = TRUE))
+  }
+  ""
+}
+
+transformed_lhs_percent_log_mappings <- function(specs, eligible_targets = character()) {
+  if (!length(specs)) {
+    return(list())
+  }
+  eq_targets <- unique(toupper(vapply(
+    specs,
+    function(item) {
+      kind <- tolower(as.character(item$kind %||% "equation"))
+      if (kind %in% c("create", "genr", "ident", "lhs", "control")) {
+        return("")
+      }
+      as.character(item$target %||% item$name %||% "")
+    },
+    character(1)
+  )))
+  eq_targets <- eq_targets[nzchar(eq_targets)]
+  eligible_targets <- unique(toupper(as.character(eligible_targets %||% character())))
+  eligible_targets <- eligible_targets[nzchar(eligible_targets)]
+  if (length(eligible_targets)) {
+    eq_targets <- intersect(eq_targets, eligible_targets)
+  } else {
+    eq_targets <- character()
+  }
+  if (!length(eq_targets)) {
+    return(list())
+  }
+
+  mappings <- list()
+  for (idx in seq_along(specs)) {
+    lhs_spec <- specs[[idx]]
+    if (!identical(tolower(as.character(lhs_spec$kind %||% "")), "lhs")) {
+      next
+    }
+    expression <- as.character(lhs_spec$expression %||% "")
+    if (!nzchar(expression)) {
+      next
+    }
+    for (eq_target in eq_targets) {
+      factor <- extract_exp_product_factor(expression, eq_target)
+      if (!nzchar(factor)) {
+        next
+      }
+      mappings[[length(mappings) + 1L]] <- list(
+        lhs_index = idx,
+        lhs_target = as.character(lhs_spec$target %||% lhs_spec$name %||% ""),
+        target = eq_target,
+        factor_expression = factor,
+        adjustment_expression = sprintf("100*LOG(%s)", factor)
+      )
+      break
+    }
+  }
+  mappings
+}
+
+apply_transformed_lhs_percent_log_compat <- function(specs, eligible_targets = character(), adjustment_mode = "equation") {
+  mappings <- transformed_lhs_percent_log_mappings(specs, eligible_targets = eligible_targets)
+  if (!length(mappings)) {
+    return(specs)
+  }
+  adjusted <- specs
+  mode <- tolower(as.character(adjustment_mode %||% "equation"))
+  for (mapping in mappings) {
+    eq_target <- as.character(mapping$target)
+    eq_index <- which(vapply(
+      adjusted,
+      function(item) {
+        kind <- tolower(as.character(item$kind %||% "equation"))
+        !(kind %in% c("create", "genr", "ident", "lhs", "control")) &&
+          identical(toupper(as.character(item$target %||% item$name %||% "")), eq_target)
+      },
+      logical(1)
+    ))
+    lhs_index <- as.integer(mapping$lhs_index %||% NA_integer_)
+    if (is.finite(lhs_index) && lhs_index >= 1L && lhs_index <= length(adjusted)) {
+      adjusted[[lhs_index]]$expression <- sprintf("EXP(%s)", eq_target)
+      adjusted[[lhs_index]]$compiled <- compile_expression(adjusted[[lhs_index]]$expression)
+    }
+    if (!identical(mode, "equation")) {
+      next
+    }
+      eq_index <- which(vapply(
+        adjusted,
+        function(item) {
+          kind <- tolower(as.character(item$kind %||% "equation"))
+          !(kind %in% c("create", "genr", "ident", "lhs", "control")) &&
+            identical(toupper(as.character(item$target %||% item$name %||% "")), eq_target)
+        },
+        logical(1)
+      ))
+      if (!length(eq_index)) {
+        next
+      }
+      eq_index <- eq_index[[1L]]
+      adjustment_expression <- as.character(mapping$adjustment_expression)
+      adjusted[[eq_index]]$transformed_lhs_adjustment_expression <- adjustment_expression
+      adjusted[[eq_index]]$transformed_lhs_adjustment <- compile_expression(adjustment_expression)
+      adjusted[[eq_index]]$transformed_lhs_adjustment_source <- as.character(mapping$lhs_target)
+  }
+  adjusted
+}
+
+rewrite_transformed_lhs_percent_log_specs <- function(specs, mappings) {
+  if (!length(specs) || !length(mappings)) {
+    return(specs)
+  }
+  adjusted <- specs
+  for (idx in seq_along(adjusted)) {
+    item <- adjusted[[idx]]
+    if (!identical(tolower(as.character(item$kind %||% "")), "lhs")) {
+      next
+    }
+    expression <- as.character(item$expression %||% "")
+    if (!nzchar(expression)) {
+      next
+    }
+    for (mapping in mappings) {
+      eq_target <- as.character(mapping$target %||% "")
+      if (!nzchar(extract_exp_product_factor(expression, eq_target))) {
+        next
+      }
+      adjusted[[idx]]$expression <- sprintf("EXP(%s)", eq_target)
+      adjusted[[idx]]$compiled <- compile_expression(adjusted[[idx]]$expression)
+      break
+    }
+  }
+  adjusted
+}
+
+apply_transformed_lhs_percent_log_path_frame <- function(frame, mappings, active_window = NULL) {
+  if (!length(mappings) || is.null(frame) || !nrow(frame)) {
+    return(frame)
+  }
+  if (is.null(active_window) || length(active_window) < 2L) {
+    return(frame)
+  }
+  positions <- runtime_assignment_positions(frame, active_window)
+  if (!length(positions)) {
+    return(frame)
+  }
+  out <- frame
+  state <- state_from_frame(out)
+  for (mapping in mappings) {
+    target <- toupper(as.character(mapping$target %||% ""))
+    adjustment_expression <- as.character(mapping$adjustment_expression %||% "")
+    if (!nzchar(target) || !nzchar(adjustment_expression)) {
+      next
+    }
+    if (!(target %in% names(out))) {
+      next
+    }
+    compiled <- compile_expression(adjustment_expression)
+    for (period_pos in positions) {
+      adjustment <- tryCatch(
+        as.numeric(evaluate_compiled_expression(compiled, state, period_pos, strict = FALSE)),
+        error = function(...) NA_real_
+      )
+      if (!is.finite(adjustment)) {
+        next
+      }
+      current <- suppressWarnings(as.numeric(out[[target]][[period_pos]]))
+      if (!is.finite(current) || abs(current + 99.0) <= 1e-12) {
+        next
+      }
+      out[[target]][[period_pos]] <- current + adjustment
+      state$series[[target]][[period_pos]] <- out[[target]][[period_pos]]
+    }
+  }
+  out
 }
 
 order_runtime_replay_assignment_block <- function(block_statements) {
@@ -5475,6 +5984,15 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     function(item) item$kind != "control" && !is.null(item$expression),
     history_statements
   )
+  transformed_lhs_path_mode <- transformed_lhs_percent_log_path_enabled(setupsolve, semantics_profile)
+  transformed_lhs_path_mappings <- if (transformed_lhs_path_mode) {
+    transformed_lhs_percent_log_mappings(
+      c(eq_support$specs %||% list(), candidate_specs),
+      eligible_targets = protected_input_targets
+    )
+  } else {
+    list()
+  }
   spec_partition <- partition_standard_solve_specs(
     eq_specs = eq_support$specs,
     candidate_specs = candidate_specs,
@@ -5489,6 +6007,17 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     row_count = length(spec_partition$specs %||% list())
   )
   specs <- spec_partition$specs
+  if (transformed_lhs_path_mode) {
+    specs <- rewrite_transformed_lhs_percent_log_specs(
+      specs,
+      transformed_lhs_path_mappings
+    )
+  } else if (transformed_lhs_percent_log_enabled(setupsolve, semantics_profile)) {
+    specs <- apply_transformed_lhs_percent_log_compat(
+      specs,
+      eligible_targets = protected_input_targets
+    )
+  }
   post_solve_assignments <- spec_partition$post_solve_assignments
   pre_solve_assignment_targets <- unique(vapply(
     Filter(
@@ -5527,28 +6056,46 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     assignment_targets = pre_solve_assignment_targets,
     replay_inline_changevar = FALSE
   )
+  replay_plan_statement_count <- sum(vapply(
+    replay_plan$plan %||% list(),
+    function(item) {
+      if (identical(item$type %||% "", "assignments")) {
+        length(item$statements %||% list())
+      } else if (identical(item$type %||% "", "changevar")) {
+        1L
+      } else {
+        0L
+      }
+    },
+    integer(1)
+  ))
   append_solve_stage_build_progress_row(
     stage_progress_path,
     stage_progress_index,
     "replay_plan_ready",
     elapsed_sec = as.numeric(proc.time()[["elapsed"]] - build_started),
-    row_count = length(replay_plan$ordered_statements %||% list())
+    row_count = replay_plan_statement_count
   )
   replay_plan_rows <- build_runtime_replay_plan_rows(
     replay_plan,
     preserve_modes_by_target = preserve_modes
   )
-  pre_solve_frame <- replay_selected_runtime_assignments(
-    replay_statements,
-    frame,
-    assignment_targets = pre_solve_assignment_targets,
-    coef_values = eq_support$coef_values %||% list(),
-    preserve_existing = TRUE,
-    preserve_mode = "skip",
-    preserve_modes_by_target = preserve_modes,
-    replay_inline_changevar = FALSE,
-    replay_profile_path = as.character(solve_metadata$replay_profile_path %||% "")
-  )
+  pre_solve_frame <- if (isTRUE(solve_metadata$frame_is_pre_solve_state)) {
+    write_empty_replay_profile(as.character(solve_metadata$replay_profile_path %||% ""))
+    sort_frame_by_period(frame)
+  } else {
+    replay_selected_runtime_assignments(
+      replay_statements,
+      frame,
+      assignment_targets = pre_solve_assignment_targets,
+      coef_values = eq_support$coef_values %||% list(),
+      preserve_existing = TRUE,
+      preserve_mode = "skip",
+      preserve_modes_by_target = preserve_modes,
+      replay_inline_changevar = FALSE,
+      replay_profile_path = as.character(solve_metadata$replay_profile_path %||% "")
+    )
+  }
   pre_solve_frame <- restore_historical_boundary_replay_targets(
     frame = frame,
     replayed_frame = pre_solve_frame,
@@ -5556,6 +6103,13 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
     sample_start = active_window[[1]] %||% "",
     protected_targets = protected_input_targets
   )
+  if (transformed_lhs_path_mode) {
+    pre_solve_frame <- apply_transformed_lhs_percent_log_path_frame(
+      pre_solve_frame,
+      transformed_lhs_path_mappings,
+      active_window = active_window
+    )
+  }
   append_solve_stage_build_progress_row(
     stage_progress_path,
     stage_progress_index,
@@ -5631,10 +6185,14 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
       "pre_carry"
     )
     if (isTRUE(semantics_profile$apply_outside_boundary_carry)) {
+      boundary_carry_targets <- setdiff(
+        unique(toupper(as.character(outside_carry_plan$boundary_targets %||% character()))),
+        resolve_outside_carry_exclude_targets()
+      )
       pre_solve_frame <- apply_outside_boundary_carry_frame(
         pre_solve_frame,
         sample_start = active_window[[1]],
-        targets = outside_carry_plan$boundary_targets
+        targets = boundary_carry_targets
       )
       snapshot_rows <- rbind(
         snapshot_rows,
@@ -5660,6 +6218,10 @@ build_standard_solve_bundle <- function(sources, frame, history_statements, solv
         outside_carry_plan,
         semantics_profile,
         protected_targets = protected_input_targets
+      )
+      first_period_carry_targets <- setdiff(
+        unique(toupper(as.character(first_period_carry_targets %||% character()))),
+        resolve_outside_carry_exclude_targets()
       )
       pre_solve_frame <- apply_outside_first_period_carry_frame(
         pre_solve_frame,
@@ -5886,6 +6448,100 @@ append_solve_stage_build_progress_row <- function(progress_path, solve_stage, ev
   invisible(progress_path)
 }
 
+append_statement_progress_row <- function(work_dir, order, command, raw = "", active_window = NULL) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(invisible(NULL))
+  }
+  progress_path <- file.path(work_dir, "STATEMENT_PROGRESS.csv")
+  row <- data.frame(
+    order = as.integer(order),
+    command = as.character(command %||% ""),
+    sample_start = as.character(active_window[[1]] %||% ""),
+    sample_end = as.character(active_window[[2]] %||% ""),
+    raw = as.character(raw %||% ""),
+    recorded_at = as.character(Sys.time()),
+    stringsAsFactors = FALSE
+  )
+  utils::write.table(
+    row,
+    file = progress_path,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(progress_path),
+    append = file.exists(progress_path),
+    quote = TRUE
+  )
+  invisible(progress_path)
+}
+
+append_runtime_assignment_profile_row <- function(
+  work_dir,
+  order,
+  command,
+  target,
+  elapsed_sec,
+  active_window = NULL,
+  changed = NA,
+  active_rows = NA_integer_,
+  preserve_existing = FALSE,
+  preserve_mode = "",
+  solve_stage = 0L
+) {
+  if (is.null(work_dir) || !nzchar(work_dir)) {
+    return(invisible(NULL))
+  }
+  profile_path <- file.path(work_dir, "RUNTIME_ASSIGNMENT_PROFILE.csv")
+  row <- data.frame(
+    order = as.integer(order),
+    solve_stage = as.integer(solve_stage),
+    command = as.character(command %||% ""),
+    target = as.character(target %||% ""),
+    sample_start = as.character(active_window[[1]] %||% ""),
+    sample_end = as.character(active_window[[2]] %||% ""),
+    elapsed_sec = as.numeric(elapsed_sec),
+    changed = as.logical(changed),
+    active_rows = as.integer(active_rows),
+    preserve_existing = as.logical(preserve_existing),
+    preserve_mode = as.character(preserve_mode %||% ""),
+    recorded_at = as.character(Sys.time()),
+    stringsAsFactors = FALSE
+  )
+  utils::write.table(
+    row,
+    file = profile_path,
+    sep = ",",
+    row.names = FALSE,
+    col.names = !file.exists(profile_path),
+    append = file.exists(profile_path),
+    quote = TRUE
+  )
+  invisible(profile_path)
+}
+
+write_empty_replay_profile <- function(path) {
+  if (is.null(path) || !nzchar(path)) {
+    return(invisible(NULL))
+  }
+  utils::write.csv(
+    data.frame(
+      pass = integer(),
+      target = character(),
+      command = character(),
+      preserve_mode = character(),
+      self_referential = logical(),
+      active_window_start = character(),
+      active_window_end = character(),
+      window_count = integer(),
+      elapsed_sec = numeric(),
+      changed = logical(),
+      stringsAsFactors = FALSE
+    ),
+    path,
+    row.names = FALSE
+  )
+  invisible(path)
+}
+
 emit_runtime_printvar <- function(frame, statement, active_window, work_dir, source_info = NULL, search_dirs = NULL) {
   if (is.null(work_dir) || !nzchar(work_dir)) {
     return(NULL)
@@ -5932,6 +6588,14 @@ emit_runtime_printvar <- function(frame, statement, active_window, work_dir, sou
 }
 
 run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path = NULL, fmout_path = NULL, search_dirs = NULL, work_dir = NULL) {
+  deck_started <- proc.time()[["elapsed"]]
+  numeric_cache <- new_standard_input_parse_cache()
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "deck_start",
+    elapsed_sec = 0
+  )
   semantics_profile <- resolve_standard_input_semantics_profile()
   sources <- resolve_standard_input_sources(
     entry_input,
@@ -5940,6 +6604,12 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     fmout_path = fmout_path,
     search_dirs = search_dirs
   )
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "sources_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started)
+  )
   sources$tree <- apply_base_helper_overlay_to_tree(
     sources$entry_path,
     sources$tree,
@@ -5947,17 +6617,41 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     semantics_profile = semantics_profile$name
   )
   statements <- sources$tree$statements
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "helper_overlay_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started),
+    spec_count = length(statements %||% list())
+  )
   runtime_coef_values <- build_reduced_eq_specs(
     statements,
     fmout_path = sources$fmout,
     setupsolve = list()
   )$coef_values %||% list()
-  working <- base_standard_input_frame(sources$fmdata)
+  runtime_coef_values <- as_coef_lookup_env(runtime_coef_values)
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "runtime_coef_values_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started),
+    spec_count = length(ls(envir = runtime_coef_values, all.names = TRUE))
+  )
+  working <- base_standard_input_frame(sources$fmdata, numeric_cache = numeric_cache)
   runtime_preview <- prepare_standard_runtime(
     statements,
     frame = working,
     search_dirs = sources$search_dirs,
-    default_fmexog_path = sources$fmexog
+    default_fmexog_path = sources$fmexog,
+    progress_path = work_dir,
+    solve_stage = 0L,
+    numeric_cache = numeric_cache
+  )
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "runtime_preview_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started)
   )
   presolve_replay <- standard_presolve_replay_context(
     statements,
@@ -5967,7 +6661,14 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     exogenous_targets = runtime_preview$exogenous_targets %||% character(),
     coef_values = runtime_coef_values
   )
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "presolve_replay_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started)
+  )
   historical_preserve_targets <- character()
+  retained_exogenous_equation_targets <- character()
   if (!is.null(runtime_preview$solve_snapshot)) {
     history_statements <- statements[seq_len(max(0L, as.integer(runtime_preview$solve_snapshot$solve_index %||% 0L) - 1L))]
     if (length(history_statements)) {
@@ -6000,8 +6701,19 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         character(1)
       )))
       historical_preserve_targets <- setdiff(spec_targets[nzchar(spec_targets)], setup_targets[nzchar(setup_targets)])
+      retained_exogenous_equation_targets <- intersect(
+        spec_targets[nzchar(spec_targets)],
+        unique(toupper(as.character(runtime_preview$solve_snapshot$exogenous_targets %||% character())))
+      )
     }
   }
+  append_solve_stage_progress_row(
+    work_dir,
+    solve_stage = 0L,
+    event = "historical_preserve_targets_ready",
+    elapsed_sec = as.numeric(proc.time()[["elapsed"]] - deck_started),
+    spec_count = length(historical_preserve_targets)
+  )
   active_window <- NULL
   exogenous_targets <- character()
   setupsolve <- list()
@@ -6013,6 +6725,8 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
   termination_command <- ""
   has_runtime_input <- isTRUE(runtime_preview$saw_runtime_input)
   protected_frame <- working
+  protected_mask <- build_frame_finite_mask(protected_frame)
+  working_state <- NULL
   pre_solve_applied_target_counts <- integer()
   exogenous_path_trace <- data.frame(
     phase = character(),
@@ -6024,16 +6738,56 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
   forecast_trace_start <- as.character(runtime_preview$solve_snapshot$sample_start %||% "")
 
   if (!has_runtime_input && !is.null(sources$fmexog) && nzchar(sources$fmexog) && file.exists(sources$fmexog)) {
-    working <- apply_fmexog_rows(working, parse_fmexog_file(sources$fmexog))
+    fmexog_started <- proc.time()[["elapsed"]]
+    fmexog_rows <- parse_fmexog_file(sources$fmexog)
+    append_solve_stage_progress_row(
+      work_dir,
+      solve_stage = 0L,
+      event = "post_history_fmexog_parsed",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - fmexog_started),
+      spec_count = nrow(fmexog_rows %||% data.frame())
+    )
+    fmexog_rows <- filter_fmexog_rows_for_retained_targets(
+      fmexog_rows,
+      retained_targets = retained_exogenous_equation_targets,
+      active_window = runtime_preview$solve_snapshot[c("sample_start", "sample_end")]
+    )
+    append_solve_stage_progress_row(
+      work_dir,
+      solve_stage = 0L,
+      event = "post_history_fmexog_filtered",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - fmexog_started),
+      spec_count = nrow(fmexog_rows %||% data.frame())
+    )
+    working <- apply_fmexog_rows(working, fmexog_rows)
     working <- sort_frame_by_period(working)
-    protected_frame <- apply_fmexog_rows(protected_frame, parse_fmexog_file(sources$fmexog))
+    append_solve_stage_progress_row(
+      work_dir,
+      solve_stage = 0L,
+      event = "post_history_fmexog_applied_working",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - fmexog_started)
+    )
+    protected_frame <- apply_fmexog_rows(protected_frame, fmexog_rows)
     protected_frame <- sort_frame_by_period(protected_frame)
+    append_solve_stage_progress_row(
+      work_dir,
+      solve_stage = 0L,
+      event = "post_history_fmexog_applied_protected",
+      elapsed_sec = as.numeric(proc.time()[["elapsed"]] - fmexog_started)
+    )
   }
 
   for (idx in seq_along(statements)) {
     statement <- statements[[idx]]
     raw <- statement$raw %||% ""
     command <- statement_command_runtime(statement)
+    append_statement_progress_row(
+      work_dir,
+      order = idx,
+      command = command,
+      raw = raw,
+      active_window = active_window
+    )
     if (idx > 1L && identical(statement_command_runtime(statements[[idx - 1L]]), "CHANGEVAR")) {
       next
     }
@@ -6047,9 +6801,11 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       if (!is.null(parsed_window)) {
         active_window <- c(parsed_window$start, parsed_window$end)
         working <- ensure_frame_periods(working, seq_periods(active_window[[1]], active_window[[2]]))
+        working_state <- NULL
         if (!length(solve_results)) {
           protected_frame <- ensure_frame_periods(protected_frame, seq_periods(active_window[[1]], active_window[[2]]))
           protected_frame <- sort_frame_by_period(protected_frame)
+          protected_mask <- align_frame_finite_mask(protected_mask, protected_frame)
         }
         if (nzchar(forecast_trace_start) && identical(as.character(active_window[[1]]), forecast_trace_start)) {
           exogenous_path_trace <- append_exogenous_path_trace_rows(
@@ -6068,17 +6824,24 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       load_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_load <- resolve_fp_source_path(load_name, sources$search_dirs)
       if (!is.null(resolved_load)) {
+        parsed_load <- cached_parse_fm_numeric_file(
+          resolved_load,
+          block_name = basename(resolved_load),
+          cache = numeric_cache
+        )
         working <- merge_fm_numeric_frames(
           working,
-          parse_fm_numeric_file(resolved_load, block_name = basename(resolved_load))
+          parsed_load
         )
         working <- sort_frame_by_period(working)
+        working_state <- NULL
         if (!length(solve_results)) {
           protected_frame <- merge_fm_numeric_frames(
             protected_frame,
-            parse_fm_numeric_file(resolved_load, block_name = basename(resolved_load))
+            parsed_load
           )
           protected_frame <- sort_frame_by_period(protected_frame)
+          protected_mask <- build_frame_finite_mask(protected_frame)
         }
       }
       next
@@ -6088,21 +6851,31 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       input_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_input <- resolve_fp_source_path(input_name, sources$search_dirs)
       if (!is.null(resolved_input)) {
-        working <- apply_fmexog_rows(working, parse_fmexog_file(resolved_input))
-        working <- sort_frame_by_period(working)
-        if (!length(solve_results)) {
-          protected_frame <- apply_fmexog_rows(protected_frame, parse_fmexog_file(resolved_input))
-          protected_frame <- sort_frame_by_period(protected_frame)
-        }
-        if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
-            identical(as.character(active_window[[1]]), forecast_trace_start)) {
-          exogenous_path_trace <- append_exogenous_path_trace_rows(
-            exogenous_path_trace,
-            working,
-            active_window = active_window,
-            exogenous_targets = exogenous_targets,
-            phase = sprintf("post_input_%s", basename(resolved_input))
+        fmexog_rows <- read_fmexog_rows_if_applicable(resolved_input)
+        if (is.data.frame(fmexog_rows) && nrow(fmexog_rows)) {
+          fmexog_rows <- filter_fmexog_rows_for_retained_targets(
+            fmexog_rows,
+            retained_targets = retained_exogenous_equation_targets,
+            active_window = active_window
           )
+          working <- apply_fmexog_rows(working, fmexog_rows)
+          working <- sort_frame_by_period(working)
+          working_state <- NULL
+          if (!length(solve_results)) {
+            protected_frame <- apply_fmexog_rows(protected_frame, fmexog_rows)
+            protected_frame <- sort_frame_by_period(protected_frame)
+            protected_mask <- build_frame_finite_mask(protected_frame)
+          }
+          if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
+              identical(as.character(active_window[[1]]), forecast_trace_start)) {
+            exogenous_path_trace <- append_exogenous_path_trace_rows(
+              exogenous_path_trace,
+              working,
+              active_window = active_window,
+              exogenous_targets = exogenous_targets,
+              phase = sprintf("post_input_%s", basename(resolved_input))
+            )
+          }
         }
       }
       next
@@ -6111,11 +6884,25 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     if (identical(command, "CHANGEVAR")) {
       payload_raw <- inline_changevar_payload_raw(statements, idx)
       if (nzchar(payload_raw)) {
-        working <- apply_inline_changevar_payload_frame(working, payload_raw, active_window)
+        changevar_rows <- parse_fmexog_text(paste(
+          sprintf("SMPL %s %s;", active_window[[1]], active_window[[2]]),
+          "CHANGEVAR;",
+          payload_raw,
+          ";",
+          sep = "\n"
+        ))
+        changevar_rows <- filter_fmexog_rows_for_retained_targets(
+          changevar_rows,
+          retained_targets = retained_exogenous_equation_targets,
+          active_window = active_window
+        )
+        working <- apply_fmexog_rows(working, changevar_rows)
         working <- sort_frame_by_period(working)
+        working_state <- NULL
         if (!length(solve_results)) {
-          protected_frame <- apply_inline_changevar_payload_frame(protected_frame, payload_raw, active_window)
+          protected_frame <- apply_fmexog_rows(protected_frame, changevar_rows)
           protected_frame <- sort_frame_by_period(protected_frame)
+          protected_mask <- build_frame_finite_mask(protected_frame)
         }
         if (!length(solve_results) && nzchar(forecast_trace_start) && !is.null(active_window) &&
             identical(as.character(active_window[[1]]), forecast_trace_start)) {
@@ -6166,6 +6953,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
           variables = exogenous_targets,
           include_all_columns = TRUE
         )
+        working_state <- NULL
         if (!length(solve_results)) {
           protected_frame <- apply_extrapolate_frame(
             protected_frame,
@@ -6174,6 +6962,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
             variables = exogenous_targets,
             include_all_columns = TRUE
           )
+          protected_mask <- build_frame_finite_mask(protected_frame)
         }
         if (!length(solve_results) && nzchar(forecast_trace_start) &&
             identical(as.character(active_window[[1]]), forecast_trace_start)) {
@@ -6195,6 +6984,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     }
 
     if (is_runtime_assignment_statement(statement)) {
+      assignment_started <- proc.time()[["elapsed"]]
       target <- toupper(as.character(statement$name %||% statement$target %||% ""))
       command_kind <- statement_command_runtime(statement)
       prior_target_applications <- if (!length(solve_results) &&
@@ -6209,7 +6999,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
           runtime_assignment_references_target(statement, target)
       )
       effective_preserve_mask <- if (isTRUE(effective_preserve_existing)) {
-        current_mask <- build_frame_finite_mask(protected_frame)
+        current_mask <- protected_mask
         if (prior_target_applications > 0L && nzchar(target)) {
           target_values <- as.numeric(working[[target]] %||% rep(NA_real_, nrow(working)))
           target_periods <- as.character(working$period %||% character())
@@ -6221,29 +7011,49 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
       } else {
         NULL
       }
-      working <- apply_runtime_assignment_frame(
+      preserve_mode <- if (!length(solve_results)) {
+        if (target %in% names(presolve_replay$preserve_modes)) {
+          as.character(presolve_replay$preserve_modes[[target]])
+        } else {
+          "skip"
+        }
+      } else {
+        "skip"
+      }
+      assignment_result <- apply_runtime_assignment_state_frame(
         working,
         statement,
         active_window = active_window,
         coef_values = runtime_coef_values,
+        state = working_state,
         preserve_existing = effective_preserve_existing,
         preserve_mask = effective_preserve_mask,
-        preserve_mode = if (!length(solve_results)) {
-          if (target %in% names(presolve_replay$preserve_modes)) {
-            as.character(presolve_replay$preserve_modes[[target]])
-          } else {
-            "skip"
-          }
-        } else {
-          "skip"
-        }
+        preserve_mode = preserve_mode
       )
-      working <- sort_frame_by_period(working)
+      working <- assignment_result$frame
+      working_state <- assignment_result$state
+      append_runtime_assignment_profile_row(
+        work_dir,
+        order = idx,
+        command = command_kind,
+        target = target,
+        elapsed_sec = as.numeric(proc.time()[["elapsed"]] - assignment_started),
+        active_window = active_window,
+        changed = assignment_result$changed,
+        active_rows = length(runtime_assignment_positions(working, active_window)),
+        preserve_existing = effective_preserve_existing,
+        preserve_mode = preserve_mode,
+        solve_stage = length(solve_results)
+      )
       if (!length(solve_results) && nzchar(target)) {
         pre_solve_applied_target_counts[[target]] <- prior_target_applications + 1L
       }
       if (!length(solve_results) && identical(command_kind, "CREATE")) {
         protected_frame <- update_pre_solve_protected_target(protected_frame, working, target)
+        target_values <- as.numeric(protected_frame[[target]] %||% rep(NA_real_, nrow(protected_frame)))
+        target_mask <- as.logical(is.finite(target_values) & abs(target_values + 99.0) > 1e-12)
+        names(target_mask) <- as.character(protected_frame$period %||% character())
+        protected_mask[[target]] <- target_mask
       }
       next
     }
@@ -6281,6 +7091,7 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         exogenous_targets = exogenous_targets,
         solve_metadata = modifyList(solve_metadata, list(
           solve_stage_index = stage_index,
+          frame_is_pre_solve_state = TRUE,
           stage_build_progress_path = if (!is.null(work_dir) && nzchar(work_dir)) {
             file.path(work_dir, "SOLVE_STAGE_BUILD_PROGRESS.csv")
           } else {
@@ -6311,6 +7122,20 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         } else {
           ""
         },
+        period_heartbeat_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+          file.path(work_dir, "SOLVE_PERIOD_HEARTBEAT.csv")
+        } else {
+          ""
+        },
+        spec_profile_path = if (!is.null(work_dir) && nzchar(work_dir)) {
+          file.path(work_dir, "SOLVE_SPEC_PROFILE.csv")
+        } else {
+          ""
+        },
+        spec_profile_periods = unique(as.character(c(
+          stage_bundle$control$sample_start %||% "",
+          stage_bundle$control$sample_end %||% ""
+        ))),
         iteration_profile_path = if (!is.null(work_dir) && nzchar(work_dir)) {
           file.path(work_dir, "SOLVE_ITERATION_PROFILE.csv")
         } else {
@@ -6327,6 +7152,16 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
         spec_count = length(stage_bundle$specs %||% list())
       )
       working <- sort_frame_by_period(stage_result$series)
+      working <- refresh_runtime_derived_assignments(
+        history_statements,
+        working,
+        refresh_window = c(
+          stage_bundle$control$sample_start %||% "",
+          stage_bundle$control$sample_end %||% ""
+        ),
+        coef_values = runtime_coef_values
+      )
+      working_state <- NULL
       if (nzchar(forecast_trace_start) &&
           identical(as.character(stage_bundle$control$sample_start %||% ""), forecast_trace_start)) {
         exogenous_path_trace <- append_exogenous_path_trace_rows(
@@ -6636,12 +7471,14 @@ read_standard_input_bundle <- function(entry_input, fmdata_path = NULL, fmexog_p
   resolved_fmexog <- sources$fmexog
   resolved_fmout <- sources$fmout
 
-  base_frame <- base_standard_input_frame(resolved_fmdata)
+  numeric_cache <- new_standard_input_parse_cache()
+  base_frame <- base_standard_input_frame(resolved_fmdata, numeric_cache = numeric_cache)
   runtime <- prepare_standard_runtime(
     tree$statements,
     frame = base_frame,
     search_dirs = resolved_search_dirs,
-    default_fmexog_path = resolved_fmexog
+    default_fmexog_path = resolved_fmexog,
+    numeric_cache = numeric_cache
   )
   termination_index <- as.integer(runtime$termination_index %||% 0L)
   solve_snapshot <- runtime$solve_snapshot

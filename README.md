@@ -117,6 +117,23 @@ A small tracked example for `fpexe` vs `fp-r` parity is included at `examples/fp
 
 In a direct full-FM compare against stock `fp.exe`, `fp-r` currently stays within about `0.0037489%` max relative diff and about `0.00449383` max absolute diff.
 
+For stock-model scenarios, `fp.exe` remains the reference implementation. In custom overlay scenarios, however, the legacy executable can emit an iteration-limit path that does not fully satisfy some printed equations. In those edge cases, `fp-r` can be the more internally consistent path because it converges the same equation surface to numerical tolerance rather than matching the legacy executable's incomplete solve.
+
+<details>
+<summary>Technical note: custom overlay iteration-limit edge case</summary>
+
+In a custom distribution-overlay UI-relief run, `fp.exe` reported `Solution error. Iteration limit of 100 reached` for every forecast period. The printed error sequence for 2026Q1 onward closely tracked the `RS` level path (`3.978`, `4.357`, `4.521`, ...), pointing to the interest-rate/labor macro solve rather than the transfer-policy input.
+
+At 2026Q1, the legacy executable's final values did not fully satisfy selected printed equations:
+
+- `RS` final value missed the printed no-rho `RS` equation by about `-4.16e-4`; the corresponding `fp-r` residual was numerical noise.
+- `LJF1` missed its printed equation by about `-5.52e-6`; the corresponding `fp-r` residual was numerical noise.
+- `LWFQZ` missed its printed equation by about `-1.32e-6`; the corresponding `fp-r` residual was numerical noise.
+
+The same run showed exact policy-dose alignment for the direct UI channel (`UB`/`LUB`) under the current `fp-r` transformed-LHS path compatibility setting. The remaining difference was downstream macro propagation from the unconverged legacy path, not a missed policy input in `fp-r`.
+
+</details>
+
 ## Parity quickstart
 
 Step-by-step guide covering both engines, parity comparison, triage, and dashboard launch: [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
@@ -269,6 +286,7 @@ The phase-1 public contract for `fp-r` is intentionally narrow:
 - parity golden-save and regression flows now work for explicit pairs too
 - the tracked self-contained demo is `examples/fpr_bundle_demo.yaml`
 - the accepted direct stock-`fp.exe` full-FM compare is already tight: about `0.0037489%` max relative diff (`HFF`) and about `0.00449383` max absolute diff (`AAF`)
+- for custom overlay scenarios, inspect legacy `fp.exe` iteration-limit messages before treating every path difference as an `fp-r` error; when `fp.exe` stops before satisfying printed equations, `fp-r` may be the more internally consistent result
 
 ## MCP server
 

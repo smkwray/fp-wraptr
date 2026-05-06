@@ -344,8 +344,17 @@ commit_resid_ar1_state <- function(spec, resid_state, source_state, solved_state
   resid_state
 }
 
-evaluate_spec_at_period <- function(spec, state, period_pos, strict = TRUE, resid_state = NULL) {
-  series_overrides <- spec_series_overrides(spec)
+evaluate_spec_at_period <- function(
+  spec,
+  state,
+  period_pos,
+  strict = TRUE,
+  resid_state = NULL,
+  lagged_structural_cache = NULL,
+  expression_metrics_env = NULL,
+  expression_metrics_context = NULL
+) {
+  series_overrides <- spec$series_overrides %||% spec_series_overrides(spec)
   structural <- as.numeric(
     evaluate_compiled_expression(
       spec$compiled,
@@ -353,22 +362,48 @@ evaluate_spec_at_period <- function(spec, state, period_pos, strict = TRUE, resi
       period_pos,
       strict = strict,
       series_overrides = series_overrides,
-      lag_only_overrides = TRUE
+      lag_only_overrides = TRUE,
+      metrics_env = expression_metrics_env,
+      metrics_context = expression_metrics_context
     )
   )
   if (!is.null(spec$resid_ar1)) {
+    value <- evaluate_resid_ar1_value(spec, structural, period_pos, resid_state)
+    adjustment <- spec$transformed_lhs_adjustment %||% NULL
+    if (!is.null(adjustment)) {
+      value <- value + as.numeric(evaluate_compiled_expression(
+        adjustment,
+        state,
+        period_pos,
+        strict = FALSE,
+        metrics_env = expression_metrics_env,
+        metrics_context = expression_metrics_context
+      ))
+    }
     return(list(
-      value = evaluate_resid_ar1_value(spec, structural, period_pos, resid_state),
+      value = value,
       structural = structural
     ))
   }
   rho_terms <- spec$rho_terms %||% NULL
   if (is.null(rho_terms) || nrow(rho_terms) == 0L) {
-    return(list(value = structural, structural = structural))
+    value <- structural
+    adjustment <- spec$transformed_lhs_adjustment %||% NULL
+    if (!is.null(adjustment)) {
+      value <- value + as.numeric(evaluate_compiled_expression(
+        adjustment,
+        state,
+        period_pos,
+        strict = FALSE,
+        metrics_env = expression_metrics_env,
+        metrics_context = expression_metrics_context
+      ))
+    }
+    return(list(value = value, structural = structural))
   }
 
   result <- structural
-  lagged_target_series <- state$series[[spec_lagged_target_series(spec)]]
+  lagged_target_series <- state$series[[spec$lagged_target_series_name %||% spec_lagged_target_series(spec)]]
   if (is.null(lagged_target_series)) {
     stopf("Lagged target source is missing for %s", spec$target)
   }
@@ -383,22 +418,49 @@ evaluate_spec_at_period <- function(spec, state, period_pos, strict = TRUE, resi
     if (!is.finite(lagged_lhs_value)) {
       return(list(value = NA_real_, structural = structural))
     }
-    lagged_structural <- tryCatch(
-      as.numeric(evaluate_compiled_expression(
-        spec$compiled,
-        state,
-        lagged_position,
-        strict = FALSE,
-        series_overrides = series_overrides,
-        lag_only_overrides = TRUE
-      )),
-      error = function(...) NA_real_
-    )
+    cache_key <- sprintf("%s||%d", as.character(spec$target), as.integer(lagged_position))
+    lagged_structural <- if (
+      !is.null(lagged_structural_cache) &&
+        is.environment(lagged_structural_cache) &&
+        exists(cache_key, envir = lagged_structural_cache, inherits = FALSE)
+    ) {
+      as.numeric(get(cache_key, envir = lagged_structural_cache, inherits = FALSE))
+    } else {
+      evaluated_lagged_structural <- tryCatch(
+        as.numeric(evaluate_compiled_expression(
+          spec$compiled,
+          state,
+          lagged_position,
+          strict = FALSE,
+          series_overrides = series_overrides,
+          lag_only_overrides = TRUE,
+          metrics_env = expression_metrics_env,
+          metrics_context = expression_metrics_context
+        )),
+        error = function(...) NA_real_
+      )
+      if (!is.null(lagged_structural_cache) && is.environment(lagged_structural_cache)) {
+        assign(cache_key, as.numeric(evaluated_lagged_structural), envir = lagged_structural_cache)
+      }
+      as.numeric(evaluated_lagged_structural)
+    }
     if (!is.finite(lagged_structural)) {
       return(list(value = NA_real_, structural = structural))
     }
     result <- result + coefficient * lagged_lhs_value
     result <- result - coefficient * lagged_structural
+  }
+
+  adjustment <- spec$transformed_lhs_adjustment %||% NULL
+  if (!is.null(adjustment)) {
+    result <- result + as.numeric(evaluate_compiled_expression(
+      adjustment,
+      state,
+      period_pos,
+      strict = FALSE,
+      metrics_env = expression_metrics_env,
+      metrics_context = expression_metrics_context
+    ))
   }
 
   list(value = result, structural = structural)
@@ -441,6 +503,11 @@ solve_equations <- function(state, specs, control = list()) {
     active_set_delta_threshold <- max(tolerance, 1e-8)
   }
   active_set_delta_threshold <- max(active_set_delta_threshold, tolerance)
+  rho_lagged_structural_cache_enabled <- if (is.null(control$rho_lagged_structural_cache)) {
+    TRUE
+  } else {
+    isTRUE(control$rho_lagged_structural_cache)
+  }
   reverse_dependency_map <- if (active_set_enabled) {
     map <- stats::setNames(vector("list", length(ordered_targets)), ordered_targets)
     for (spec in ordered_specs) {
@@ -467,12 +534,19 @@ solve_equations <- function(state, specs, control = list()) {
   spec_profile_periods <- unique(as.character(control$spec_profile_periods %||% character()))
   spec_profile_stage <- as.integer(control$solve_stage_index %||% 0L)
   spec_profile <- new.env(parent = emptyenv())
+  expression_profile_path <- as.character(control$expression_profile_path %||% "")
+  expression_metrics_env <- control$expression_metrics_env %||% NULL
+  if (is.null(expression_metrics_env) && nzchar(expression_profile_path)) {
+    expression_metrics_env <- new.env(parent = emptyenv())
+  }
   iteration_profile_path <- as.character(control$iteration_profile_path %||% "")
   iteration_profile_periods <- unique(as.character(control$iteration_profile_periods %||% character()))
   iteration_profile_rows <- list()
   progress_path <- as.character(control$period_progress_path %||% "")
   progress_stage <- as.integer(control$solve_stage_index %||% 0L)
   progress_has_header <- nzchar(progress_path) && file.exists(progress_path)
+  heartbeat_path <- as.character(control$period_heartbeat_path %||% "")
+  heartbeat_has_header <- nzchar(heartbeat_path) && file.exists(heartbeat_path)
   trace_targets <- unique(toupper(as.character(control$equation_input_trace_targets %||% character())))
   trace_periods <- unique(as.character(control$equation_input_trace_periods %||% character()))
   trace_max_iterations <- as.integer(control$equation_input_trace_max_iterations %||% 0L)
@@ -480,10 +554,35 @@ solve_equations <- function(state, specs, control = list()) {
   for (period_pos in seq.int(period_window[["start"]], period_window[["end"]])) {
     period_started <- proc.time()[["elapsed"]]
     period_label <- as.character(state$periods[[period_pos]])
+    if (nzchar(heartbeat_path)) {
+      heartbeat_row <- data.frame(
+        solve_stage = progress_stage,
+        period = period_label,
+        event = "period_start",
+        iteration = 0L,
+        elapsed_sec = 0,
+        stringsAsFactors = FALSE
+      )
+      utils::write.table(
+        heartbeat_row,
+        file = heartbeat_path,
+        sep = ",",
+        row.names = FALSE,
+        col.names = !heartbeat_has_header,
+        append = heartbeat_has_header,
+        quote = TRUE
+      )
+      heartbeat_has_header <- TRUE
+    }
     profile_this_period <- nzchar(spec_profile_path) &&
       (!length(spec_profile_periods) || period_label %in% spec_profile_periods)
     state <- seed_period_targets(state, ordered_specs, period_pos)
     period_structural <- list()
+    lagged_structural_cache <- if (rho_lagged_structural_cache_enabled) {
+      new.env(parent = emptyenv())
+    } else {
+      NULL
+    }
     converged <- FALSE
     max_delta <- Inf
     iter_used <- 0L
@@ -526,7 +625,13 @@ solve_equations <- function(state, specs, control = list()) {
           state,
           period_pos,
           strict = strict,
-          resid_state = resid_ar1_states[[target]] %||% NULL
+          resid_state = resid_ar1_states[[target]] %||% NULL,
+          lagged_structural_cache = lagged_structural_cache,
+          expression_metrics_env = expression_metrics_env,
+          expression_metrics_context = list(
+            period = period_label,
+            target = target
+          )
         ))
         if (trace_this_target) {
           equation_input_rows[[length(equation_input_rows) + 1L]] <- build_spec_result_trace_rows(
@@ -591,6 +696,12 @@ solve_equations <- function(state, specs, control = list()) {
               solve_stage = spec_profile_stage,
               period = period_label,
               target = target,
+              kind = as.character(spec$kind %||% ""),
+              equation_number = as.integer(spec$equation_number %||% NA_integer_),
+              reference_count = as.integer(spec$reference_count %||% 0L),
+              rho_term_count = as.integer(spec$rho_term_count %||% 0L),
+              has_resid_ar1 = isTRUE(spec$has_resid_ar1),
+              active_fsr_count = as.integer(spec$active_fsr_count %||% 0L),
               eval_count = 0L,
               changed_count = 0L,
               fallback_count = 0L,
@@ -656,6 +767,26 @@ solve_equations <- function(state, specs, control = list()) {
           stringsAsFactors = FALSE
         )
       }
+      if (nzchar(heartbeat_path) && (iter == 1L || iter %% 10L == 0L)) {
+        heartbeat_row <- data.frame(
+          solve_stage = progress_stage,
+          period = period_label,
+          event = "iteration_checkpoint",
+          iteration = as.integer(iter),
+          elapsed_sec = as.numeric(proc.time()[["elapsed"]] - period_started),
+          stringsAsFactors = FALSE
+        )
+        utils::write.table(
+          heartbeat_row,
+          file = heartbeat_path,
+          sep = ",",
+          row.names = FALSE,
+          col.names = !heartbeat_has_header,
+          append = heartbeat_has_header,
+          quote = TRUE
+        )
+        heartbeat_has_header <- TRUE
+      }
       if (iter >= min_iter && is.finite(max_delta) && max_delta <= tolerance) {
         converged <- TRUE
         break
@@ -712,6 +843,26 @@ solve_equations <- function(state, specs, control = list()) {
       )
       progress_has_header <- TRUE
     }
+    if (nzchar(heartbeat_path)) {
+      heartbeat_row <- data.frame(
+        solve_stage = progress_stage,
+        period = period_label,
+        event = "period_complete",
+        iteration = as.integer(iter_used),
+        elapsed_sec = elapsed_sec,
+        stringsAsFactors = FALSE
+      )
+      utils::write.table(
+        heartbeat_row,
+        file = heartbeat_path,
+        sep = ",",
+        row.names = FALSE,
+        col.names = !heartbeat_has_header,
+        append = heartbeat_has_header,
+        quote = TRUE
+      )
+      heartbeat_has_header <- TRUE
+    }
     diag_index <- diag_index + 1L
   }
   if (nzchar(spec_profile_path)) {
@@ -722,6 +873,12 @@ solve_equations <- function(state, specs, control = list()) {
         solve_stage = as.integer(entry$solve_stage),
         period = as.character(entry$period),
         target = as.character(entry$target),
+        kind = as.character(entry$kind %||% ""),
+        equation_number = as.integer(entry$equation_number %||% NA_integer_),
+        reference_count = as.integer(entry$reference_count %||% 0L),
+        rho_term_count = as.integer(entry$rho_term_count %||% 0L),
+        has_resid_ar1 = as.logical(entry$has_resid_ar1 %||% FALSE),
+        active_fsr_count = as.integer(entry$active_fsr_count %||% 0L),
         eval_count = as.integer(entry$eval_count),
         changed_count = as.integer(entry$changed_count),
         fallback_count = as.integer(entry$fallback_count),
@@ -736,6 +893,12 @@ solve_equations <- function(state, specs, control = list()) {
       solve_stage = integer(),
       period = character(),
       target = character(),
+      kind = character(),
+      equation_number = integer(),
+      reference_count = integer(),
+      rho_term_count = integer(),
+      has_resid_ar1 = logical(),
+      active_fsr_count = integer(),
       eval_count = integer(),
       changed_count = integer(),
       fallback_count = integer(),
@@ -761,6 +924,13 @@ solve_equations <- function(state, specs, control = list()) {
       stringsAsFactors = FALSE
     )
     utils::write.csv(iteration_rows, iteration_profile_path, row.names = FALSE)
+  }
+  if (nzchar(expression_profile_path)) {
+    utils::write.csv(
+      expression_metrics_as_frame(expression_metrics_env),
+      expression_profile_path,
+      row.names = FALSE
+    )
   }
 
   list(
