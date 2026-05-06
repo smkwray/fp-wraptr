@@ -71,6 +71,10 @@ artifacts-*/
 !/fp-r/scripts/
 /fp-r/scripts/*
 !/fp-r/scripts/run_backend_bundle.R
+!/fp-r/scripts/check_boundary_contracts.R
+!/fp-r/scripts/check_standard_input_fast_path.R
+!/fp-r/scripts/check_solver_rho_cache.R
+!/fp-r/scripts/check_solver_expression_breakdown.R
 *.log
 
 # Local caches/runtime state (must not be stored in project tree)

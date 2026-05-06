@@ -70,6 +70,21 @@ normalize_specs <- function(specs) {
     if (!is.null(resid_ar1) && nrow(rho_terms) > 0L) {
       stopf("Spec %s cannot enable both rho_terms and resid_ar1", target)
     }
+    series_overrides <- spec_series_overrides(list(
+      target = target,
+      target_lag_source = as.character(spec$target_lag_source %||% "")
+    ))
+    refs <- compiled$references %||% NULL
+    reference_count <- if (is.null(refs) || !is.data.frame(refs)) {
+      0L
+    } else {
+      nrow(unique(data.frame(
+        name = as.character(refs$name %||% character()),
+        lag = as.integer(refs$lag %||% integer()),
+        stringsAsFactors = FALSE
+      )))
+    }
+    active_fsr_terms <- as.character(spec$active_fsr_terms %||% character())
     list(
       target = as.character(target),
       kind = as.character(spec$kind %||% ""),
@@ -82,7 +97,19 @@ normalize_specs <- function(specs) {
       rho_terms = rho_terms,
       resid_ar1 = resid_ar1,
       target_lag_source = as.character(spec$target_lag_source %||% ""),
-      active_fsr_terms = as.character(spec$active_fsr_terms %||% character())
+      lagged_target_series_name = spec_lagged_target_series(list(
+        target = target,
+        target_lag_source = as.character(spec$target_lag_source %||% "")
+      )),
+      series_overrides = series_overrides,
+      reference_count = as.integer(reference_count),
+      rho_term_count = as.integer(nrow(rho_terms)),
+      has_resid_ar1 = !is.null(resid_ar1),
+      active_fsr_terms = active_fsr_terms,
+      active_fsr_count = as.integer(length(active_fsr_terms)),
+      transformed_lhs_adjustment = spec$transformed_lhs_adjustment %||% NULL,
+      transformed_lhs_adjustment_expression = as.character(spec$transformed_lhs_adjustment_expression %||% ""),
+      transformed_lhs_adjustment_source = as.character(spec$transformed_lhs_adjustment_source %||% "")
     )
   })
 }

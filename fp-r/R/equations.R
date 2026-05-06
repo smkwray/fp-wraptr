@@ -339,6 +339,127 @@ build_coef_table <- function(specs) {
   values
 }
 
+resolve_equation_term_overrides <- function(value = NULL) {
+  candidate <- value %||% getOption("fp_r.equation_term_overrides_file", "")
+  if (is.null(candidate) || !nzchar(as.character(candidate))) {
+    return(data.frame(
+      target = character(),
+      variable = character(),
+      coefficient = numeric(),
+      lag = integer(),
+      mode = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  path <- normalizePath(as.character(candidate), winslash = "/", mustWork = TRUE)
+  payload <- utils::read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+  if (!nrow(payload)) {
+    return(data.frame(
+      target = character(),
+      variable = character(),
+      coefficient = numeric(),
+      lag = integer(),
+      mode = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  required <- c("target", "variable", "coefficient")
+  missing <- required[!required %in% names(payload)]
+  if (length(missing)) {
+    stopf("Equation term override file is missing required columns: %s", paste(missing, collapse = ", "))
+  }
+  normalized <- data.frame(
+    target = toupper(trimws(as.character(payload$target %||% character()))),
+    variable = toupper(trimws(as.character(payload$variable %||% character()))),
+    coefficient = suppressWarnings(as.numeric(payload$coefficient)),
+    lag = if ("lag" %in% names(payload)) suppressWarnings(as.integer(payload$lag)) else 0L,
+    mode = tolower(trimws(as.character(payload$mode %||% "replace"))),
+    stringsAsFactors = FALSE
+  )
+  normalized$lag[!is.finite(normalized$lag)] <- 0L
+  normalized$mode[!nzchar(normalized$mode)] <- "replace"
+  normalized <- normalized[
+    nzchar(normalized$target) &
+      nzchar(normalized$variable) &
+      is.finite(normalized$coefficient),
+    ,
+    drop = FALSE
+  ]
+  normalized
+}
+
+apply_equation_term_overrides_to_terms <- function(target, terms, overrides) {
+  target_key <- toupper(as.character(target %||% ""))
+  if (!nzchar(target_key) || is.null(overrides) || !nrow(overrides)) {
+    return(terms)
+  }
+  scoped <- overrides[as.character(overrides$target) == target_key, , drop = FALSE]
+  if (!nrow(scoped)) {
+    return(terms)
+  }
+  updated <- terms
+  for (idx in seq_len(nrow(scoped))) {
+    row <- scoped[idx, , drop = FALSE]
+    variable <- toupper(as.character(row$variable[[1]]))
+    lag <- as.integer(row$lag[[1]])
+    coefficient <- as.numeric(row$coefficient[[1]])
+    mode <- tolower(as.character(row$mode[[1]] %||% "replace"))
+    matches <- which(vapply(updated, function(term) {
+      identical(toupper(as.character(term$variable %||% "")), variable) &&
+        as.integer(term$lag %||% 0L) == lag
+    }, logical(1)))
+    if (identical(mode, "delete")) {
+      if (length(matches)) {
+        updated <- updated[-matches]
+      }
+      next
+    }
+    if (length(matches)) {
+      for (match_index in matches) {
+        updated[[match_index]]$coefficient <- coefficient
+      }
+      next
+    }
+    next_index <- if (length(updated)) {
+      max(vapply(updated, function(term) as.integer(term$index %||% 0L), integer(1)), 0L) + 1L
+    } else {
+      1L
+    }
+    updated[[length(updated) + 1L]] <- new_eq_term(
+      variable = variable,
+      coefficient = coefficient,
+      lag = lag,
+      index = next_index
+    )
+  }
+  updated
+}
+
+as_coef_lookup_env <- function(values) {
+  if (is.null(values)) {
+    return(new.env(parent = emptyenv()))
+  }
+  if (is.environment(values)) {
+    return(values)
+  }
+  lookup <- new.env(parent = emptyenv())
+  if (is.list(values)) {
+    keys <- names(values) %||% character()
+    if (length(keys)) {
+      for (key in keys) {
+        assign(key, as.numeric(values[[key]]), envir = lookup)
+      }
+    }
+    return(lookup)
+  }
+  if (is.numeric(values) && !is.null(names(values))) {
+    for (key in names(values)) {
+      assign(key, as.numeric(values[[key]]), envir = lookup)
+    }
+  }
+  lookup
+}
+
 format_eq_coefficient <- function(value) {
   format(as.numeric(value), scientific = FALSE, digits = 16, trim = TRUE)
 }
@@ -374,10 +495,10 @@ build_eq_expression_from_terms <- function(terms, rhs_tokens = character()) {
   if (!length(terms)) {
     return(NULL)
   }
-  if (length(rhs_tokens)) {
+  if (length(rhs_tokens) && length(rhs_tokens) == length(terms)) {
     return(build_eq_expression(
       rhs_tokens,
-      vapply(terms[seq_len(min(length(rhs_tokens), length(terms)))], function(item) as.numeric(item$coefficient), numeric(1))
+      vapply(terms, function(item) as.numeric(item$coefficient), numeric(1))
     ))
   }
   pieces <- character()
@@ -440,7 +561,10 @@ build_reduced_eq_spec <- function(parsed_eq, terms, setupsolve = list()) {
   } else {
     "0"
   }
+  resid_targets <- toupper(as.character(setupsolve$eq_rho_resid_targets %||% character()))
+  resid_target_selected <- !length(resid_targets) || toupper(as.character(parsed_eq$target)) %in% resid_targets
   use_resid_ar1 <- isTRUE(setupsolve$eq_rho_resid_ar1) &&
+    resid_target_selected &&
     parsed_eq$rho_order == 1L &&
     nrow(reduced_rho$rho_terms) == 1L &&
     as.integer(reduced_rho$rho_terms$order[[1]]) == 1L
@@ -454,7 +578,7 @@ build_reduced_eq_spec <- function(parsed_eq, terms, setupsolve = list()) {
     active_fsr_terms = character()
   )
   lag_suffix <- as.character(setupsolve$eq_target_lag_suffix %||% "")
-  if (nzchar(lag_suffix)) {
+  if (nzchar(lag_suffix) && resid_target_selected) {
     spec$target_lag_source <- sprintf("%s%s", parsed_eq$target, lag_suffix)
   }
   if (use_resid_ar1) {
@@ -527,12 +651,13 @@ extract_reduced_rho_terms <- function(parsed_eq, terms) {
   )
 }
 
-build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = list()) {
+build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = list(), term_overrides = NULL) {
   fmout_specs <- if (!is.null(fmout_path) && nzchar(fmout_path) && file.exists(fmout_path)) {
     parse_reduced_fmout_coefficients(fmout_path)
   } else {
     list()
   }
+  resolved_term_overrides <- resolve_equation_term_overrides(term_overrides)
 
   eq_rows <- list()
   eq_fsr_rows <- list()
@@ -593,7 +718,12 @@ build_reduced_eq_specs <- function(statements, fmout_path = NULL, setupsolve = l
     if (is.null(spec_from_fmout) || !length(spec_from_fmout$terms %||% list())) {
       next
     }
-    spec <- build_reduced_eq_spec(parsed_eq, spec_from_fmout$terms, setupsolve = setupsolve)
+    adjusted_terms <- apply_equation_term_overrides_to_terms(
+      parsed_eq$target,
+      spec_from_fmout$terms,
+      resolved_term_overrides
+    )
+    spec <- build_reduced_eq_spec(parsed_eq, adjusted_terms, setupsolve = setupsolve)
     specs[[length(specs) + 1L]] <- spec
     spec_index_by_number[[equation_key]] <- length(specs)
   }

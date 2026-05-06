@@ -135,6 +135,35 @@ def test_fpr_backend_run_requires_public_artifacts_on_success(tmp_path, monkeypa
         backend.run(work_dir=work_dir)
 
 
+def test_fpr_backend_run_salvages_timeout_with_partial_outputs(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_backend_bundle.R").write_text("# stub\n", encoding="utf-8")
+    bundle_path = tmp_path / "bundle.R"
+    bundle_path.write_text("bundle <- list()\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+
+    def fake_run(*args, **kwargs):
+        command = args[0]
+        cwd = Path(kwargs["cwd"])
+        cwd.mkdir(parents=True, exist_ok=True)
+        (cwd / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
+        raise subprocess.TimeoutExpired(command, 1200, output="partial stdout", stderr="partial stderr")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(bundle_path=bundle_path, fp_r_home=fp_r_home, rscript_path=rscript_path)
+    result = backend.run(work_dir=work_dir)
+
+    assert result.return_code == 124
+    assert result.output_file == work_dir / "PACEV.TXT"
+    assert "timed out after 1200s" in result.stderr
+    assert "PACEV.TXT" in result.stderr
+
+
 def test_fpr_backend_passes_semantics_profile_to_runner(tmp_path, monkeypatch):
     fp_r_home = tmp_path / "fp-r"
     scripts_dir = fp_r_home / "scripts"
@@ -229,6 +258,102 @@ def test_fpr_backend_run_raw_input_mode_uses_standard_input_runner(tmp_path, mon
     manifest = json.loads((work_dir / "semantics_manifest.json").read_text(encoding="utf-8"))
     assert manifest["entry_input"] == "psehigh.txt"
     assert manifest["scanned_input_files"] == ["psehigh.txt"]
+
+
+def test_fpr_backend_run_raw_input_mode_passes_outside_carry_exclude_targets(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_standard_input.R").write_text("# stub\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    input_file = work_dir / "psehigh.txt"
+    input_file.write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    for name in ("fmdata.txt", "fmexog.txt", "fmout.txt"):
+        (work_dir / name).write_text(f"{name}\n", encoding="utf-8")
+    observed: dict[str, object] = {}
+
+    def fake_run(*args, **kwargs):
+        command = list(args[0])
+        cwd = Path(kwargs["cwd"])
+        observed["command"] = command
+        observed["payload"] = json.loads((cwd / "fp_r.runtime.json").read_text(encoding="utf-8"))
+        (cwd / "PABEV.TXT").write_text("pabev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(
+        fp_r_home=fp_r_home,
+        fp_home=fp_home,
+        rscript_path=rscript_path,
+        outside_carry_exclude_targets=("LUB", "RS"),
+    )
+    result = backend.run(input_file=input_file, work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert "--outside-carry-exclude-targets" in observed["command"]
+    flag_index = observed["command"].index("--outside-carry-exclude-targets")
+    assert observed["command"][flag_index + 1] == "LUB,RS"
+    assert observed["payload"]["outside_carry_exclude_targets"] == ["LUB", "RS"]
+
+
+def test_fpr_backend_run_raw_input_mode_passes_equation_term_overrides(tmp_path, monkeypatch):
+    fp_r_home = tmp_path / "fp-r"
+    scripts_dir = fp_r_home / "scripts"
+    scripts_dir.mkdir(parents=True)
+    (scripts_dir / "run_standard_input.R").write_text("# stub\n", encoding="utf-8")
+    rscript_path = tmp_path / "Rscript"
+    rscript_path.write_text("", encoding="utf-8")
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    input_file = work_dir / "psehigh.txt"
+    input_file.write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    (fp_home / "fminput.txt").write_text("SOLVE DYNAMIC;\n", encoding="utf-8")
+    for name in ("fmdata.txt", "fmexog.txt", "fmout.txt"):
+        (work_dir / name).write_text(f"{name}\n", encoding="utf-8")
+    observed: dict[str, object] = {}
+
+    def fake_run(*args, **kwargs):
+        command = list(args[0])
+        cwd = Path(kwargs["cwd"])
+        observed["command"] = command
+        observed["payload"] = json.loads((cwd / "fp_r.runtime.json").read_text(encoding="utf-8"))
+        (cwd / "PABEV.TXT").write_text("pabev\n", encoding="utf-8")
+        (cwd / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
+        (cwd / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, stdout="ok", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    backend = FpRBackend(
+        fp_r_home=fp_r_home,
+        fp_home=fp_home,
+        rscript_path=rscript_path,
+        equation_term_overrides=(
+            {"target": "LUB", "variable": "DUIFAC", "coefficient": 50.0, "lag": 0, "mode": "add"},
+        ),
+    )
+    result = backend.run(input_file=input_file, work_dir=work_dir)
+
+    assert result.return_code == 0
+    assert "--equation-term-overrides-file" in observed["command"]
+    flag_index = observed["command"].index("--equation-term-overrides-file")
+    overrides_path = Path(observed["command"][flag_index + 1])
+    assert overrides_path.exists()
+    assert overrides_path.read_text(encoding="utf-8").splitlines()[1] == "LUB,DUIFAC,50.0,0,add"
+    assert observed["payload"]["equation_term_overrides"] == [
+        {"target": "LUB", "variable": "DUIFAC", "coefficient": 50.0, "lag": 0, "mode": "add"}
+    ]
 
 
 def test_fpr_wrapper_restores_smpl_after_identity_overlay(tmp_path):
@@ -466,8 +591,100 @@ def test_fp_r_boundary_contract_script_runs_when_rscript_is_available(tmp_path):
     assert "status=ok" in report
     assert "boundary_refs=RAWB" in report
     assert "first_period_refs=POP1,POP3" in report
-    assert "compat_boundary_value=10" in report
+    assert "compat_boundary_value=14" in report
     assert "canonical_boundary_value=14" in report
+
+
+def test_fp_r_standard_input_fast_path_contract_script_runs_when_rscript_is_available(tmp_path):
+    if shutil.which("Rscript") is None:
+        pytest.skip("Rscript not available")
+
+    repo_root = Path(__file__).resolve().parents[1]
+    work_dir = tmp_path / "fast-path-contracts"
+    subprocess.run(
+        [
+            "Rscript",
+            str(repo_root / "fp-r" / "scripts" / "check_standard_input_fast_path.R"),
+            "--work-dir",
+            str(work_dir),
+        ],
+        check=True,
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+
+    report_path = work_dir / "standard_input_fast_path_report.txt"
+    assert report_path.exists()
+    report = report_path.read_text(encoding="utf-8")
+    assert "status=ok" in report
+    assert "fast_replay_rows=0" in report
+    assert "pcd_max_abs_diff=0.0000000000000000" in report
+    assert "lpie_max_abs_diff=0.0000000000000000" in report
+
+
+def test_fp_r_solver_rho_cache_contract_script_runs_when_rscript_is_available(tmp_path):
+    if shutil.which("Rscript") is None:
+        pytest.skip("Rscript not available")
+
+    repo_root = Path(__file__).resolve().parents[1]
+    work_dir = tmp_path / "solver-rho-cache-contracts"
+    subprocess.run(
+        [
+            "Rscript",
+            str(repo_root / "fp-r" / "scripts" / "check_solver_rho_cache.R"),
+            "--work-dir",
+            str(work_dir),
+        ],
+        check=True,
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+
+    report_path = work_dir / "solver_rho_cache_report.txt"
+    assert report_path.exists()
+    report = report_path.read_text(encoding="utf-8")
+    assert "status=ok" in report
+    assert "without_cache_eval_count=6" in report
+    assert "with_cache_eval_count=4" in report
+
+
+def test_fp_r_solver_expression_breakdown_contract_script_runs_when_rscript_is_available(tmp_path):
+    if shutil.which("Rscript") is None:
+        pytest.skip("Rscript not available")
+
+    script_path = (
+        Path(__file__).resolve().parents[1]
+        / "fp-r"
+        / "scripts"
+        / "check_solver_expression_breakdown.R"
+    )
+    work_dir = tmp_path / "expression-breakdown"
+    work_dir.mkdir()
+
+    completed = subprocess.run(
+        [
+            "Rscript",
+            str(script_path),
+            "--work-dir",
+            str(work_dir),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    report_path = work_dir / "solver_expression_breakdown_report.txt"
+    assert report_path.exists()
+    report = report_path.read_text(encoding="utf-8")
+    assert "status=ok" in report
+    assert "legacy_wall_elapsed_sec=" in report
+    assert "prepared_wall_elapsed_sec=" in report
+    assert "eval_calls=" in report
+    assert "fp_value_calls=" in report
+    assert "fp_coef_calls=" in report
 
 
 def test_fairpy_backend_default_preset_uses_shared_compat_eq_flags(tmp_path):
