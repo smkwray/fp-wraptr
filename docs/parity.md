@@ -261,14 +261,14 @@ scripts/onedrive_safe_env.sh python3 scripts/iss02_acceptance_gate.py \
   --base-dir <SCENARIO_DIR> \
   --with-drift \
   --fingerprint-lock docs/verification/iss02_baseline_fingerprint_<SCENARIO>.json \
-  --out-root [local-temp]
+  --out-root /tmp/fairpy-iss02-acceptance
 ```
 
 Interpret an existing run without re-running engines:
 
 ```bash
 scripts/onedrive_safe_env.sh python3 scripts/iss02_acceptance_gate.py \
-  --summary-path [local-temp]<TIMESTAMP>/summary.json
+  --summary-path /tmp/fairpy-iss02-acceptance/<TIMESTAMP>/summary.json
 ```
 
 ## `fp.exe` assets installer/provision script
