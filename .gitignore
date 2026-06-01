@@ -22,6 +22,7 @@ uv.lock
 .claude/
 .codex/
 .playwright-cli/
+.playwright-mcp/
 *.swp
 *.swo
 *~
@@ -103,6 +104,14 @@ fort.*
 
 # Scratch/temp scripts
 tmp_*.py
+/tmp-*/
+
+# Local browser/debug screenshots
+/dark-*.png
+/light-*.png
+/theme-*.png
+/expanded-panel*.png
+/fixed-panel*.png
 
 # Logo source files (optional)
 # logo/  # keep if you want branding in repo
