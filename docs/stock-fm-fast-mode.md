@@ -39,7 +39,7 @@ Why explicit `eq_flags_preset`:
 scripts/uvsafe fp run <your-scenario>.yaml \
   --backend fppy \
   --fp-home /path/to/FM \
-  --output-dir /private/tmp/fp_wraptr_stock_fast_runs
+  --output-dir /tmp/fp_wraptr_stock_fast_runs
 ```
 
 ## Validate against `fp.exe` (speed + divergence)
@@ -53,7 +53,7 @@ scripts/uvsafe python -B scripts/stock_fm_speed_divergence_eval.py \
   --run-dir <fppy_run_dir> \
   --fpexe-output <fpexe_run_dir>/work_fpexe/PACEV.TXT \
   --window-start 2025.4 \
-  --out-json /private/tmp/fp_wraptr_stock_fast_runs/stock_fast_eval.json
+  --out-json /tmp/fp_wraptr_stock_fast_runs/stock_fast_eval.json
 ```
 
 ## Acceptance gates
