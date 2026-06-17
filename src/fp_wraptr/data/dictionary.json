@@ -93,7 +93,7 @@
     },
     "AFT": {
       "name": "AFT",
-      "description": "Total armed forces, g, millions",
+      "description": "Total military personnel in the federal armed forces, in millions (exogenous).",
       "units": "millions",
       "sector": "federal_government",
       "category": "exogenous",
@@ -106,7 +106,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Armed Forces"
+      "short_name": "Total Armed Forces"
     },
     "AG": {
       "name": "AG",
@@ -205,7 +205,7 @@
     },
     "AR": {
       "name": "AR",
-      "description": "Net financial assets, r, B$.",
+      "description": "Net financial assets of the foreign sector (rest of the world) vis-a-vis the US, in current-dollar billions.",
       "units": "B$",
       "sector": "foreign",
       "category": "endogenous",
@@ -216,11 +216,11 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Foreign Net Assets"
+      "short_name": "Foreign Net Financial Assets"
     },
     "AS": {
       "name": "AS",
-      "description": "Net financial assets, s, B$.",
+      "description": "Net financial assets of the state and local government sector, in current-dollar billions.",
       "units": "B$",
       "sector": "state_local",
       "category": "endogenous",
@@ -231,7 +231,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "State Local Net Assets"
+      "short_name": "State and Local Net Financial Assets"
     },
     "BO": {
       "name": "BO",
@@ -490,7 +490,7 @@
     },
     "cnst2cs": {
       "name": "cnst2cs",
-      "description": "Time varying constant term, 1974.1-1994.3.",
+      "description": "A time-varying intercept (constant term) used in the consumer services demand equation, allowed to shift over the 1974.1-1994.3 sample period.",
       "units": "",
       "sector": "",
       "category": "exogenous",
@@ -503,11 +503,11 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Services Constant Shift"
+      "short_name": "Services Equation Time-Varying Constant"
     },
     "cnst2l2": {
       "name": "cnst2l2",
-      "description": "Time varying constant term, 1971.3-1989.4.",
+      "description": "A time-varying intercept (constant term) used in equation 6 (a labor-force participation equation), allowed to shift over the 1971.3-1989.4 sample period.",
       "units": "",
       "sector": "",
       "category": "exogenous",
@@ -520,11 +520,11 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Female Labor Constant"
+      "short_name": "Labor Force Equation Time-Varying Constant"
     },
     "cnst2kk": {
       "name": "cnst2kk",
-      "description": "Time varying constant term, 1981.3-1986.2.",
+      "description": "A time-varying intercept (constant term) used in equation 12, allowed to shift over the 1981.3-1986.2 sample period.",
       "units": "",
       "sector": "",
       "category": "exogenous",
@@ -537,7 +537,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Capital Constant Shift"
+      "short_name": "Capital Equation Time-Varying Constant"
     },
     "COG": {
       "name": "COG",
@@ -1331,7 +1331,7 @@
     },
     "GSCA": {
       "name": "GSCA",
-      "description": "Gross saving, CA, B$.",
+      "description": "Gross saving of Government-Sponsored Enterprises (the 'CA' flow-of-funds sub-sector, e.g. Fannie Mae/Freddie Mac), in billions of current dollars.",
       "units": "B$",
       "sector": "",
       "category": "exogenous",
@@ -1348,7 +1348,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Current Account Saving"
+      "short_name": "GSE Gross Saving"
     },
     "GSMA": {
       "name": "GSMA",
@@ -1371,7 +1371,7 @@
     },
     "GSNN": {
       "name": "GSNN",
-      "description": "Gross saving, NN, B$.",
+      "description": "Gross saving of nonfinancial noncorporate business (the 'NN' flow-of-funds sub-sector of the firm sector), in billions of current dollars; identity GSNN = GDP deflator times real GSNNQ.",
       "units": "B$",
       "sector": "",
       "category": "endogenous",
@@ -1386,11 +1386,11 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Net National Saving"
+      "short_name": "Noncorporate Business Saving"
     },
     "GSNNQ": {
       "name": "GSNNQ",
-      "description": "Gross saving, NN, B2017$.",
+      "description": "Real (inflation-adjusted) gross saving of nonfinancial noncorporate business (the 'NN' flow-of-funds sub-sector), in chained 2017 dollars; equals nominal GSNN divided by the GDP deflator.",
       "units": "B2017$",
       "sector": "",
       "category": "exogenous",
@@ -1403,7 +1403,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Real Net National Saving"
+      "short_name": "Real Noncorporate Business Saving"
     },
     "HF": {
       "name": "HF",
@@ -1426,8 +1426,8 @@
     },
     "HFF": {
       "name": "HFF",
-      "description": "Deviation of HFF from HFS.",
-      "units": "",
+      "description": "Difference between actual and potential average paid hours PER JOB in the firm sector, HF-HFS (Eq. 100).",
+      "units": "hours per quarter",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 100,
@@ -1443,8 +1443,8 @@
     },
     "HFS": {
       "name": "HFS",
-      "description": "Potential value of HFF.",
-      "units": "",
+      "description": "Potential value of HF (firm average paid hours per job), constructed as a peak-to-peak interpolation of HF.",
+      "units": "hours per quarter",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -1458,7 +1458,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Potential Firm Hours"
+      "short_name": "Potential Firm Hours Per Job"
     },
     "HG": {
       "name": "HG",
@@ -1584,7 +1584,7 @@
     },
     "IBTG": {
       "name": "IBTG",
-      "description": "Indirect business taxes, s, B$.",
+      "description": "Indirect business taxes collected by the federal government (sales/excise-type taxes on business), in billions of current dollars.",
       "units": "B$",
       "sector": "state_local",
       "category": "exogenous",
@@ -1600,7 +1600,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "State Business Taxes"
+      "short_name": "Federal Indirect Business Taxes"
     },
     "IGZ": {
       "name": "IGZ",
@@ -1678,7 +1678,7 @@
     },
     "IKB": {
       "name": "IKB",
-      "description": "Nonresidential fixed investment, B2017$.",
+      "description": "Real nonresidential fixed investment of the financial business sector (b), chained 2017$. (Restore 'nonresidential'.)",
       "units": "B2017$",
       "sector": "",
       "category": "exogenous",
@@ -1693,7 +1693,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Real Nonres Fixed Investment"
+      "short_name": "Real Financial-Sector Nonresidential Fixed Investment"
     },
     "IKF": {
       "name": "IKF",
@@ -1946,7 +1946,7 @@
         94
       ],
       "raw_data_sources": [],
-      "construction": "Computed from peak to peak interpolation of logY/(JF \u00b7 HF). Peak quarters are 1955.2, 1963.3, 1966.1, 1973.1, 1992.4, and 2010.4.",
+      "construction": "Computed from peak to peak interpolation of logY/(JF · HF). Peak quarters are 1955.2, 1963.3, 1966.1, 1973.1, 1992.4, and 2010.4.",
       "_provenance": {
         "table": "A.2"
       },
@@ -1954,7 +1954,7 @@
     },
     "LM": {
       "name": "LM",
-      "description": "Number of \u201cmonoliths\u201d: difference between the total number of jobs (establishment data) and the total number of people employed (household survey data), millions.",
+      "description": "Number of moonlighters: the gap between total jobs (establishment/payroll data) and total people employed (household survey), reflecting multiple-jobholders, in millions (defined in equation 8).",
       "units": "millions",
       "sector": "",
       "category": "endogenous",
@@ -1967,7 +1967,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Jobs-People Wedge"
+      "short_name": "Moonlighters (Jobs Minus Employed)"
     },
     "M1": {
       "name": "M1",
@@ -2827,8 +2827,8 @@
     },
     "PX": {
       "name": "PX",
-      "description": "Price deflator for total sales.",
-      "units": "",
+      "description": "Price deflator for total sales = nominal total sales / real total sales. (Drop 'firm sector' label not in source.)",
+      "units": "index",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 31,
@@ -2846,7 +2846,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Sales Deflator"
+      "short_name": "Total Sales Deflator"
     },
     "Q": {
       "name": "Q",
@@ -3150,7 +3150,7 @@
     },
     "SIFG": {
       "name": "SIFG",
-      "description": "Employer social insurance contributions, f to g, B$.",
+      "description": "Employer social insurance (payroll) contributions paid by firms to the federal government, in billions of dollars (defined by Eq. 54).",
       "units": "B$",
       "sector": "firm",
       "category": "endogenous",
@@ -3168,11 +3168,11 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Employer SI To Federal"
+      "short_name": "Employer Social Insurance, Firm To Federal"
     },
     "SIFS": {
       "name": "SIFS",
-      "description": "Employer social insurance contributions, f to s, B$.",
+      "description": "Employer social insurance (payroll) contributions paid by firms to state and local governments, in billions of dollars (exogenous).",
       "units": "B$",
       "sector": "firm",
       "category": "exogenous",
@@ -3187,7 +3187,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Employer SI To State"
+      "short_name": "Employer Social Insurance, Firm To State"
     },
     "SS": {
       "name": "SS",
@@ -3326,7 +3326,7 @@
     },
     "TBL2": {
       "name": "TBL2",
-      "description": "Time varying time trend, 1971.3\u20131989.4.",
+      "description": "Time varying time trend, 1971.3–1989.4.",
       "units": "",
       "sector": "",
       "category": "exogenous",
@@ -3362,7 +3362,7 @@
     },
     "TBG": {
       "name": "TBG",
-      "description": "Corporate profit taxes, b to g, B$.",
+      "description": "Corporate profit taxes paid by the financial business sector to the federal government, in billions of current dollars (B$).",
       "units": "B$",
       "sector": "financial",
       "category": "endogenous",
@@ -3377,7 +3377,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Bank Profit Taxes To Federal"
+      "short_name": "Financial Sector Profit Taxes To Federal"
     },
     "TBGQ": {
       "name": "TBGQ",
@@ -3398,7 +3398,7 @@
     },
     "TBS": {
       "name": "TBS",
-      "description": "Corporate profit taxes, b to s, B$.",
+      "description": "Corporate profit taxes paid by the financial business sector to state and local governments, in billions of current dollars (B$).",
       "units": "B$",
       "sector": "financial",
       "category": "exogenous",
@@ -3413,7 +3413,7 @@
       "_provenance": {
         "table": "A.2"
       },
-      "short_name": "Bank Profit Taxes To State Local"
+      "short_name": "Financial Sector Profit Taxes To State Local"
     },
     "TCG": {
       "name": "TCG",
@@ -4134,8 +4134,8 @@
     },
     "CTH": {
       "name": "CTH",
-      "description": "",
-      "units": "",
+      "description": "Net capital transfers paid by households, in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4147,12 +4147,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Household Capital Transfers Paid"
     },
     "CTNN": {
       "name": "CTNN",
-      "description": "",
-      "units": "",
+      "description": "Net capital transfers paid by noncorporate (unincorporated) business, in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4164,12 +4165,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Noncorporate Business Capital Transfers Paid"
     },
     "CTR": {
       "name": "CTR",
-      "description": "",
-      "units": "",
+      "description": "Net capital transfers paid by the foreign (rest-of-world) sector, in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4179,12 +4181,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Sector Capital Transfers Paid"
     },
     "CTS": {
       "name": "CTS",
-      "description": "",
-      "units": "",
+      "description": "Net capital transfers paid by state and local governments, in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4194,12 +4197,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State and Local Capital Transfers Paid"
     },
     "CUR": {
       "name": "CUR",
-      "description": "",
-      "units": "",
+      "description": "Currency held by the public outside of banks (the currency component of money), in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4209,12 +4213,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Currency Held Outside Banks"
     },
     "D1G": {
       "name": "D1G",
-      "description": "",
-      "units": "",
+      "description": "The federal personal income tax-rate parameter, i.e. the household average personal income tax rate at the federal level.",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 47,
@@ -4224,12 +4229,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Personal Income Tax Rate"
     },
     "D1S": {
       "name": "D1S",
-      "description": "",
-      "units": "",
+      "description": "The state and local personal income tax-rate parameter, i.e. the household average personal income tax rate at the state and local level.",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 48,
@@ -4239,12 +4245,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State and Local Personal Income Tax Rate"
     },
     "D2G": {
       "name": "D2G",
-      "description": "",
-      "units": "",
+      "description": "Federal government corporate profit (income) tax rate applied to firm taxable profits; defined by the identity TFG = D2G(PIEF - TFS).",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 49,
@@ -4254,12 +4261,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Corporate Profit Tax Rate"
     },
     "D2S": {
       "name": "D2S",
-      "description": "",
-      "units": "",
+      "description": "State and local government corporate profit (income) tax rate applied to firm taxable profits; defined by the identity TFS = D2S*PIEF.",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 50,
@@ -4269,12 +4277,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State-Local Corporate Profit Tax Rate"
     },
     "D4G": {
       "name": "D4G",
-      "description": "",
-      "units": "",
+      "description": "Federal employee social-security (social-insurance) contribution rate applied to the firm wage bill; defined by the identity SIHG = D4G[WF*JF(HN + 1.5HO)].",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 53,
@@ -4284,12 +4293,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Employee Social Security Tax Rate"
     },
     "D5G": {
       "name": "D5G",
-      "description": "",
-      "units": "",
+      "description": "Federal employer social-security (social-insurance) contribution rate applied to the firm wage bill; defined by the identity SIFG = D5G[WF*JF(HN + 1.5HO)].",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 55,
@@ -4299,12 +4309,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Employer Social Security Tax Rate"
     },
     "D6G": {
       "name": "D6G",
-      "description": "",
-      "units": "",
+      "description": "Federal-government (g) capital-consumption-rate parameter used in equation 67 to compute CCF1 from a four-quarter average of nominal firm fixed investment.",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 67,
@@ -4314,12 +4325,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Capital-Consumption Rate (CCF1)"
     },
     "DELD": {
       "name": "DELD",
-      "description": "",
-      "units": "",
+      "description": "Quarterly physical depreciation rate of the stock of consumer durable goods, used in the durables stock identity KD = (1 - DELD)KD-1 + CD (Eq. 58).",
+      "units": "rate per quarter",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4329,12 +4341,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Durables Depreciation Rate"
     },
     "DELH": {
       "name": "DELH",
-      "description": "",
-      "units": "",
+      "description": "Quarterly physical depreciation rate of the stock of housing, used in the housing stock identity KH = (1 - DELH)KH-1 + IHH (Eq. 59).",
+      "units": "rate per quarter",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4344,12 +4357,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Housing Depreciation Rate"
     },
     "DELK": {
       "name": "DELK",
-      "description": "",
-      "units": "",
+      "description": "Quarterly physical depreciation rate of the firm business capital stock, used in the capital identity IKF = KK - (1-DELK)*KK(-1). (First pass had the sign wrong.)",
+      "units": "rate per quarter",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4359,12 +4373,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Capital Stock Depreciation Rate"
     },
     "DF": {
       "name": "DF",
-      "description": "",
-      "units": "",
+      "description": "Net dividends paid by the firm (business) sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4374,12 +4389,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Firm Net Dividends Paid"
     },
     "DG": {
       "name": "DG",
-      "description": "",
-      "units": "",
+      "description": "Net dividends paid by the federal government sector, in billions of nominal dollars (exogenous).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4389,12 +4405,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Gov Net Dividends Paid"
     },
     "DISB": {
       "name": "DISB",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the financial (bank) sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4404,12 +4421,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Bank Sector Data Discrepancy"
     },
     "DISF": {
       "name": "DISF",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the firm (business) sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4419,12 +4437,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Firm Sector Data Discrepancy"
     },
     "DISG": {
       "name": "DISG",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the federal government sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4434,12 +4453,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Gov Data Discrepancy"
     },
     "DISH": {
       "name": "DISH",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the household sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4449,12 +4469,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Household Data Discrepancy"
     },
     "DISR": {
       "name": "DISR",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the foreign (rest-of-world) sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4464,12 +4485,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Sector Data Discrepancy"
     },
     "DISS": {
       "name": "DISS",
-      "description": "",
-      "units": "",
+      "description": "Statistical discrepancy term reconciling the income/flow (NIPA) and asset/stock (flow-of-funds) accounts for the state and local government sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4479,12 +4501,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Gov Data Discrepancy"
     },
     "DR": {
       "name": "DR",
-      "description": "",
-      "units": "",
+      "description": "Net dividends paid by the foreign (rest-of-world) sector, in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4494,12 +4517,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Net Dividends Paid"
     },
     "DRQ": {
       "name": "DRQ",
-      "description": "",
-      "units": "",
+      "description": "Net dividends paid by the foreign (rest-of-world) sector in real (inflation-adjusted) terms, in billions of 2017 dollars.",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4509,12 +4533,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Real Foreign Net Dividends Paid"
     },
     "DS": {
       "name": "DS",
-      "description": "",
-      "units": "",
+      "description": "Net dividends paid by the state and local government sector, in billions of nominal dollars (exogenous).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4524,7 +4549,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Gov Net Dividends Paid"
     },
     "E": {
       "name": "E",
@@ -4544,8 +4570,8 @@
     },
     "EX": {
       "name": "EX",
-      "description": "",
-      "units": "",
+      "description": "Exports of goods and services in real (inflation-adjusted) terms, in billions of 2017 dollars (exogenous).",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4557,12 +4583,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Real Exports"
     },
     "EXPG": {
       "name": "EXPG",
-      "description": "",
-      "units": "",
+      "description": "Net total expenditures of the federal government (purchases, transfers, interest, subsidies, and unemployment benefits, net of investment), in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 106,
@@ -4572,12 +4599,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Gov Net Expenditures"
     },
     "EXPS": {
       "name": "EXPS",
-      "description": "",
-      "units": "",
+      "description": "Net total expenditures of the state and local government (purchases, transfers, interest, and subsidies, net of investment), in billions of nominal dollars.",
+      "units": "B$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 113,
@@ -4587,12 +4615,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Gov Net Expenditures"
     },
     "FA": {
       "name": "FA",
-      "description": "",
-      "units": "",
+      "description": "Gross product of the farm sector in real (inflation-adjusted) terms, in billions of 2017 dollars (exogenous).",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4605,12 +4634,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Real Farm Gross Product"
     },
     "INTG": {
       "name": "INTG",
-      "description": "",
-      "units": "",
+      "description": "Net interest payments by the federal government, in billions of current dollars (defined in equation 29).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4620,12 +4650,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Govt Net Interest"
     },
     "INTGR": {
       "name": "INTGR",
-      "description": "",
-      "units": "",
+      "description": "Net interest payments from the federal government to the rest of the world (foreign sector), in billions of current dollars (defined in equation 56).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4637,12 +4668,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Interest Paid Abroad"
     },
     "INTS": {
       "name": "INTS",
-      "description": "",
-      "units": "",
+      "description": "Net interest payments by the state and local government sector, in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4652,12 +4684,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Net Interest"
     },
     "INTZ": {
       "name": "INTZ",
-      "description": "",
-      "units": "",
+      "description": "Net interest payments of the model's 'other' sector, B$ (A.7: PII-IPP-INTF1-(PAYINTG-RECINTG)+INTGR-(PAYINTS-RECINTS)); first-pass formula was incomplete.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4667,12 +4700,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Other Net Interest Payments"
     },
     "INTZQ": {
       "name": "INTZQ",
-      "description": "",
-      "units": "",
+      "description": "Net interest payments of the residual ('other') sector in constant (real) dollars, computed as nominal other-sector interest deflated by the GDP deflator.",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4682,12 +4716,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Other Net Interest, Real"
     },
     "ISZ": {
       "name": "ISZ",
-      "description": "",
-      "units": "",
+      "description": "Gross investment by the state and local government sector, in billions of current dollars (defined in equation 159).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4697,12 +4732,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Gross Investment"
     },
     "ISZQ": {
       "name": "ISZQ",
-      "description": "",
-      "units": "",
+      "description": "Gross investment by the state and local government sector in constant (real) dollars, computed as nominal state/local gross investment deflated by the GDP deflator.",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4712,12 +4748,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Investment, Real"
     },
     "IVA": {
       "name": "IVA",
-      "description": "",
-      "units": "",
+      "description": "Inventory valuation adjustment (accounting correction removing capital-gain/loss on inventories from profits), in billions of current dollars.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4727,12 +4764,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Inventory Valuation Adjustment"
     },
     "IVF": {
       "name": "IVF",
-      "description": "",
-      "units": "",
+      "description": "Real (constant-dollar) inventory investment by the firm sector (the change in business inventories), in billions of constant dollars (defined in equation 117).",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4742,7 +4780,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Firm Inventory Investment, Real"
     },
     "JF": {
       "name": "JF",
@@ -4762,8 +4801,8 @@
     },
     "JG": {
       "name": "JG",
-      "description": "",
-      "units": "",
+      "description": "Number of civilian jobs in the federal government, in millions.",
+      "units": "millions",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4773,12 +4812,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Civilian Jobs"
     },
     "JHMIN": {
       "name": "JHMIN",
-      "description": "",
-      "units": "",
+      "description": "Number of worker hours required to produce the level of output Y (given technology), in millions (defined in equation 94).",
+      "units": "millions",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 94,
@@ -4788,12 +4828,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Required Worker Hours"
     },
     "JM": {
       "name": "JM",
-      "description": "",
-      "units": "",
+      "description": "Number of military jobs in the federal government, in millions.",
+      "units": "millions",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4803,12 +4844,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Military Jobs"
     },
     "JS": {
       "name": "JS",
-      "description": "",
-      "units": "",
+      "description": "Number of jobs in the state and local government sector, in millions.",
+      "units": "millions",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4820,12 +4862,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State & Local Jobs"
     },
     "KKMIN": {
       "name": "KKMIN",
-      "description": "",
-      "units": "",
+      "description": "Amount of physical capital required to produce the level of output Y (the minimum/needed capital stock), in billions of constant dollars (defined in equation 93).",
+      "units": "B2017$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 93,
@@ -4835,7 +4878,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Required Capital Stock"
     },
     "PCGPPD": {
       "name": "PCGPPD",
@@ -4869,8 +4913,8 @@
     },
     "PD": {
       "name": "PD",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for domestic sales, i.e. total sales minus exports plus imports (X - EX + IM); defined by Eq. 33.",
+      "units": "index (ratio)",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 33,
@@ -4880,12 +4924,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Domestic Sales Price Index"
     },
     "PEX": {
       "name": "PEX",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for exports, defined as nominal exports divided by real exports (EXZ/EX).",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4895,12 +4940,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Exports Price Index"
     },
     "PF": {
       "name": "PF",
-      "description": "",
-      "units": "",
+      "description": "Price deflator for nonfarm sales; the price-equation variable in Eq. 10. (Drop the extra 'firm-sector/core price level' wording beyond FAIR.)",
+      "units": "index (ratio)",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 31,
@@ -4910,12 +4956,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Nonfarm Sales Price Index"
     },
     "PFA": {
       "name": "PFA",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for farm sales, defined as nominal farm sales divided by real farm sales (FAZ/FA).",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4925,12 +4972,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Farm Sales Price Index"
     },
     "PG": {
       "name": "PG",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for federal government purchases of goods (COG), defined as net nominal federal purchases over net real federal purchases ((PURGZ-PROGZ)/(PURG-PROG)).",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -4940,12 +4988,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Purchases Price Index"
     },
     "PH": {
       "name": "PH",
-      "description": "",
-      "units": "",
+      "description": "Price deflator for household purchases of services, nondurables, durables and residential investment (CS+CN+CD+IHH), inclusive of indirect business taxes (Eq. 34). (Includes SERVICES — 'goods purchases' too narrow.)",
+      "units": "index (ratio)",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 34,
@@ -4955,7 +5004,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Household Purchases Price Index"
     },
     "PIEB": {
       "name": "PIEB",
@@ -4990,8 +5040,8 @@
     },
     "PIEFRET": {
       "name": "PIEFRET",
-      "description": "",
-      "units": "",
+      "description": "Foreign earnings of the firm (business) sector retained abroad, in billions of current (nominal) dollars; defined by Eq. 132.",
+      "units": "B$ (nominal)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5001,12 +5051,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Firm Foreign Earnings Retained"
     },
     "PIH": {
       "name": "PIH",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for residential investment, defined as nominal residential investment divided by real residential investment (IHZ/IH).",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5016,12 +5067,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Residential Investment Price Index"
     },
     "PIK": {
       "name": "PIK",
-      "description": "",
-      "units": "",
+      "description": "Price deflator for nonresidential fixed investment, IKZ/IK (A.7).",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5031,12 +5083,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Nonresidential Fixed Investment Price Index"
     },
     "PIM": {
       "name": "PIM",
-      "description": "",
-      "units": "",
+      "description": "Price deflator (index) for imports, defined as nominal imports divided by real imports (IMZ/IM); treated as exogenous.",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5046,12 +5099,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Imports Price Index"
     },
     "PIV": {
       "name": "PIV",
-      "description": "",
-      "units": "",
+      "description": "Adjusted price deflator (index) for inventory investment, defined as nominal over real inventory investment (IVZ/IV) with quarter-specific adjustments; defined by Eq. 42.",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5061,12 +5115,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Inventory Investment Price Index"
     },
     "PKH": {
       "name": "PKH",
-      "description": "",
-      "units": "",
+      "description": "Market price per unit of the household housing stock, REALEST/KH (A.7); refers to the housing stock, not the stock market.",
+      "units": "index (ratio)",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5076,12 +5131,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Market Price of Housing Stock"
     },
     "PSI1": {
       "name": "PSI1",
-      "description": "",
-      "units": "",
+      "description": "Exogenous price ratio of the exports deflator (PEX) to the total-sales deflator (PX), used to determine PEX in Eq. 32.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 32,
@@ -5091,12 +5147,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Exports-to-Total Price Ratio"
     },
     "PSI2": {
       "name": "PSI2",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD, gross of indirect-tax dummies) to produce the price deflator for consumer services (PCS); equation 35.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 35,
@@ -5106,12 +5163,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Services Price Ratio"
     },
     "PSI3": {
       "name": "PSI3",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD, gross of indirect-tax dummies) to produce the price deflator for consumer nondurables (PCN); equation 36.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 36,
@@ -5121,12 +5179,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Nondurables Price Ratio"
     },
     "PSI4": {
       "name": "PSI4",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD, gross of indirect-tax dummies) to produce the price deflator for consumer durables (PCD); equation 37.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 37,
@@ -5136,12 +5195,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Durables Price Ratio"
     },
     "PSI5": {
       "name": "PSI5",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD) to produce the price deflator for residential (housing) investment (PIH); equation 38.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 38,
@@ -5151,12 +5211,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Housing Investment Price Ratio"
     },
     "PSI6": {
       "name": "PSI6",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of PIK to PD that scales the domestic price level into the nonresidential fixed-investment deflator.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 39,
@@ -5166,12 +5227,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Nonresidential Fixed Investment Price Ratio"
     },
     "PSI7": {
       "name": "PSI7",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD) to produce the price deflator for federal government purchases of goods (PG, deflator for COG); equation 40.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 40,
@@ -5181,12 +5243,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Purchases Price Ratio"
     },
     "PSI8": {
       "name": "PSI8",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD) to produce the price deflator for state-and-local government purchases of goods (PS, deflator for COS); equation 41.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 41,
@@ -5196,12 +5259,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State Local Purchases Price Ratio"
     },
     "PSI9": {
       "name": "PSI9",
-      "description": "",
-      "units": "",
+      "description": "Exogenous deflator-ratio parameter that scales the domestic price level (PD) to produce the price deflator for inventory investment (PIV); equation 42.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 42,
@@ -5211,12 +5275,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Inventory Investment Price Ratio"
     },
     "PSI10": {
       "name": "PSI10",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of the average federal government wage rate (WG) to the firm-sector wage rate (WF), used to determine WG in Eq. 44.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 44,
@@ -5226,12 +5291,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal-to-Firm Wage Ratio"
     },
     "PSI11": {
       "name": "PSI11",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of the average military wage rate (WM) to the firm-sector wage rate (WF), used to determine WM in Eq. 45.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 45,
@@ -5241,12 +5307,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Military-to-Firm Wage Ratio"
     },
     "PSI12": {
       "name": "PSI12",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of the average state and local government wage rate (WS) to the firm-sector wage rate (WF), used to determine WS in Eq. 46.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 46,
@@ -5256,12 +5323,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State Local-to-Firm Wage Ratio"
     },
     "PSI13": {
       "name": "PSI13",
-      "description": "",
-      "units": "",
+      "description": "Exogenous productivity parameter: real gross product of the federal plus state-and-local sectors per total government employee-hour, used to add government real output to real GDP (equation 83); in our base it is computed as (PROG+PROS)/(250*(JGH+JSH+JMH)).",
+      "units": "ratio",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5271,12 +5339,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Government Output Per Hour"
     },
     "PSI14": {
       "name": "PSI14",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of the housing-stock market price PKH to the domestic price deflator PD, used to set PKH in Eq. 55.",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 55,
@@ -5286,12 +5355,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Housing Stock Price Ratio"
     },
     "PSI15": {
       "name": "PSI15",
-      "description": "",
-      "units": "",
+      "description": "Exogenous ratio of federal net interest payments to the rest of the world (INTGR) to total federal net interest payments (INTG); used to split federal interest paid abroad (equation 56).",
+      "units": "ratio",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 56,
@@ -5301,12 +5371,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Share Of Federal Interest"
     },
     "SIG": {
       "name": "SIG",
-      "description": "",
-      "units": "",
+      "description": "Total employer and employee social insurance (payroll) contributions received by the federal government, in billions of dollars (defined by Eq. 103).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5318,12 +5389,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Total Social Insurance To Federal"
     },
     "SIGG": {
       "name": "SIGG",
-      "description": "",
-      "units": "",
+      "description": "Employer social insurance (payroll) contributions paid by the federal government as an employer to the federal government, in billions of dollars (exogenous).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5333,12 +5405,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Federal Employer Social Insurance, Self"
     },
     "SIHG": {
       "name": "SIHG",
-      "description": "",
-      "units": "",
+      "description": "Employee social insurance (payroll) contributions paid by households to the federal government, in billions of dollars (defined by Eq. 53).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5350,7 +5423,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Employee Social Insurance To Federal"
     },
     "SIHI": {
       "name": "SIHI",
@@ -5369,8 +5443,8 @@
     },
     "SIS": {
       "name": "SIS",
-      "description": "",
-      "units": "",
+      "description": "Total employer and employee social insurance (payroll) contributions received by state and local governments, in billions of dollars (defined by Eq. 109).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5383,12 +5457,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Total Social Insurance To State"
     },
     "SISS": {
       "name": "SISS",
-      "description": "",
-      "units": "",
+      "description": "Employer social insurance (payroll) contributions paid by state and local governments as employers to state and local governments, in billions of dollars (exogenous).",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5398,12 +5473,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State Employer Social Insurance, Self"
     },
     "SR": {
       "name": "SR",
-      "description": "",
-      "units": "",
+      "description": "Net financial saving of the foreign sector (rest of the world), in billions of dollars (defined by Eq. 74).",
+      "units": "B$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 74,
@@ -5413,12 +5489,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Financial Saving"
     },
     "SRZ": {
       "name": "SRZ",
-      "description": "",
-      "units": "",
+      "description": "The approximate NIPA personal saving rate of households, expressed as a rate (defined by Eq. 116).",
+      "units": "rate",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 116,
@@ -5428,7 +5505,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Household Saving Rate"
     },
     "TRG": {
       "name": "TRG",
@@ -5449,8 +5527,8 @@
     },
     "TRSH": {
       "name": "TRSH",
-      "description": "",
-      "units": "",
+      "description": "Nominal transfer payments from state and local governments to households, excluding unemployment insurance benefits, B$.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5460,12 +5538,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "State/Local Transfers To Households"
     },
     "TRSHQ": {
       "name": "TRSHQ",
-      "description": "",
-      "units": "",
+      "description": "Real (inflation-adjusted) transfer payments from state and local governments to households, excluding unemployment insurance benefits, B2017$.",
+      "units": "B2017$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5475,12 +5554,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Real State/Local Transfers To Households"
     },
     "TTRRF": {
       "name": "TTRRF",
-      "description": "",
-      "units": "",
+      "description": "Nominal transfer payments and taxes from the rest of the world (foreign sector) to the firm sector, B$.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5490,12 +5570,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Foreign Transfers & Taxes To Firms"
     },
     "U": {
       "name": "U",
-      "description": "",
-      "units": "",
+      "description": "Number of people unemployed, in millions of persons.",
+      "units": "millions",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5505,12 +5586,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Number Unemployed"
     },
     "UB": {
       "name": "UB",
-      "description": "",
-      "units": "",
+      "description": "Nominal unemployment insurance benefits paid, B$.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5520,7 +5602,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Unemployment Insurance Benefits"
     },
     "UR": {
       "name": "UR",
@@ -5540,8 +5623,8 @@
     },
     "USOTHER": {
       "name": "USOTHER",
-      "description": "",
-      "units": "",
+      "description": "Net receipts of factor income from the rest of the world excluding net interest, net dividends, and foreign earnings retained abroad, nominal B$.",
+      "units": "B$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 57,
@@ -5551,12 +5634,13 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Other Net Foreign Factor Income"
     },
     "USROW": {
       "name": "USROW",
-      "description": "",
-      "units": "",
+      "description": "Net receipts of factor income from the rest of the world (US factor income from abroad minus payments to foreigners), nominal B$.",
+      "units": "B$",
       "sector": "",
       "category": "exogenous",
       "defined_by_equation": null,
@@ -5566,7 +5650,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Net Foreign Factor Income"
     },
     "V": {
       "name": "V",
@@ -5597,6 +5682,1180 @@
         "table": "supplement",
         "source": "construction/equations"
       }
+    },
+    "D3G": {
+      "name": "D3G",
+      "short_name": "Federal Indirect Business Tax Rate",
+      "description": "Federal government indirect business (sales/excise) tax rate levied on consumer purchases; defined by the indirect-tax identity in Eq. 51.",
+      "units": "rate",
+      "sector": "",
+      "category": "exogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [
+        35,
+        36,
+        37,
+        51
+      ],
+      "raw_data_sources": [],
+      "construction": "Def., Eq. 51",
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+A.7"
+      }
+    },
+    "D3S": {
+      "name": "D3S",
+      "short_name": "State-Local Indirect Business Tax Rate",
+      "description": "State and local government indirect business (sales/excise) tax rate levied on consumer purchases; defined by the indirect-tax identity in Eq. 52.",
+      "units": "rate",
+      "sector": "",
+      "category": "exogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [
+        35,
+        36,
+        37,
+        52
+      ],
+      "raw_data_sources": [],
+      "construction": "Def., Eq. 52",
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+A.7"
+      }
+    },
+    "GAP": {
+      "name": "GAP",
+      "short_name": "Output Gap",
+      "description": "Proportional gap between potential and actual output, (YS-Y)/YS; positive means actual output is below potential. (Drop unsupported 'used in price/policy' claim.)",
+      "units": "ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "equation"
+      }
+    },
+    "IBTS": {
+      "name": "IBTS",
+      "short_name": "State and Local Indirect Business Taxes",
+      "description": "Indirect business taxes collected by state & local governments (s), B$ (A.7: RECTXS+RECRRS). ('Sales/excise-type' is too narrow.)",
+      "units": "B$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": 52,
+      "used_in_equations": [
+        34,
+        51,
+        61,
+        78,
+        82,
+        112
+      ],
+      "raw_data_sources": [],
+      "construction": "RECTXS+RECRRS",
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+A.7"
+      }
+    },
+    "INTGZ": {
+      "name": "INTGZ",
+      "short_name": "Federal Implied Interest Rate",
+      "description": "Net interest payments of the federal government divided by federal net financial liabilities (INTG/AAG), the implied effective interest rate on federal debt estimated in equation 29.",
+      "units": "ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "equation"
+      }
+    },
+    "LEXZ": {
+      "name": "LEXZ",
+      "short_name": "Log Real Exports per Person",
+      "description": "Natural log of real US exports (B2017$) divided by noninstitutional population (16+, millions), i.e. log real exports per capita, used as an estimation regressor.",
+      "units": "log of B2017$ per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+A.7"
+      }
+    },
+    "LHF": {
+      "name": "LHF",
+      "short_name": "Log Hours per Job (Firms)",
+      "description": "Natural log of HF, the average number of hours paid per job in the firm sector (hours per quarter), used as an estimation regressor.",
+      "units": "log of hours per quarter",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LHF1": {
+      "name": "LHF1",
+      "short_name": "Log Growth of Hours per Job",
+      "description": "Log quarterly change in HF (firm-sector average hours paid per job): LOG(HF/HF(-1)); the dependent variable in the hours-demand equation (FAIR eq. 14).",
+      "units": "log change (quarterly)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LHFL1A": {
+      "name": "LHFL1A",
+      "short_name": "Lagged Log Hours Gap",
+      "description": "Lagged log ratio of actual to potential firm-sector hours per job, LOG(HF(-1)/HFS(-1)); an error-correction term in the hours-demand equation (FAIR eq. 14).",
+      "units": "log ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LHO": {
+      "name": "LHO",
+      "short_name": "Log Overtime Hours per Job",
+      "description": "Natural log of HO, the average overtime hours paid per job in the firm sector (hours per quarter); the dependent variable in the overtime-hours equation (FAIR eq. 15).",
+      "units": "log of hours per quarter",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LIHHZ": {
+      "name": "LIHHZ",
+      "short_name": "Log Real Housing Investment per Person",
+      "description": "Natural log of household residential investment (B2017$) per capita, LOG(IHH/POP); the dependent variable in the residential-investment equation (FAIR eq. 4).",
+      "units": "log of B2017$ per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LIMZ": {
+      "name": "LIMZ",
+      "short_name": "Log Real Imports per Person",
+      "description": "Natural log of real US imports (B2017$) per capita, LOG(IM/POP); the dependent variable in the import-demand equation (FAIR eq. 27).",
+      "units": "log of B2017$ per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LJF1": {
+      "name": "LJF1",
+      "short_name": "Log Growth of Firm Jobs",
+      "description": "Log quarterly change in the number of firm-sector jobs (millions), LOG(JF/JF(-1)); the dependent variable in the employment-demand equation (FAIR eq. 13).",
+      "units": "log change (quarterly)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LJHGSZ": {
+      "name": "LJHGSZ",
+      "short_name": "Log Govt Worker-Hours per Person",
+      "description": "Natural log of total government-sector worker-hours per capita, LOG((JG*HG + JM*HM + JS*HS)/POP), combining federal civilian, military, and state-and-local jobs times their hours.",
+      "units": "log of hours per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LKDZ": {
+      "name": "LKDZ",
+      "short_name": "Log Durable Goods Stock per Person",
+      "description": "Natural log of the real stock of consumer durable goods (B2017$) per capita, LOG(KD/POP), used as an estimation regressor.",
+      "units": "log of B2017$ per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LKHZ": {
+      "name": "LKHZ",
+      "short_name": "Log Housing Stock per Person",
+      "description": "Natural log of the household sector's real stock of housing (B2017$) per capita, LOG(KH/POP), used as an estimation regressor.",
+      "units": "log of B2017$ per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LKK": {
+      "name": "LKK",
+      "short_name": "Log Firm Capital Stock",
+      "description": "Natural log of KK, the firm sector's real stock of capital (B2017$), used as an estimation regressor.",
+      "units": "log of B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LKK1": {
+      "name": "LKK1",
+      "short_name": "Log Growth of Firm Capital",
+      "description": "Log quarterly change in the firm sector's real capital stock, LKK - LKK(-1); the dependent variable in the fixed-investment equation (FAIR eq. 12).",
+      "units": "log change (quarterly)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LL1Z": {
+      "name": "LL1Z",
+      "short_name": "Log Participation Rate, Men 25-54",
+      "description": "Natural log of the labor force participation rate of men 25-54, LOG(L1/POP1); the dependent variable in the prime-age-men labor-force equation (FAIR eq. 5).",
+      "units": "log ratio (participation rate)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LL2Z": {
+      "name": "LL2Z",
+      "short_name": "Log Participation Rate, Women 25-54",
+      "description": "Natural log of the labor force participation rate of women 25-54, LOG(L2/POP2); the dependent variable in the prime-age-women labor-force equation (FAIR eq. 6).",
+      "units": "log ratio (participation rate)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LL3Z": {
+      "name": "LL3Z",
+      "short_name": "Log Participation Rate, All Others 16+",
+      "description": "Natural log of the labor force participation rate of all others aged 16+, LOG(L3/POP3); the dependent variable in the residual-group labor-force equation (FAIR eq. 7).",
+      "units": "log ratio (participation rate)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LLMZ": {
+      "name": "LLMZ",
+      "short_name": "Log Moonlighters per Person",
+      "description": "Natural log of the number of moonlighters per capita, LOG(LM/POP), where moonlighters is the gap between total jobs and total employed persons; the dependent variable in FAIR eq. 8.",
+      "units": "log per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LMFL1Q": {
+      "name": "LMFL1Q",
+      "short_name": "Lagged Log Real Firm Money",
+      "description": "Lagged natural log of real firm-sector money balances, LOG(MF(-1)/PF), where MF is firm demand deposits and currency deflated by the nonfarm price deflator PF; a first-stage estimation regressor.",
+      "units": "log of real balances",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LMFZ": {
+      "name": "LMFZ",
+      "short_name": "Log Real Firm Money Balances",
+      "description": "Natural log of real firm-sector money balances, LOG(MF/PF), where MF is firm demand deposits and currency deflated by the nonfarm price deflator; the dependent variable in the firm money-demand equation (FAIR eq. 17).",
+      "units": "log of real balances",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LMZ": {
+      "name": "LMZ",
+      "short_name": "Moonlighters per Person",
+      "description": "Number of moonlighters per capita, LM/POP, where moonlighters is the gap between total jobs and total employed persons; the per-capita series logged to form LLMZ in FAIR eq. 8.",
+      "units": "per capita",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LPF": {
+      "name": "LPF",
+      "short_name": "Log Nonfarm Price Deflator",
+      "description": "Natural log of PF, the price deflator for nonfarm sales (the model's core price level); the dependent variable in the firm price-setting equation (FAIR eq. 10).",
+      "units": "log of price index",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LPFZ": {
+      "name": "LPFZ",
+      "short_name": "Quasi-Differenced Log Price",
+      "description": "Quasi-differenced log nonfarm price deflator, LPF - DELTA1*LPF(-1) (DELTA1 = BETA1/(1-BETA2)); a transformed price regressor in the nominal-wage equation (FAIR eq. 16).",
+      "units": "log (quasi-differenced)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "equation"
+      }
+    },
+    "LPFZPIM": {
+      "name": "LPFZPIM",
+      "short_name": "Log Domestic-to-Import Price Ratio",
+      "description": "Natural log of the ratio of the nonfarm price deflator to the import price deflator, LOG(PF/PIM); a relative-price regressor in the import-demand equation (FAIR eq. 27).",
+      "units": "log ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "LPH": {
+      "name": "LPH",
+      "short_name": "Log Household Price Level",
+      "description": "Natural log of PH, the household consumption price deflator (services + nondurables + durables + residential investment, including indirect business taxes), used as an estimation regressor.",
+      "units": "log index",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LPIEFAZ": {
+      "name": "LPIEFAZ",
+      "short_name": "Log After-Tax Profit-to-Dividend Ratio",
+      "description": "Natural log of after-tax firm profits FLOORED AT 4, divided by prior-quarter dividends: LOG(PIEFAMM/DF(-1)) where PIEFAMM=max(PIEF-TFG-TFS-TFR,4). (Floor is 4, not near zero.)",
+      "units": "log ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LPIM": {
+      "name": "LPIM",
+      "short_name": "Log Import Price Index",
+      "description": "Natural log of PIM, the price deflator for U.S. imports, used as a cost-push regressor in the firm price equation.",
+      "units": "log index",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LPIMZ": {
+      "name": "LPIMZ",
+      "short_name": "Log Relative Import Price",
+      "description": "Natural log of the ratio of the import price deflator to the domestic nonfarm price deflator (PIM/PF), an estimation regressor capturing the relative cost of imports.",
+      "units": "log ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LPOP": {
+      "name": "LPOP",
+      "short_name": "Log Population 16+",
+      "description": "Natural log of POP = total noninstitutional population 16+ (millions); POP = CPOP + AFT, so it INCLUDES armed forces (not 'civilian').",
+      "units": "log millions",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LTOTAL": {
+      "name": "LTOTAL",
+      "short_name": "Total Labor Force (Log Input)",
+      "description": "Total model labor force L1+L2+L3 (millions); the L-groups include armed-forces components (L1=CL1+AF1, etc.), so not 'civilian labor force'.",
+      "units": "millions",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LTRGSZ": {
+      "name": "LTRGSZ",
+      "short_name": "Log Real Per-Capita Transfers",
+      "description": "Natural log of real per-capita government and state/local transfer payments to households (federal plus S&L transfers divided by population and the household price level), used as a consumption-equation regressor.",
+      "units": "log (real per capita)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LU": {
+      "name": "LU",
+      "short_name": "Log Unemployment Level",
+      "description": "Natural log of the number of unemployed persons (in millions, floored at 1 million to keep the log defined), used as an estimation regressor.",
+      "units": "log millions",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LUB": {
+      "name": "LUB",
+      "short_name": "Log Unemployment Benefits",
+      "description": "Natural log of UB (unemployment insurance benefits, B$); the DEPENDENT variable of equation 28 (LHS UB=EXP(LUB)), not a regressor.",
+      "units": "log B$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LV": {
+      "name": "LV",
+      "short_name": "Log Inventory Stock",
+      "description": "Natural log of V, the real stock of nonfarm business inventories (our 2017-dollar vintage), used as an estimation regressor.",
+      "units": "log B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LVZ": {
+      "name": "LVZ",
+      "short_name": "Log Inventory-Sales Ratio",
+      "description": "Natural log of the ratio of the real inventory stock to total real sales (V/X), used as a regressor in the inventory-investment equation.",
+      "units": "log ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWAZPH": {
+      "name": "LWAZPH",
+      "short_name": "Log Real After-Tax Wage",
+      "description": "Natural log of the real after-tax wage rate (after-tax hourly compensation WA divided by the household price level PH), used as a labor-supply regressor.",
+      "units": "log (real wage)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWF": {
+      "name": "LWF",
+      "short_name": "Log Firm Wage Rate",
+      "description": "Natural log of WF, the average hourly earnings (excluding overtime) of workers in the firm sector, used as a regressor in the wage equation.",
+      "units": "log ($/hour)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWFD5": {
+      "name": "LWFD5",
+      "short_name": "Log Unit Labor Cost (Incl. Payroll Tax)",
+      "description": "Natural log of the firm wage rate grossed up by the employer social-security tax rate and divided by labor productivity, i.e. log effective unit labor cost, used as the cost-push driver in the firm price equation.",
+      "units": "log (unit labor cost)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWFQ": {
+      "name": "LWFQ",
+      "short_name": "Log Productivity-Adjusted Wage",
+      "description": "Natural log of the firm wage rate divided by labor productivity (log WF minus log LAM), i.e. log unit labor cost excluding payroll taxes, used in the wage equation.",
+      "units": "log (wage per productivity)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWFQZ": {
+      "name": "LWFQZ",
+      "short_name": "Log Real-Wage-Restricted Wage Term",
+      "description": "The wage-equation dependent variable: log productivity-adjusted wage minus a coefficient times the lagged log nonfarm price level, imposing the model's long-run real-wage restriction in the firm wage equation.",
+      "units": "log (transformed wage)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWFQZPF": {
+      "name": "LWFQZPF",
+      "short_name": "Log Real Productivity-Adjusted Wage",
+      "description": "Natural log of the productivity-adjusted firm wage deflated by the nonfarm price level (log WF minus log LAM minus log PF), an estimation regressor.",
+      "units": "log (real wage)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LWFZPF": {
+      "name": "LWFZPF",
+      "short_name": "Log Real Firm Wage",
+      "description": "Natural log of the firm wage rate deflated by the nonfarm price level (log WF minus log PF), an estimation regressor.",
+      "units": "log (real wage)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LX": {
+      "name": "LX",
+      "short_name": "Log Total Sales",
+      "description": "Natural log of X, total real sales of the firm sector (our 2017-dollar vintage), used as an estimation regressor.",
+      "units": "log B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LXMFA": {
+      "name": "LXMFA",
+      "short_name": "Log Nonfarm Sales",
+      "description": "Natural log of nonfarm total sales (total sales X minus farm gross product FA, our 2017-dollar vintage), used as an estimation regressor.",
+      "units": "log B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LXMFAZ": {
+      "name": "LXMFAZ",
+      "short_name": "Log Per-Capita Nonfarm Sales",
+      "description": "Natural log of real per-capita nonfarm sales (total sales minus farm output, divided by population), used as an estimation regressor.",
+      "units": "log (real per capita)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LY": {
+      "name": "LY",
+      "short_name": "Log Total Production",
+      "description": "Natural log of Y (total real production, B2017$); the DEPENDENT variable of the production equation (Eq. 11), not a regressor.",
+      "units": "log B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LY1": {
+      "name": "LY1",
+      "short_name": "Log Output Growth",
+      "description": "Quarterly log growth rate of total real production (log of current production divided by prior-quarter production), used as an estimation regressor.",
+      "units": "log change (quarterly)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "LYDZ": {
+      "name": "LYDZ",
+      "short_name": "Log Real Per-Capita Disposable Income",
+      "description": "Natural log of real per-capita household disposable income (nominal disposable income divided by population and the household price level), a key consumption-equation regressor.",
+      "units": "log (real per capita)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "POPP": {
+      "name": "POPP",
+      "short_name": "Total Population 16+",
+      "description": "Total noninstitutional population aged 16 and over, in millions, built as the sum of the three age/sex population groups (men 25-54, women 25-54, and all others 16+).",
+      "units": "millions",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+equation"
+      }
+    },
+    "RMLMRSL2": {
+      "name": "RMLMRSL2",
+      "short_name": "Lagged Mortgage-Bill Rate Spread",
+      "description": "Constructed interest-rate spread used as a regressor in the mortgage-rate equation: the mortgage rate lagged one quarter minus the three-month Treasury bill rate lagged two quarters, in percentage points.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "RMMRSL2": {
+      "name": "RMMRSL2",
+      "short_name": "Mortgage-Bill Rate Spread",
+      "description": "Constructed spread that is the dependent variable of the mortgage-rate equation: the current mortgage rate minus the three-month Treasury bill rate lagged two quarters, in percentage points.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "RQG": {
+      "name": "RQG",
+      "short_name": "Effective Federal Debt Interest Rate",
+      "description": "Weighted average of the three-month Treasury bill rate and 0.75 times current and lagged AAA corporate bond rates, expressed at a quarterly rate, used to proxy the interest rate the federal government pays on its debt in the federal interest-payments equation.",
+      "units": "rate (quarterly, fraction)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "equation"
+      }
+    },
+    "RS1": {
+      "name": "RS1",
+      "short_name": "Change In T-Bill Rate",
+      "description": "Quarterly change in the three-month Treasury bill rate (current value minus prior quarter), in percentage points, used as a dynamics regressor in the Fed interest-rate rule.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "RSB": {
+      "name": "RSB",
+      "short_name": "After-Tax T-Bill Rate (Firms)",
+      "description": "Three-month Treasury bill rate net of federal and state-and-local corporate profit tax rates, in percentage points, used as the opportunity cost of holding money in the firm money-demand equation.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "RSLMRSL2": {
+      "name": "RSLMRSL2",
+      "short_name": "Lagged Change In T-Bill Rate",
+      "description": "One-quarter change in the three-month Treasury bill rate measured between two and one quarters ago (bill rate lagged one quarter minus bill rate lagged two quarters), in percentage points, used in the bond- and mortgage-rate term-structure equations.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "RSMRSL2": {
+      "name": "RSMRSL2",
+      "short_name": "Two-Quarter Change In T-Bill Rate",
+      "description": "Two-quarter change in the three-month Treasury bill rate (current value minus the value two quarters ago), in percentage points, used in the bond- and mortgage-rate term-structure equations.",
+      "units": "percentage points",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "SGPZGDP": {
+      "name": "SGPZGDP",
+      "short_name": "Federal Deficit Share Of GDP",
+      "description": "Federal government NIPA deficit expressed as a fraction of nominal GDP (negative of the federal surplus divided by GDP), so positive values indicate a deficit; a dimensionless ratio.",
+      "units": "ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "SIHS": {
+      "name": "SIHS",
+      "short_name": "Employee Social Insurance To State",
+      "description": "Employee social insurance (payroll) contributions paid by households to state and local governments, in billions of dollars (exogenous).",
+      "units": "B$",
+      "sector": "",
+      "category": "exogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [
+        65,
+        78,
+        109,
+        115
+      ],
+      "raw_data_sources": [],
+      "construction": "SIHS",
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2+A.7"
+      }
+    },
+    "SRZGDP": {
+      "name": "SRZGDP",
+      "short_name": "Foreign Saving Share Of GDP",
+      "description": "Net financial saving of the rest of the world (foreign sector) expressed as a fraction of nominal GDP; a dimensionless ratio.",
+      "units": "ratio",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "TFGS": {
+      "name": "TFGS",
+      "short_name": "Federal and State/Local Corporate Profit Taxes",
+      "description": "Corporate profit taxes paid by firms to federal + state/local governments, TFG+TFS, in nominal billions of dollars (B$ — NOT B2017$; nominal flow).",
+      "units": "B$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "TRGSZ": {
+      "name": "TRGSZ",
+      "short_name": "Real Per-Capita Government Transfers (excl. UI)",
+      "description": "Federal+state/local transfers to households EXCLUDING unemployment insurance, deflated and per capita: (TRGH+TRSH)/(POP*PH).",
+      "units": "ratio (real B2017$ per person)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "UMM": {
+      "name": "UMM",
+      "short_name": "Floored Unemployment Count",
+      "description": "Number of unemployed people in millions, floored at a minimum of 1.0 million so its logarithm is always defined; used as the unemployment regressor (in log form) in the unemployment-insurance-benefits equation.",
+      "units": "millions",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "UR1": {
+      "name": "UR1",
+      "short_name": "Change In Unemployment Rate",
+      "description": "Quarterly change in the civilian unemployment rate (current rate minus prior quarter), used as a dynamics regressor in the Fed interest-rate rule.",
+      "units": "rate change (fraction)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "WAZPH": {
+      "name": "WAZPH",
+      "short_name": "Real After-Tax Wage Rate",
+      "description": "After-tax wage rate divided by the household consumption price index, giving the real (inflation-adjusted) after-tax wage.",
+      "units": "ratio (real wage)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "XMFAZ": {
+      "name": "XMFAZ",
+      "short_name": "Real Non-Farm Sales Per Capita",
+      "description": "Total real sales excluding farm output, divided by population, giving real non-farm sales per person (in our 2017 base-year dollars).",
+      "units": "ratio (B2017$ per person)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "Y1": {
+      "name": "Y1",
+      "short_name": "Change In Total Production",
+      "description": "Quarterly change in real total production (current quarter minus prior quarter), in our 2017 base-year dollars.",
+      "units": "B2017$",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "YDZ": {
+      "name": "YDZ",
+      "short_name": "Real Per-Capita Disposable Income",
+      "description": "Household disposable income deflated by the household consumption price index and divided by population, giving real disposable income per person.",
+      "units": "ratio (real B2017$ per person)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
+    },
+    "YPOP": {
+      "name": "YPOP",
+      "short_name": "Real Output Per Person (16+)",
+      "description": "Real total production divided by noninstitutional population 16+ (POP1+POP2+POP3), Y/(POP1+POP2+POP3), 2017$ per person. (Denominator is 16+, not 'working-age'.)",
+      "units": "ratio (B2017$ per person)",
+      "sector": "",
+      "category": "endogenous",
+      "defined_by_equation": null,
+      "used_in_equations": [],
+      "raw_data_sources": [],
+      "construction": null,
+      "_provenance": {
+        "source": "fair_crosscheck_2026-06-17",
+        "fair_source": "A.2"
+      }
     }
   },
   "equations": {
@@ -5619,7 +6878,7 @@
         "RSA",
         "YD"
       ],
-      "formula": "cnst2cs, cnst, AG1, AG2, AG3, log(CS/POP)\u22121, log[YD/(POP \u00b7 PH)], RSA, log(AA/POP)\u22121, D202013, D202014, RHO = 1",
+      "formula": "cnst2cs, cnst, AG1, AG2, AG3, log(CS/POP)−1, log[YD/(POP · PH)], RSA, log(AA/POP)−1, D202013, D202014, RHO = 1",
       "_provenance": {
         "table": "A.3"
       }
@@ -5648,7 +6907,7 @@
         "RMA",
         "YD"
       ],
-      "formula": "cnst, AG1, AG2, AG3, log(CN/POP)\u22121, log(AA/POP)\u22121, log[YD/(POP \u00b7 PH)], RMA, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
+      "formula": "cnst, AG1, AG2, AG3, log(CN/POP)−1, log(AA/POP)−1, log[YD/(POP · PH)], RMA, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
       "_provenance": {
         "table": "A.3"
       }
@@ -5676,7 +6935,7 @@
         "RMA",
         "YD"
       ],
-      "formula": "cnst, AG1, AG2, AG3, log(CD/POP)\u22121, log[YD/(POP \u00b7 PH)], RMA, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
+      "formula": "cnst, AG1, AG2, AG3, log(CD/POP)−1, log[YD/(POP · PH)], RMA, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5685,7 +6944,7 @@
       "id": 4,
       "type": "stochastic",
       "sector_block": "household",
-      "label": "Residential investment\u2212h",
+      "label": "Residential investment−h",
       "lhs_expr": "log(IHH/POP)",
       "rhs_variables": [
         "AG1",
@@ -5704,7 +6963,7 @@
         "RMA",
         "YD"
       ],
-      "formula": "cnst, AG1, AG2, AG3, log(IHH/POP)\u22121, log[YD/(POP \u00b7 PH)], RMA\u22121, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
+      "formula": "cnst, AG1, AG2, AG3, log(IHH/POP)−1, log[YD/(POP · PH)], RMA−1, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
       "_provenance": {
         "table": "A.3"
       }
@@ -5713,7 +6972,7 @@
       "id": 5,
       "type": "stochastic",
       "sector_block": "household",
-      "label": "Labor force\u2212men 25-54",
+      "label": "Labor force−men 25-54",
       "lhs_expr": "log(L1/POP1)",
       "rhs_variables": [
         "AA",
@@ -5728,7 +6987,7 @@
         "POP1",
         "UR"
       ],
-      "formula": "cnst, log(L1/POP1)\u22121, log(AA/POP)\u22121, UR, D202014, D202020, D202023, D202014, D202011, D202012, D202013, D202014",
+      "formula": "cnst, log(L1/POP1)−1, log(AA/POP)−1, UR, D202014, D202020, D202023, D202014, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5737,7 +6996,7 @@
       "id": 6,
       "type": "stochastic",
       "sector_block": "household",
-      "label": "Labor force\u2212women 25-54",
+      "label": "Labor force−women 25-54",
       "lhs_expr": "log(L2/POP2)",
       "rhs_variables": [
         "AA",
@@ -5754,7 +7013,7 @@
         "TBL2",
         "UR"
       ],
-      "formula": "cnst212, cnst, TBL2, T, log(L2/POP2)\u22121, log(AA/POP)\u22121, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
+      "formula": "cnst212, cnst, TBL2, T, log(L2/POP2)−1, log(AA/POP)−1, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5763,7 +7022,7 @@
       "id": 7,
       "type": "stochastic",
       "sector_block": "household",
-      "label": "Labor force\u2212all others 16+",
+      "label": "Labor force−all others 16+",
       "lhs_expr": "log(L3/POP3)",
       "rhs_variables": [
         "AA",
@@ -5781,7 +7040,7 @@
         "UR",
         "WA"
       ],
-      "formula": "cnst, log(L3/POP3)\u22121), log(WA/PH), log(AA/POP)\u22121, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
+      "formula": "cnst, log(L3/POP3)−1), log(WA/PH), log(AA/POP)−1, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5804,7 +7063,7 @@
         "POP",
         "UR"
       ],
-      "formula": "cnst, log(LM/POP)\u22121, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
+      "formula": "cnst, log(LM/POP)−1, UR, D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5833,7 +7092,7 @@
         "WF",
         "XX"
       ],
-      "formula": "PF log PF\u22121, log[WF(1 + D5G)/LAM], cnst, T, log PIM, 1/UR, log[(IBTG + IBTS)/XX], D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
+      "formula": "PF log PF−1, log[WF(1 + D5G)/LAM], cnst, T, log PIM, 1/UR, log[(IBTG + IBTS)/XX], D202014, D202020, D202023, D202024, D202011, D202012, D202013, D202014, RHO = 1",
       "_provenance": {
         "table": "A.3"
       }
@@ -5842,7 +7101,7 @@
       "id": 11,
       "type": "stochastic",
       "sector_block": "firm",
-      "label": "Production\u2212f",
+      "label": "Production−f",
       "lhs_expr": "log",
       "rhs_variables": [
         "D202012",
@@ -5853,7 +7112,7 @@
         "D594",
         "D601"
       ],
-      "formula": "Y cnst, log Y\u22121, log X, log Y\u22121, D593, D594, D601, D202014, D202020, D202013, D202012, D202014, RHO = 3",
+      "formula": "Y cnst, log Y−1, log X, log Y−1, D593, D594, D601, D202014, D202020, D202013, D202012, D202014, RHO = 3",
       "_provenance": {
         "table": "A.3"
       }
@@ -5862,8 +7121,8 @@
       "id": 12,
       "type": "stochastic",
       "sector_block": "firm",
-      "label": "Stock of capital\u2212f",
-      "lhs_expr": "\u0394log",
+      "label": "Stock of capital−f",
+      "lhs_expr": "Δlog",
       "rhs_variables": [
         "CG",
         "D202011",
@@ -5875,7 +7134,7 @@
         "KKMIN",
         "PX"
       ],
-      "formula": "KK cnst2kk, cnst, log(KK/KKMIN)\u22121, \u0394log KK\u22121, \u0394log Y, \u0394log Y\u22121, \u0394log Y\u22122, \u0394log Y\u22123, \u0394log Y\u22124, \u0394log Y\u22125, (CG\u22122 + CG\u22123 + CG\u22124)/(PX\u22122YS\u22122 + PX\u22123YS\u22123 + PX\u22124YS\u22124), D202014, D202020, D202013, D202014, D202011, D202012, D202013, D202014",
+      "formula": "KK cnst2kk, cnst, log(KK/KKMIN)−1, Δlog KK−1, Δlog Y, Δlog Y−1, Δlog Y−2, Δlog Y−3, Δlog Y−4, Δlog Y−5, (CG−2 + CG−3 + CG−4)/(PX−2YS−2 + PX−3YS−3 + PX−4YS−4), D202014, D202020, D202013, D202014, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5884,8 +7143,8 @@
       "id": 13,
       "type": "stochastic",
       "sector_block": "firm",
-      "label": "Number of jobs\u2212f",
-      "lhs_expr": "\u0394log",
+      "label": "Number of jobs−f",
+      "lhs_expr": "Δlog",
       "rhs_variables": [
         "D202011",
         "D202012",
@@ -5898,7 +7157,7 @@
         "JF",
         "JHMIN"
       ],
-      "formula": "JF cnst, log[JF/(JHMIN/HFS)]\u22121, \u0394log JF\u22121, \u0394log Y, D593, D202014, D202020, D202023, D202014, D202011, D202012, D202013, D202014",
+      "formula": "JF cnst, log[JF/(JHMIN/HFS)]−1, Δlog JF−1, Δlog Y, D593, D202014, D202020, D202023, D202014, D202011, D202012, D202013, D202014",
       "_provenance": {
         "table": "A.3"
       }
@@ -5908,12 +7167,12 @@
       "type": "stochastic",
       "sector_block": "firm",
       "label": "",
-      "lhs_expr": "\u0394log",
+      "lhs_expr": "Δlog",
       "rhs_variables": [
         "HF",
         "HFS"
       ],
-      "formula": "HF cnst, log(HF/HFS)\u22121,",
+      "formula": "HF cnst, log(HF/HFS)−1,",
       "_provenance": {
         "table": "A.3"
       }
@@ -5971,7 +7230,7 @@
       "type": "definitional",
       "sector_block": "financial",
       "label": "CUR/(POP \\cdot PF)",
-      "lhs_expr": "log[CUR/(POP \u00b7 PF)]",
+      "lhs_expr": "log[CUR/(POP · PF)]",
       "rhs_variables": [
         "D20201",
         "D20202",
@@ -6070,7 +7329,7 @@
         "RS_",
         "UR"
       ],
-      "formula": "cnst, RS_-1, 100, UR, \u0394 UR, D20083 \u00b7 PCM1_-1, D794823 \u00b7 PCM1_-1, \u0394 RS_-1, \u0394 RS_-2",
+      "formula": "cnst, RS_-1, 100, UR, Δ UR, D20083 · PCM1_-1, D794823 · PCM1_-1, Δ RS_-1, Δ RS_-2",
       "_provenance": {
         "table": "A.3"
       }
@@ -6097,7 +7356,7 @@
         "PSI1",
         "PX"
       ],
-      "formula": "PSI1 \u00b7 PX",
+      "formula": "PSI1 · PX",
       "_provenance": {
         "table": "A.3"
       }
@@ -6115,7 +7374,7 @@
         "PIM",
         "PX"
       ],
-      "formula": "(PX \u00b7 X - PEX \u00b7 EX + PIM \u00b7 IM)/(X - EX + IM)",
+      "formula": "(PX · X - PEX · EX + PIM · IM)/(X - EX + IM)",
       "_provenance": {
         "table": "A.3"
       }
@@ -6136,7 +7395,7 @@
         "PCS",
         "PIH"
       ],
-      "formula": "(PCS \u00b7 CS + PCN \u00b7 CN + PCD \u00b7 CD + PIH \u00b7 IHH)/(CS + CN + CD + IHH)",
+      "formula": "(PCS · CS + PCN · CN + PCD · CD + PIH · IHH)/(CS + CN + CD + IHH)",
       "_provenance": {
         "table": "A.3"
       }
@@ -6151,7 +7410,7 @@
         "PD",
         "PSI2"
       ],
-      "formula": "PSI2 \u00b7 PD",
+      "formula": "PSI2 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6166,7 +7425,7 @@
         "PD",
         "PSI3"
       ],
-      "formula": "PSI3 \u00b7 PD",
+      "formula": "PSI3 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6181,7 +7440,7 @@
         "PD",
         "PSI4"
       ],
-      "formula": "PSI4 \u00b7 PD",
+      "formula": "PSI4 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6196,7 +7455,7 @@
         "PD",
         "PSI5"
       ],
-      "formula": "PSI5 \u00b7 PD",
+      "formula": "PSI5 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6211,7 +7470,7 @@
         "PD",
         "PSI6"
       ],
-      "formula": "PSI6 \u00b7 PD",
+      "formula": "PSI6 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6226,7 +7485,7 @@
         "PD",
         "PSI7"
       ],
-      "formula": "PSI7 \u00b7 PD",
+      "formula": "PSI7 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6241,7 +7500,7 @@
         "PD",
         "PSI8"
       ],
-      "formula": "PSI8 \u00b7 PD",
+      "formula": "PSI8 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6256,7 +7515,7 @@
         "PD",
         "PSI9"
       ],
-      "formula": "PSI9 \u00b7 PD",
+      "formula": "PSI9 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6283,7 +7542,7 @@
         "PSI10",
         "WF"
       ],
-      "formula": "PSI10 \u00b7 WF",
+      "formula": "PSI10 · WF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6298,7 +7557,7 @@
         "PSI11",
         "WF"
       ],
-      "formula": "PSI11 \u00b7 WF",
+      "formula": "PSI11 · WF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6313,7 +7572,7 @@
         "PSI12",
         "WF"
       ],
-      "formula": "PSI12 \u00b7 WF",
+      "formula": "PSI12 · WF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6328,7 +7587,7 @@
         "D1G",
         "YT"
       ],
-      "formula": "D1G \u00b7 YT",
+      "formula": "D1G · YT",
       "_provenance": {
         "table": "A.3"
       }
@@ -6343,7 +7602,7 @@
         "D1S",
         "YT"
       ],
-      "formula": "D1S \u00b7 YT",
+      "formula": "D1S · YT",
       "_provenance": {
         "table": "A.3"
       }
@@ -6374,7 +7633,7 @@
         "D2S",
         "PIEF"
       ],
-      "formula": "D2S \u00b7 PIEF",
+      "formula": "D2S · PIEF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6417,7 +7676,7 @@
         "PD",
         "PSI14"
       ],
-      "formula": "PSI14 \u00b7 PD",
+      "formula": "PSI14 · PD",
       "_provenance": {
         "table": "A.3"
       }
@@ -6432,7 +7691,7 @@
         "INTG",
         "PSI15"
       ],
-      "formula": "PSI15 \u00b7 INTG",
+      "formula": "PSI15 · INTG",
       "_provenance": {
         "table": "A.3"
       }
@@ -6542,7 +7801,7 @@
         "PIM",
         "PS"
       ],
-      "formula": "PCS \u00b7 CS + PCN \u00b7 CN + PCD \u00b7 CD + PIH \u00b7 IHH + PIK \u00b7 IKF + PEX \u00b7 EX - PIM \u00b7 IM + PG \u00b7 COG + PS \u00b7 COS + PIK \u00b7 (IKH + IKB + IKG) + PIH \u00b7 IHFS",
+      "formula": "PCS · CS + PCN · CN + PCD · CD + PIH · IHH + PIK · IKF + PEX · EX - PIM · IM + PG · COG + PS · COS + PIK · (IKH + IKB + IKG) + PIH · IHFS",
       "_provenance": {
         "table": "A.3"
       }
@@ -6609,7 +7868,7 @@
         "WM",
         "WS"
       ],
-      "formula": "WF \u00b7 JF(HN + 1.5HO) + WG \u00b7 JG \u00b7 HG + WM \u00b7 JM \u00b7 HM + WS \u00b7 JS \u00b7 HS + RNT + INTZ + INTF + INTG - INTGR + INTS + DF + DB + DR + DG + DS + TRFH - TRHR - SIGG - SISS",
+      "formula": "WF · JF(HN + 1.5HO) + WG · JG · HG + WM · JM · HM + WS · JS · HS + RNT + INTZ + INTF + INTG - INTGR + INTS + DF + DB + DR + DG + DS + TRFH - TRHR - SIGG - SISS",
       "_provenance": {
         "table": "A.3"
       }
@@ -6645,7 +7904,7 @@
         "UB",
         "YT"
       ],
-      "formula": "YT - SIHG - SIHG - THG - THS - PCS \u00b7 CS - PCN \u00b7 CN - PCD \u00b7 CD + TRGH + TRSH + UB + INS + NICD + CCH - CTH - PIH \u00b7 IHH - CDH - PIK \u00b7 IKH - NNH",
+      "formula": "YT - SIHG - SIHG - THG - THS - PCS · CS - PCN · CN - PCD · CD + TRGH + TRSH + UB + INS + NICD + CCH - CTH - PIH · IHH - CDH - PIK · IKH - NNH",
       "_provenance": {
         "table": "A.3"
       }
@@ -6663,7 +7922,7 @@
         "MH",
         "SH"
       ],
-      "formula": "SH - \u0394 AH - \u0394 MH + CG - DISH",
+      "formula": "SH - Δ AH - Δ MH + CG - DISH",
       "_provenance": {
         "table": "A.3"
       }
@@ -6680,7 +7939,7 @@
         "IKF",
         "PIK"
       ],
-      "formula": "DG(GPIK \u00b7 IKF + PIK - 1 \u00b7 IKF - 1 + PIK - 2 \u00b7 IKF - 2 + PIK - 3 \u00b7 IKF - 3) / 4",
+      "formula": "DG(GPIK · IKF + PIK - 1 · IKF - 1 + PIK - 2 · IKF - 2 + PIK - 3 · IKF - 3) / 4",
       "_provenance": {
         "table": "A.3"
       }
@@ -6726,7 +7985,7 @@
         "WF",
         "XX"
       ],
-      "formula": "XX + PIV \u00b7 IVF + SUBS + SUBG + USOTHER - WF \u00b7 JF(HN + 1.5HO) - RNT - INTZ - INTF - TRFH - NICD - CCH + CDH - TRFS - CCS - TRFR - GSMA - GSGA - TRFG - CCG - SIFG - SIFS - GSNN - IVA - CCF1 - STAT + TTRRF - PIEB - IBTG - IBTS",
+      "formula": "XX + PIV · IVF + SUBS + SUBG + USOTHER - WF · JF(HN + 1.5HO) - RNT - INTZ - INTF - TRFH - NICD - CCH + CDH - TRFS - CCS - TRFR - GSMA - GSGA - TRFG - CCG - SIFG - SIFS - GSNN - IVA - CCF1 - STAT + TTRRF - PIEB - IBTG - IBTS",
       "_provenance": {
         "table": "A.3"
       }
@@ -6777,7 +8036,7 @@
         "WF",
         "XX"
       ],
-      "formula": "XX + SUBS + SUBG + PIEFFRET + USOTHER - WF \u00b7 JF(HN + 1.5HO) - RNT - INTZ - INTF - TRFH - NICD - CCH + CDH - TRFS - CCS - TRFR - GSMA - GSGA - TRFG - CCG - SIFG - SIFS - STAT - DF - TF1 - PIK \u00b7 IKF - PIH \u00b7 IHF - NNF - CTF1 - CTNN + TTRRF - PIEB - IBTG - IBTS",
+      "formula": "XX + SUBS + SUBG + PIEFFRET + USOTHER - WF · JF(HN + 1.5HO) - RNT - INTZ - INTF - TRFH - NICD - CCH + CDH - TRFS - CCS - TRFR - GSMA - GSGA - TRFG - CCG - SIFG - SIFS - STAT - DF - TF1 - PIK · IKF - PIH · IHF - NNF - CTF1 - CTNN + TTRRF - PIEB - IBTG - IBTS",
       "_provenance": {
         "table": "A.3"
       }
@@ -6794,7 +8053,7 @@
         "MF",
         "SF"
       ],
-      "formula": "SF - \u0394 AF - \u0394 MF - DISF",
+      "formula": "SF - Δ AF - Δ MF - DISF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6814,7 +8073,7 @@
         "MR",
         "MS"
       ],
-      "formula": "\u0394 MB + \u0394 MH + \u0394 MF + \u0394 MR + \u0394 MG + \u0394 MS - \u0394 CUR",
+      "formula": "Δ MB + Δ MH + Δ MF + Δ MR + Δ MG + Δ MS - Δ CUR",
       "_provenance": {
         "table": "A.3"
       }
@@ -6831,7 +8090,7 @@
         "IKB",
         "PIK"
       ],
-      "formula": "GSB - CTB - PIK \u00b7 IKB",
+      "formula": "GSB - CTB - PIK · IKB",
       "_provenance": {
         "table": "A.3"
       }
@@ -6850,7 +8109,7 @@
         "MB",
         "SB"
       ],
-      "formula": "SB - \u0394 AB - \u0394 MB - \u0394 (BR - BO) - DISB",
+      "formula": "SB - Δ AB - Δ MB - Δ (BR - BO) - DISB",
       "_provenance": {
         "table": "A.3"
       }
@@ -6877,7 +8136,7 @@
         "TTRRF",
         "USROW"
       ],
-      "formula": "-PEX \u00b7 EX - USROW + PIM \u00b7 IM + TFR + TRFR + TRHR + TRGR - CTR - NNR - TRRS - TRRG2 - TTRRF",
+      "formula": "-PEX · EX - USROW + PIM · IM + TFR + TRFR + TRHR + TRGR - CTR - NNR - TRRS - TRRG2 - TTRRF",
       "_provenance": {
         "table": "A.3"
       }
@@ -6893,7 +8152,7 @@
         "MR",
         "SR"
       ],
-      "formula": "SR - \u0394 AR - \u0394 MR + \u0394 Q - DISR",
+      "formula": "SR - Δ AR - Δ MR + Δ Q - DISR",
       "_provenance": {
         "table": "A.3"
       }
@@ -6938,7 +8197,7 @@
         "WG",
         "WM"
       ],
-      "formula": "GSMA + GSCA + THG + IBTC + TBG + TFG + SIHG + SIFG - DG + TRFG - PG \u00b7 COG - WG \u00b7 JG \u00b7 HG - WM \u00b7 JM \u00b7 HM - TRGH - UB - TRGR - TRGS - INTG - SUBG + CCG - INS - CTGMB - NNG - PIK \u00b7 IKG + SIGG + CTGB",
+      "formula": "GSMA + GSCA + THG + IBTC + TBG + TFG + SIHG + SIFG - DG + TRFG - PG · COG - WG · JG · HG - WM · JM · HM - TRGH - UB - TRGR - TRGS - INTG - SUBG + CCG - INS - CTGMB - NNG - PIK · IKG + SIGG + CTGB",
       "_provenance": {
         "table": "A.3"
       }
@@ -6958,7 +8217,7 @@
         "MG",
         "SG"
       ],
-      "formula": "SG - \u0394 AG - \u0394 MG + \u0394 CUR + \u0394 (BR - BO) - \u0394 Q - DISG",
+      "formula": "SG - Δ AG - Δ MG + Δ CUR + Δ (BR - BO) - Δ Q - DISG",
       "_provenance": {
         "table": "A.3"
       }
@@ -6993,7 +8252,7 @@
         "TRSH",
         "WS"
       ],
-      "formula": "THS + IBTS + TBS + TFS + SHS + SIFS - DS + TRGS + TRFS - PS \u00b7 COS - WS \u00b7 JS \u00b7 HS - TRSH - INTS - SUBS + CCS - CTS - NNS + SISS + TRRS",
+      "formula": "THS + IBTS + TBS + TFS + SHS + SIFS - DS + TRGS + TRFS - PS · COS - WS · JS · HS - TRSH - INTS - SUBS + CCS - CTS - NNS + SISS + TRRS",
       "_provenance": {
         "table": "A.3"
       }
@@ -7010,7 +8269,7 @@
         "MS",
         "SS"
       ],
-      "formula": "SS - \u0394 AS - \u0394 MS - DISS",
+      "formula": "SS - Δ AS - Δ MS - DISS",
       "_provenance": {
         "table": "A.3"
       }
@@ -7019,7 +8278,7 @@
       "id": 80,
       "type": "definitional",
       "sector_block": "financial",
-      "label": "Redundant equation\u2014for checking",
+      "label": "Redundant equation—for checking",
       "lhs_expr": "0",
       "rhs_variables": [
         "SB",
@@ -7050,7 +8309,7 @@
         "MR",
         "MS"
       ],
-      "formula": "M1 - 1 + \u0394 MH + \u0394 MF + \u0394 MR + \u0394 MS + MDIF",
+      "formula": "M1 - 1 + Δ MH + Δ MF + Δ MR + Δ MS + MDIF",
       "_provenance": {
         "table": "A.3"
       }
@@ -7074,7 +8333,7 @@
         "WS",
         "XX"
       ],
-      "formula": "XX + PIV(V - V - 1) + WG \u00b7 JG \u00b7 HG + WM \u00b7 JM \u00b7 HM + WS \u00b7 JS \u00b7 HS",
+      "formula": "XX + PIV(V - V - 1) + WG · JG · HG + WM · JM · HM + WS · JS · HS",
       "_provenance": {
         "table": "A.3"
       }
@@ -7095,7 +8354,7 @@
         "PSI13",
         "STATP"
       ],
-      "formula": "Y + PSI13(JG \u00b7 HG + JM \u00b7 HM + JS \u00b7 HS) + STATP",
+      "formula": "Y + PSI13(JG · HG + JM · HM + JS · HS) + STATP",
       "_provenance": {
         "table": "A.3"
       }
@@ -7193,7 +8452,7 @@
         "PH",
         "PKH"
       ],
-      "formula": "(PKH \u00b7 KH)/PH",
+      "formula": "(PKH · KH)/PH",
       "_provenance": {
         "table": "A.3"
       }
@@ -7252,7 +8511,7 @@
         "PCD",
         "THETA2"
       ],
-      "formula": "THETA2 \u00b7 PCD \u00b7 CD",
+      "formula": "THETA2 · PCD · CD",
       "_provenance": {
         "table": "A.3"
       }
@@ -7268,7 +8527,7 @@
         "PCD",
         "THETA3"
       ],
-      "formula": "THETA3 \u00b7 PCD \u00b7 CD",
+      "formula": "THETA3 · PCD · CD",
       "_provenance": {
         "table": "A.3"
       }
@@ -7351,7 +8610,7 @@
         "WG",
         "WM"
       ],
-      "formula": "PG \u00b7 COG + WG \u00b7 JG \u00b7 HG + WM \u00b7 JM \u00b7 HM",
+      "formula": "PG · COG + WG · JG · HG + WM · JM · HM",
       "_provenance": {
         "table": "A.3"
       }
@@ -7455,7 +8714,7 @@
         "PS",
         "WS"
       ],
-      "formula": "PS \u00b7 COS + WS \u00b7 JS \u00b7 HS",
+      "formula": "PS · COS + WS · JS · HS",
       "_provenance": {
         "table": "A.3"
       }
@@ -7470,7 +8729,7 @@
         "GDPD",
         "THETA1"
       ],
-      "formula": "THETA1 \u00b7 GDPD",
+      "formula": "THETA1 · GDPD",
       "_provenance": {
         "table": "A.3"
       }
@@ -7570,7 +8829,7 @@
         "WM",
         "WS"
       ],
-      "formula": "WF \u00b7 JF(HN + 1.5HO) + WG \u00b7 JG \u00b7 HG + WM \u00b7 JM \u00b7 HM + WS \u00b7 JS \u00b7 HS + RNT + INTZ + INTF + INTG - INTGR + INTS + DF + DB + DR + DG + DS + TRFH + TRGH + TRSH + UB - SIHG - SIH - THG - THS - TRHR - SIGG - SISS",
+      "formula": "WF · JF(HN + 1.5HO) + WG · JG · HG + WM · JM · HM + WS · JS · HS + RNT + INTZ + INTF + INTG - INTGR + INTS + DF + DB + DR + DG + DS + TRFH + TRGH + TRSH + UB - SIHG - SIH - THG - THS - TRHR - SIGG - SISS",
       "_provenance": {
         "table": "A.3"
       }
@@ -7590,7 +8849,7 @@
         "PCS",
         "YD"
       ],
-      "formula": "(YD - PCS \u00b7 CS - PCN \u00b7 CN - PCD \u00b7 CD)/YD",
+      "formula": "(YD - PCS · CS - PCN · CN - PCD · CD)/YD",
       "_provenance": {
         "table": "A.3"
       }
@@ -7619,7 +8878,7 @@
         "HF",
         "JF"
       ],
-      "formula": "Y/(JF \u00b7 HF)",
+      "formula": "Y/(JF · HF)",
       "_provenance": {
         "table": "A.3"
       }
@@ -7669,7 +8928,7 @@
         "PEF",
         "WF"
       ],
-      "formula": "[(1-D2G-D2S)PEF]/[WF\u00b7 JF(HN+1.5HO)] \\\\",
+      "formula": "[(1-D2G-D2S)PEF]/[WF· JF(HN+1.5HO)] \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7734,7 +8993,7 @@
         "WF",
         "WG"
       ],
-      "formula": "100[(1-D1G-D1S-D4G][WF\u00b7 JF(HN+1.5HO)]+(1-D1G-D1S)(WG\u00b7 \\\\",
+      "formula": "100[(1-D1G-D1S-D4G][WF· JF(HN+1.5HO)]+(1-D1G-D1S)(WG· \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7827,7 +9086,7 @@
         "PIEF",
         "THETA4"
       ],
-      "formula": "THETA4\u00b7 PIEF \\\\",
+      "formula": "THETA4· PIEF \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7875,7 +9134,7 @@
         "CCGQ",
         "GDPD"
       ],
-      "formula": "GDPD\u00b7 CCGQ \\\\",
+      "formula": "GDPD· CCGQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7890,7 +9149,7 @@
         "CCHQ",
         "GDPD"
       ],
-      "formula": "GDPD\u00b7 CCHQ \\\\",
+      "formula": "GDPD· CCHQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7905,7 +9164,7 @@
         "CCSQ",
         "GDPD"
       ],
-      "formula": "GDPD\u00b7 CCSQ \\\\",
+      "formula": "GDPD· CCSQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7920,7 +9179,7 @@
         "DBQ",
         "GDPD"
       ],
-      "formula": "GDPD\u00b7 DBQ \\\\",
+      "formula": "GDPD· DBQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7935,7 +9194,7 @@
         "DRQ",
         "GDPD"
       ],
-      "formula": "GDPD\u00b7 DRQ \\\\",
+      "formula": "GDPD· DRQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7950,7 +9209,7 @@
         "GDPD",
         "GSBQ"
       ],
-      "formula": "GDPD\u00b7 GSBQ \\\\",
+      "formula": "GDPD· GSBQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7965,7 +9224,7 @@
         "GDPD",
         "GSNNQ"
       ],
-      "formula": "GDPD\u00b7 GSNNQ \\\\",
+      "formula": "GDPD· GSNNQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7980,7 +9239,7 @@
         "GDPD",
         "IGZQ"
       ],
-      "formula": "GDPD\u00b7 IGZQ \\\\",
+      "formula": "GDPD· IGZQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -7995,7 +9254,7 @@
         "GDPD",
         "INTZQ"
       ],
-      "formula": "GDPD\u00b7 INTZQ \\\\",
+      "formula": "GDPD· INTZQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8010,7 +9269,7 @@
         "GDPD",
         "ISZQ"
       ],
-      "formula": "GDPD\u00b7 ISZQ \\\\",
+      "formula": "GDPD· ISZQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8025,7 +9284,7 @@
         "GDPD",
         "MGQ"
       ],
-      "formula": "GDPD\u00b7 MGQ \\\\",
+      "formula": "GDPD· MGQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8040,7 +9299,7 @@
         "GDPD",
         "MHQ"
       ],
-      "formula": "GDPD\u00b7 MHQ \\\\",
+      "formula": "GDPD· MHQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8055,7 +9314,7 @@
         "GDPD",
         "MRQ"
       ],
-      "formula": "GDPD\u00b7 MRQ \\\\",
+      "formula": "GDPD· MRQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8070,7 +9329,7 @@
         "GDPD",
         "MSQ"
       ],
-      "formula": "GDPD\u00b7 MSQ \\\\",
+      "formula": "GDPD· MSQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8085,7 +9344,7 @@
         "GDPD",
         "QQ"
       ],
-      "formula": "GDPD\u00b7 QQ \\\\",
+      "formula": "GDPD· QQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8100,7 +9359,7 @@
         "GDPD",
         "RNTQ"
       ],
-      "formula": "GDPD\u00b7 RNTQ \\\\",
+      "formula": "GDPD· RNTQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8115,7 +9374,7 @@
         "GDPD",
         "TBGQ"
       ],
-      "formula": "GDPD\u00b7 TBGQ \\\\",
+      "formula": "GDPD· TBGQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8130,7 +9389,7 @@
         "GDPD",
         "TRGHQ"
       ],
-      "formula": "GDPD\u00b7 TRGHQ \\\\",
+      "formula": "GDPD· TRGHQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8145,7 +9404,7 @@
         "GDPD",
         "TRGSQ"
       ],
-      "formula": "GDPD\u00b7 TRGSQ \\\\",
+      "formula": "GDPD· TRGSQ \\\\",
       "_provenance": {
         "table": "A.3"
       }
@@ -8160,7 +9419,7 @@
         "GDPD",
         "TRSHQ"
       ],
-      "formula": "GDPD\u00b7 TRSHQ \\\\ {tabular}",
+      "formula": "GDPD· TRSHQ \\\\ {tabular}",
       "_provenance": {
         "table": "A.3"
       }
@@ -9067,7 +10326,7 @@
       "r_number": "R180",
       "variable": "RB",
       "source_type": "NIPA",
-      "description": "Moody\u2019s Aaa corporate bond rate, percentage points. [Quarterly average. Data from BOG up to September 2016. Data from FRED from October 2017 on.]"
+      "description": "Moody’s Aaa corporate bond rate, percentage points. [Quarterly average. Data from BOG up to September 2016. Data from FRED from October 2017 on.]"
     },
     "R181": {
       "r_number": "R181",
