@@ -29359,9 +29359,9 @@
     "JCHC0": {
       "code": "JCHC0",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Intercept (constant term) in the job-guarantee take-up equation for the childcare/labor-force-entry channel, i.e. the baseline quarterly drift in the childcare-related JG participation share JGCHLDU1 when all driver changes are zero.",
+      "short_name": "JG Childcare Take-up: Constant",
+      "units": "rate per quarter",
       "used_in_equations": []
     },
     "JCHJH": {
@@ -29375,9 +29375,9 @@
     "JCHUR": {
       "code": "JCHUR",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Coefficient on the lagged change in the unemployment rate (UR) in the job-guarantee childcare take-up equation that updates the childcare-related JG participation share JGCHLDU1.",
+      "short_name": "JG Childcare Take-up: Unemployment Effect",
+      "units": "coefficient",
       "used_in_equations": []
     },
     "JCHYP": {
@@ -29407,9 +29407,9 @@
     "JGBEN": {
       "code": "JGBEN",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Job-guarantee benefit (fringe/health) loading expressed as a fraction of the JG wage bill, used to scale total JG benefit cost (e.g. set to 0.2, i.e. 20% of wages).",
+      "short_name": "JG Benefit Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGBENF": {
@@ -29447,25 +29447,25 @@
     "JGCOLA": {
       "code": "JGCOLA",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Quarterly cost-of-living adjustment (growth rate) applied to the job-guarantee wage JGW each period; standard scenarios use a 3% annualized path (about 0.0074 per quarter).",
+      "short_name": "JG Wage COLA Rate",
+      "units": "rate per quarter",
       "used_in_equations": []
     },
     "JGEITCG": {
       "code": "JGEITCG",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Federal earned-income-tax-credit share applied to job-guarantee household benefits: the fraction of JGBENH credited/offset through the federal government in the household income and federal budget identities.",
+      "short_name": "Federal EITC Share (JG)",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGEITCS": {
       "code": "JGEITCS",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "State-and-local earned-income-tax-credit share applied to job-guarantee household benefits: the fraction of JGBENH credited/offset through state and local government in the household income and state budget identities.",
+      "short_name": "State EITC Share (JG)",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGFULLH": {
@@ -29479,113 +29479,113 @@
     "JGH": {
       "code": "JGH",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Job-guarantee hours per worker per quarter, set to 13 weeks x 32 hours = 416 when the program is on (gated by JGSWITCH); multiplies JG jobs and the JG wage to form the JG wage bill.",
+      "short_name": "JG Hours per Worker (Quarterly)",
+      "units": "hours per quarter",
       "used_in_equations": []
     },
     "JGHEALTH": {
       "code": "JGHEALTH",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Share of job-guarantee benefits routed through the firm/health channel, defined as 1 minus the vacation share JGVAC; used to split total JG benefits into the firm-paid portion JGBENF.",
+      "short_name": "JG Health/Firm Benefit Share",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGHILO": {
       "code": "JGHILO",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Binary scenario switch selecting the job-guarantee take-up regime: 1 uses the high take-up branch, 0 uses the lower branch (half participant take-up and lower want-a-job/unemployed-entry variants).",
+      "short_name": "JG High/Low Take-up Switch",
+      "units": "switch (0/1)",
       "used_in_equations": []
     },
     "JGINCOME": {
       "code": "JGINCOME",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Total job-guarantee wage income paid to participants, equal to JG jobs x hours x wage (JGJ x JGH x JGW); enters household income, taxes, social-insurance, GDP, and the federal budget (B2017$).",
+      "short_name": "JG Wage Income",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "JGINTG": {
       "code": "JGINTG",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "PSE-adjusted federal government interest payments, equal to FAIR federal interest INTG net of the adjustment fraction INTGADJ (JGINTG = INTG - INTGADJ*INTG); replaces raw INTG throughout the PSE household and federal budget identities (B2017$).",
+      "short_name": "Adjusted Federal Interest (JG)",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "JGJ": {
       "code": "JGJ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Total job-guarantee employment (number of workers enrolled), equal to the sum of participants drawn from those previously employed-part-time (JGPART), out of the labor force (JGNOTLF), and unemployed (JGU); core JG headcount (millions of workers).",
+      "short_name": "JG Jobs (Workers)",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGMAT": {
       "code": "JGMAT",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Share of job-guarantee non-labor costs routed through the firm/materials channel, defined as 1 minus the household/supervisory share JGSUPER; used to split non-labor costs into the firm-paid portion JGNLCF.",
+      "short_name": "JG Materials/Firm NLC Share",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGMEDICG": {
       "code": "JGMEDICG",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Federal Medicaid/health share applied to job-guarantee firm-paid benefits JGBENF: the fraction routed through the federal government in the sales, government-purchases, and federal budget identities.",
+      "short_name": "Federal Medicaid Share (JG)",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGMEDICS": {
       "code": "JGMEDICS",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "State-and-local Medicaid/health share applied to job-guarantee firm-paid benefits JGBENF: the fraction routed through state and local government in the sales and state budget identities.",
+      "short_name": "State Medicaid Share (JG)",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGNLC": {
       "code": "JGNLC",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Job-guarantee non-labor cost loading (overhead/materials/supervision) expressed as a fraction of the JG wage bill, used to scale total JG non-labor cost (e.g. set to 0.25, i.e. 25% of wages).",
+      "short_name": "JG Non-Labor Cost Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGNLCF": {
       "code": "JGNLCF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Dollar value of job-guarantee non-labor costs attributed to the firm/materials share, equal to JGMAT x JGNLC x JG wage bill; flows into nominal sales, government purchases, and the federal budget (B2017$).",
+      "short_name": "JG Firm Non-Labor Costs",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "JGNLCH": {
       "code": "JGNLCH",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Job-guarantee non-labor (overhead/supervisory) costs booked to the household/government side of the accounts, equal to the supervisory share (JGSUPER) of total JG non-labor cost (JGNLC times the JG wage bill), in 2017 billions of dollars.",
+      "short_name": "JG Overhead Costs (Public Share)",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "JGNOTLF": {
       "code": "JGNOTLF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of job-guarantee participants drawn from people previously NOT in the labor force ('want-a-job' entrants), phased in by JGPHASE and using the high or low take-up branch, in millions of jobs.",
+      "short_name": "JG Hires From Out Of Labor Force",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGPART": {
       "code": "JGPART",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of job-guarantee participants drawn from people already in the labor force (private part-time switchers plus those leaving childcare/family responsibilities), phased in by JGPHASE and using the high or low take-up branch, in millions of jobs.",
+      "short_name": "JG Hires Already In Labor Force",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGPARTH": {
@@ -29599,25 +29599,25 @@
     "JGPHASE": {
       "code": "JGPHASE",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Phase-in share/intensity of the job-guarantee program (0 = off, 1 = fully phased in), scaling JG employment take-up, wage feedback, and the JG-weighted budget channels; ramped 0.2, 0.4, 0.6, 0.8, 1.0 in standard scenarios.",
+      "short_name": "JG Phase-In Share",
+      "units": "share",
       "used_in_equations": []
     },
     "JGPROD": {
       "code": "JGPROD",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Productivity weight applied to job-guarantee labor when it is counted toward real GDP (0 = JG output adds nothing real, 1 = JG labor as productive as the private benchmark), multiplying the JG real-output term in the real-GDP identity.",
+      "short_name": "JG Labor Productivity Weight",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JGPT": {
       "code": "JGPT",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of job-guarantee participants who switch in from private-sector part-time employment, equal to the per-firm-job take-up coefficient (JGPTJ1) times lagged private firm jobs (JF), with the program switch JGSWITCH gating it on, in millions of jobs.",
+      "short_name": "JG Hires From Private Part-Time",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGPTJ1": {
@@ -29631,17 +29631,17 @@
     "JGSPEND": {
       "code": "JGSPEND",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Total gross spending on the job-guarantee program (wages plus benefit and non-labor-cost loadings), equal to JG jobs times JG hours times the JG wage scaled up by (1 + benefit rate + non-labor-cost rate), in 2017 billions of dollars.",
+      "short_name": "Total JG Program Spending",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "JGSUPER": {
       "code": "JGSUPER",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Share of job-guarantee non-labor (overhead) costs treated as supervisory/public-side spending rather than materials bought from firms; the materials share is JGMAT = 1 - JGSUPER.",
+      "short_name": "JG Supervisory Cost Share",
+      "units": "share",
       "used_in_equations": []
     },
     "JGSWITCH": {
@@ -29655,9 +29655,9 @@
     "JGTAX": {
       "code": "JGTAX",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Effective tax rate applied to job-guarantee earnings and benefits, used to compute tax revenue from JG income (YTJG) and the after-tax amount that flows into household disposable income.",
+      "short_name": "JG Income Tax Rate",
+      "units": "rate",
       "used_in_equations": []
     },
     "JGU": {
@@ -29671,9 +29671,9 @@
     "JGUB": {
       "code": "JGUB",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Fraction of unemployment benefits offset (saved) because workers move from unemployment into the job guarantee; appears in the budget and income identities as a (1 - JGUB*JGPHASE) reduction of unemployment-benefit outlays.",
+      "short_name": "JG Unemployment-Benefit Offset Share",
+      "units": "share",
       "used_in_equations": []
     },
     "JGULLL1": {
@@ -29703,9 +29703,9 @@
     "JGUUWKS": {
       "code": "JGUUWKS",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of potential job-guarantee entrants from the short-duration unemployment category (the 'UU5WK' pool), equal to its take-up rate (JGUUWKL1) times the lagged labor force; feeds the low-take-up branch of JG hires from the unemployed.",
+      "short_name": "JG Short-Term-Unemployed Entrants",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGVAC": {
@@ -29719,17 +29719,17 @@
     "JGW": {
       "code": "JGW",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "The job-guarantee hourly wage (in the model's scaled wage units; e.g. $15/h or $20/h scenarios), growing each quarter by the cost-of-living adjustment JGCOLA.",
+      "short_name": "JG Hourly Wage",
+      "units": "scaled $/hour (2017$ basis)",
       "used_in_equations": []
     },
     "JGWAJHI": {
       "code": "JGWAJHI",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of out-of-labor-force 'want-a-job' people who could enter the job guarantee under the high-take-up branch, equal to the high want-a-job rate (JGWAJHIL) times the labor force.",
+      "short_name": "JG Want-A-Job Entrants (High)",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGWAJHIL": {
@@ -29743,9 +29743,9 @@
     "JGWAJLO": {
       "code": "JGWAJLO",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Number of out-of-labor-force 'want-a-job' people who could enter the job guarantee under the low-take-up branch, equal to the low want-a-job rate (JGWAJLOL) times the labor force.",
+      "short_name": "JG Want-A-Job Entrants (Low)",
+      "units": "millions",
       "used_in_equations": []
     },
     "JGWAJLOL": {
@@ -29767,9 +29767,9 @@
     "JGWFPASS": {
       "code": "JGWFPASS",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Pass-through fraction (set to 0.2) controlling how much of the gap between total job-guarantee compensation and minimum-wage compensation feeds into the private firm wage rate through the JGWFADJ wage-floor adjustment.",
+      "short_name": "Wage-Floor Pass-Through Fraction",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JHGSZ": {
@@ -29783,9 +29783,9 @@
     "JHIA0": {
       "code": "JHIA0",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Intercept coefficient in the high-estimate equation for the share of the labor force in the would-accept-a-job-guarantee pool (JGWAJHIL), the constant term in JGWAJHIL=JGSWITCH*(JHIA0+JHILF*LFPOP(-1)+JHIYP*YPOP(-1)+JHIJH*JHPOP(-1)).",
+      "short_name": "Would-Accept Pool (High): Constant",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JHIJH": {
@@ -29799,9 +29799,9 @@
     "JHILF": {
       "code": "JHILF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Coefficient on lagged labor force per capita (LFPOP(-1)) in the high-estimate equation for the would-accept-a-job-guarantee share of the labor force (JGWAJHIL).",
+      "short_name": "Would-Accept Pool (High): Labor-Force Term",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JHIYP": {
@@ -29831,9 +29831,9 @@
     "JLOA0": {
       "code": "JLOA0",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Intercept coefficient in the low-estimate equation for the share of the labor force in the would-accept-a-job-guarantee pool (JGWAJLOL), the constant term in JGWAJLOL=JGSWITCH*(JLOA0+JLOLF*LFPOP(-1)+JLOYP*YPOP(-1)+JLOJH*JHPOP(-1)).",
+      "short_name": "Would-Accept Pool (Low): Constant",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JLOJH": {
@@ -29847,9 +29847,9 @@
     "JLOLF": {
       "code": "JLOLF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Coefficient on lagged labor force per capita (LFPOP(-1)) in the low-estimate equation for the would-accept-a-job-guarantee share of the labor force (JGWAJLOL).",
+      "short_name": "Would-Accept Pool (Low): Labor-Force Term",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JLOYP": {
@@ -29879,9 +29879,9 @@
     "JPTUR": {
       "code": "JPTUR",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Coefficient on the change in the unemployment rate (UR-UR(-1)) in the dynamics of the part-time/part-year job-guarantee take-up share (JGPTJ1), per JGPTJ1=JGPTJ1(-1)+JGSWITCH*(JPTUR*dUR+JPTYD*dYPOP+JPTJD*dJHPOP).",
+      "short_name": "Part-Time JG Pool: Unemployment Term",
+      "units": "ratio",
       "used_in_equations": []
     },
     "JPTYD": {
@@ -29927,9 +29927,9 @@
     "JUWUR": {
       "code": "JUWUR",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Coefficient on the change in the unemployment rate (UR-UR(-1)) in the dynamics of the under-5-weeks unemployed share of the labor force (JGUUWKL1), per JGUUWKL1=JGUUWKL1(-1)+JGSWITCH*(JUWUR*dUR+JUWJH*dJHPOP).",
+      "short_name": "Short-Term (Under-5-Week) Unemployed Pool: Unemployment Term",
+      "units": "ratio",
       "used_in_equations": []
     },
     "KD": {
@@ -30726,25 +30726,25 @@
     "MWBCOST": {
       "code": "MWBCOST",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "PSE-layer scaling factor applied to the minimum-wage benefit loading (MWBEN) inside the job-guarantee wage-feedback gap term, controlling how much of the benefit cost is counted in the minimum-wage compensation base.",
+      "short_name": "Min-Wage Benefit Cost Factor",
+      "units": "ratio",
       "used_in_equations": []
     },
     "MWBEN": {
       "code": "MWBEN",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "PSE-layer benefit-loading rate on the minimum wage (the fraction added to MINWAGE for non-wage benefits), parallel to the job-guarantee benefit rate JGBEN, used in the job-guarantee wage-feedback gap term.",
+      "short_name": "Min-Wage Benefit Rate",
+      "units": "rate",
       "used_in_equations": []
     },
     "MWCOLA": {
       "code": "MWCOLA",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "PSE-layer per-quarter cost-of-living growth rate applied to the minimum wage (MINWAGE), an independent control lane separate from the job-guarantee wage COLA (JGCOLA).",
+      "short_name": "Min-Wage Cost-of-Living Growth",
+      "units": "rate (per quarter)",
       "used_in_equations": []
     },
     "NICD": {
@@ -30812,32 +30812,32 @@
     "NONE19": {
       "code": "NONE19",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "Placeholder for FAIR stochastic-equation slot 19, which is inactive in this model build; declared as a trivial constant-only equation (EQ 19 NONE19 C) so equation numbering stays stable and carries no economic content.",
+      "short_name": "Unused Equation Slot 19",
       "units": "",
       "used_in_equations": []
     },
     "NONE20": {
       "code": "NONE20",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "Placeholder for FAIR stochastic-equation slot 20, which is inactive in this model build; declared as a trivial constant-only equation (EQ 20 NONE20 C) so equation numbering stays stable and carries no economic content.",
+      "short_name": "Unused Equation Slot 20",
       "units": "",
       "used_in_equations": []
     },
     "NONE21": {
       "code": "NONE21",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "Placeholder for FAIR stochastic-equation slot 21, which is inactive in this model build; declared as a trivial constant-only equation (EQ 21 NONE21 C) so equation numbering stays stable and carries no economic content.",
+      "short_name": "Unused Equation Slot 21",
       "units": "",
       "used_in_equations": []
     },
     "NONE22": {
       "code": "NONE22",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "Placeholder for FAIR stochastic-equation slot 22, which is inactive in this model build; declared as a trivial constant-only equation (EQ 22 NONE22 C) so equation numbering stays stable and carries no economic content.",
+      "short_name": "Unused Equation Slot 22",
       "units": "",
       "used_in_equations": []
     },
@@ -30852,25 +30852,25 @@
     "NONE9": {
       "code": "NONE9",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "Placeholder for FAIR stochastic-equation slot 9, which is inactive in this model build; declared as a trivial constant-only equation (EQ 9 NONE9 C) so equation numbering stays stable and carries no economic content.",
+      "short_name": "Unused Equation Slot 9",
       "units": "",
       "used_in_equations": []
     },
     "ONEZGAP": {
       "code": "ONEZGAP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Reciprocal of the output gap (1/(GAP+0.07)) used as an alternative aggregate-demand-pressure regressor in the price (inflation) equation, in place of the inverse unemployment rate.",
+      "short_name": "Inverse Output-Gap Pressure",
+      "units": "ratio",
       "used_in_equations": []
     },
     "ONEZUR": {
       "code": "ONEZUR",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Reciprocal of the civilian unemployment rate (1/UR) used as the aggregate-demand-pressure (Phillips-curve) regressor in the price (inflation) equation; rises as the labor market tightens.",
+      "short_name": "Inverse Unemployment Pressure",
+      "units": "ratio",
       "used_in_equations": []
     },
     "PCD": {
@@ -31982,9 +31982,9 @@
     "TESTZERO": {
       "code": "TESTZERO",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Diagnostic accounting check that sums every sector's net financial saving (households, firms, banks, rest-of-world, federal, state-and-local) plus the statistical discrepancy and one balancing term; by the flow-of-funds identity it should equal zero, so non-zero values flag an accounting imbalance.",
+      "short_name": "Flow-of-Funds Closure Check",
+      "units": "B$ (should be ~0)",
       "used_in_equations": []
     },
     "TF1": {
