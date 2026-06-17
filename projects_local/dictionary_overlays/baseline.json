@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "generated_from": "fair_dict_crosscheck_jg_2026-06-17",
+    "notes": "GPT-Pro-confirmed JG/PSE-layer plain-English names/definitions (26). FAIR vars live in the base dict.",
+    "updated_from_dashboard": false
+  },
+  "variables": {
+    "JCHJH": {
+      "description": "Coefficient on the twice-lagged change in JHPOP (worker-hours per capita) in the JGCHLDU1 childcare take-up recursion.",
+      "short_name": "JG Childcare Take-up: Worker-Hours/Pop Term",
+      "units": "coefficient"
+    },
+    "JCHYP": {
+      "description": "Coefficient on the lagged change in YPOP (output per capita, Y/pop) in the JGCHLDU1 childcare take-up recursion.",
+      "short_name": "JG Childcare Take-up: Output/Pop Term",
+      "units": "coefficient"
+    },
+    "JGBENF": {
+      "description": "Dollar value of the health/non-vacation side of JG benefits = JGHEALTH*JGBEN*JGW*JGJ*JGH, where JGHEALTH=1-JGVAC; a bucket split, not literally 'firm-paid'.",
+      "short_name": "JG Health-Side Benefits",
+      "units": "B2017$"
+    },
+    "JGBENH": {
+      "description": "Dollar value of the household/vacation side of JG benefits = JGVAC*JGBEN*JGW*JGJ*JGH (B2017$); a benefit-bucket allocation, not 'household-paid'.",
+      "short_name": "JG Household/Vacation Benefits",
+      "units": "B2017$"
+    },
+    "JGCHILD": {
+      "description": "JG entrants from the childcare/caregiver channel = JGSWITCH*JGCHLDU1*U(-1), where U = unemployment (L1+L2+L3-E), in millions. (NOT lagged child population.)",
+      "short_name": "JG Childcare-Channel Entrants",
+      "units": "millions"
+    },
+    "JGCHLDU1": {
+      "description": "Recursive take-up rate for the childcare channel, updated by lagged changes in unemployment, JHPOP and YPOP, then applied to U(-1) to form JGCHILD.",
+      "short_name": "JG Childcare-Channel Take-up Rate",
+      "units": "rate"
+    },
+    "JGPTJ1": {
+      "description": "Recursive per-private-firm-job take-up rate for the part-time pool (updated by changes in UR, YPOP, JHPOP), multiplied by JF(-1) to form JGPT.",
+      "short_name": "JG Part-Time Take-up Rate",
+      "units": "rate"
+    },
+    "JGSWITCH": {
+      "description": "Master on/off switch for the JGSWITCH-gated JG entrant/hours identities; setting it 0 zeroes those JG flow terms but does NOT make the full PSE deck identical to stock FAIR (inflation, government accounting and some demand/import channels still differ).",
+      "short_name": "JG Employment On/Off Switch",
+      "units": "indicator"
+    },
+    "JGU": {
+      "description": "JG hires from unemployment = JGPHASE*(JGHILO*JGULLOT + (1-JGHILO)*JGUUWKS): a high/low BRANCH SELECTION via JGHILO, not an additive sum of both pools.",
+      "short_name": "JG Hires From the Unemployed",
+      "units": "millions"
+    },
+    "JGULLL1": {
+      "description": "Recursive per-labor-force take-up rate for the high-branch unemployed pool (updated by change in UR and lagged change in JHPOP); feeds JGULLOT. (Exact 'UULOL'/long-duration label unconfirmed.)",
+      "short_name": "JG Unemployed Take-up Rate (High Branch)",
+      "units": "rate"
+    },
+    "JGULLOT": {
+      "description": "Potential JG entrants from the high-branch unemployed pool = JGSWITCH*JGULLL1*LFORCE(-1); feeds JGU when JGHILO=1.",
+      "short_name": "JG Unemployed Entrants (High Branch)",
+      "units": "millions"
+    },
+    "JGUUWKL1": {
+      "description": "Recursive per-labor-force take-up rate for the short-duration unemployed pool (updated by change in UR and lagged change in JHPOP); feeds JGUUWKS.",
+      "short_name": "JG Short-Term-Unemployed Take-up Rate",
+      "units": "rate"
+    },
+    "JGVAC": {
+      "description": "Share of JG benefits allocated to the household/vacation side; complement JGHEALTH=1-JGVAC is the health side (used in JGBENF). Not a 'health benefit household share'.",
+      "short_name": "JG Household/Vacation Benefit Share",
+      "units": "share"
+    },
+    "JGWAJHIL": {
+      "description": "Estimated high-branch per-labor-force want-a-job entry rate, driven by lagged LFPOP, YPOP and JHPOP; multiplied by LFORCE to form JGWAJHI.",
+      "short_name": "JG Want-A-Job Rate (High)",
+      "units": "rate"
+    },
+    "JGWAJLOL": {
+      "description": "Estimated low-branch per-labor-force want-a-job entry rate, driven by lagged LFPOP, YPOP and JHPOP; multiplied by LFORCE to form JGWAJLO.",
+      "short_name": "JG Want-A-Job Rate (Low)",
+      "units": "rate"
+    },
+    "JGWFADJ": {
+      "description": "Proportional adjustment to the firm wage WF = JGPHASE*JGWFPASS*(JGW*(1+JGBEN)-MINWAGE*(1+MWBEN*MWBCOST)); can be POSITIVE OR NEGATIVE (not a one-sided markup); zero when JGPHASE=0.",
+      "short_name": "Job-Guarantee Wage-Floor Adjustment",
+      "units": "ratio"
+    },
+    "JHIJH": {
+      "description": "Coefficient on lagged JHPOP (worker-hours per capita) in the high want-a-job/would-accept equation JGWAJHIL.",
+      "short_name": "Would-Accept Pool (High): Worker-Hours/Pop Term",
+      "units": "ratio"
+    },
+    "JHIYP": {
+      "description": "Coefficient on lagged YPOP (output per capita) in the high would-accept equation JGWAJHIL.",
+      "short_name": "Would-Accept Pool (High): Output/Pop Term",
+      "units": "ratio"
+    },
+    "JHPOP": {
+      "description": "PSE employment-intensity driver = firm + federal-civilian + state/local worker-hours over population: (JF*HF+JG*HG+JS*HS)/(POP1+POP2+POP3). NOT jobs/employment per capita; military hours excluded.",
+      "short_name": "Worker-Hours Per Capita (PSE)",
+      "units": "hours per capita"
+    },
+    "JLOJH": {
+      "description": "Coefficient on lagged JHPOP (worker-hours per capita) in the low want-a-job/would-accept equation JGWAJLOL.",
+      "short_name": "Would-Accept Pool (Low): Worker-Hours/Pop Term",
+      "units": "ratio"
+    },
+    "JLOYP": {
+      "description": "Coefficient on lagged YPOP (output per capita) in the low would-accept equation JGWAJLOL.",
+      "short_name": "Would-Accept Pool (Low): Output/Pop Term",
+      "units": "ratio"
+    },
+    "JPTJD": {
+      "description": "Coefficient on the lagged change in JHPOP (worker-hours per capita) in the JGPTJ1 part-time take-up recursion.",
+      "short_name": "Part-Time JG Pool: Worker-Hours/Pop Term",
+      "units": "ratio"
+    },
+    "JPTYD": {
+      "description": "Coefficient on the lagged change in YPOP (output per capita) in the JGPTJ1 part-time take-up recursion.",
+      "short_name": "Part-Time JG Pool: Output/Pop Term",
+      "units": "ratio"
+    },
+    "JULJH": {
+      "description": "Coefficient on the twice-lagged change in JHPOP in the JGULLL1 high-branch unemployed-pool recursion.",
+      "short_name": "High-Branch Unemployed Pool: Worker-Hours/Pop Term",
+      "units": "ratio"
+    },
+    "JULUR": {
+      "description": "Coefficient on the change in the unemployment rate (UR-UR(-1)) in the JGULLL1 high-branch unemployed-pool recursion. (Exact 'long-duration' label unconfirmed.)",
+      "short_name": "High-Branch Unemployed Pool: Unemployment Term",
+      "units": "ratio"
+    },
+    "JUWJH": {
+      "description": "Coefficient on the twice-lagged change in JHPOP in the JGUUWKL1 short-duration unemployed-pool recursion.",
+      "short_name": "Short-Term Unemployed Pool: Worker-Hours/Pop Term",
+      "units": "ratio"
+    },
+    "LFORCE": {
+      "description": "Total labor force L1+L2+L3, used to scale want-a-job and unemployed-pool JG take-up rates into entrant counts (JGWAJHI/JGWAJLO/JGULLOT/JGUUWKS).",
+      "short_name": "Total Labor Force",
+      "units": "millions"
+    },
+    "LFPOP": {
+      "description": "Aggregate labor-force participation rate (L1+L2+L3)/(POP1+POP2+POP3), a driver in the high/low want-a-job take-up equations.",
+      "short_name": "Labor Force Participation Rate",
+      "units": "ratio"
+    },
+    "MINWAGE": {
+      "description": "National effective minimum wage (the economy-wide effective wage floor), in the same scaled units as the job-guarantee wage JGW; used in the JG wage-floor adjustment (JGWFADJ) as the comparison wage.",
+      "short_name": "National Effective Minimum Wage",
+      "units": "dollars per hour"
+    }
+  }
+}
