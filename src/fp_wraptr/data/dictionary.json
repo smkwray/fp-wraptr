@@ -5656,8 +5656,8 @@
     },
     "V": {
       "name": "V",
-      "description": "",
-      "units": "",
+      "description": "Real (inflation-adjusted) stock of inventories held by the firm sector, B2017$; defined by the inventory-accounting identity (change in stock = inventory investment).",
+      "units": "B2017$",
       "sector": "",
       "category": "endogenous",
       "defined_by_equation": 117,
@@ -5667,7 +5667,8 @@
       "_provenance": {
         "table": "supplement",
         "source": "construction/equations"
-      }
+      },
+      "short_name": "Stock of Inventories"
     },
     "PIEFF": {
       "name": "PIEFF",

@@ -32361,9 +32361,9 @@
     "V": {
       "code": "V",
       "defined_by_equation": 117,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real (inflation-adjusted) stock of inventories held by the firm sector, B2017$; defined by the inventory-accounting identity (change in stock = inventory investment).",
+      "short_name": "Stock of Inventories",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "WA": {
