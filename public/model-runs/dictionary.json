@@ -27630,9 +27630,9 @@
     "AA1Z": {
       "code": "AA1Z",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Households' total net financial wealth divided by the noninstitutional population 16+, i.e. real net financial wealth per capita (2017$ vintage).",
+      "short_name": "Household Financial Wealth Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "AA2": {
@@ -27648,33 +27648,33 @@
     "AA2Z": {
       "code": "AA2Z",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Households' total net housing wealth divided by the noninstitutional population 16+, i.e. real net housing wealth per capita (2017$ vintage).",
+      "short_name": "Household Housing Wealth Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "AAF": {
       "code": "AAF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Net financial liabilities (debt) of the firm sector, defined as the negative of firms' net financial assets, in nominal dollars; used as the base on which the firm interest rate INTFZ is computed.",
+      "short_name": "Firm Net Financial Liabilities",
+      "units": "B$ (nominal)",
       "used_in_equations": []
     },
     "AAG": {
       "code": "AAG",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Net financial liabilities (debt) of the federal government, defined as the negative of the government's net financial assets, in nominal dollars; used as the base on which federal interest payments are computed.",
+      "short_name": "Federal Government Debt",
+      "units": "B$ (nominal)",
       "used_in_equations": []
     },
     "AAZ": {
       "code": "AAZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Households' total net wealth (financial plus housing) divided by the noninstitutional population 16+, i.e. real net wealth per capita (2017$ vintage); its log LAAZ enters the consumption equations.",
+      "short_name": "Household Net Wealth Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "AB": {
@@ -27758,9 +27758,9 @@
     "AGZGDP": {
       "code": "AGZGDP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Ratio of federal government debt (negative of its net financial assets) to annualized nominal GDP (quarterly GDP times four); a dimensionless debt-to-GDP ratio.",
+      "short_name": "Federal Debt-to-GDP Ratio",
+      "units": "ratio",
       "used_in_equations": []
     },
     "AH": {
@@ -27790,25 +27790,25 @@
     "ASZGDP": {
       "code": "ASZGDP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Ratio of state & local government debt (negative of its net financial assets) to annualized nominal GDP (quarterly GDP times four); a dimensionless debt-to-GDP ratio.",
+      "short_name": "State & Local Debt-to-GDP Ratio",
+      "units": "ratio",
       "used_in_equations": []
     },
     "BETA1": {
       "code": "BETA1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Estimated coefficient on the lagged log nonfarm price deflator log PF(-1) in price equation 10 (COEF(1,10)); combined with BETA2 to form DELTA1 = BETA1/(1-BETA2).",
+      "short_name": "Price Equation Lagged-Price Coefficient",
+      "units": "coefficient",
       "used_in_equations": []
     },
     "BETA2": {
       "code": "BETA2",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Estimated coefficient on the unit-labor-cost term log[WF(1+D5G)/LAM] in price equation 10 (COEF(2,10)); combined with BETA1 to form DELTA1. (First pass wrongly called it the lagged-price term.)",
+      "short_name": "Price Equation Wage-Cost Coefficient",
+      "units": "coefficient",
       "used_in_equations": []
     },
     "BO": {
@@ -27834,8 +27834,8 @@
     "C": {
       "code": "C",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
+      "description": "The constant (intercept) term included in the estimated equations of the model; a regression specification token, not an economic time series.",
+      "short_name": "Regression Constant (Intercept)",
       "units": "",
       "used_in_equations": []
     },
@@ -27948,9 +27948,9 @@
     "CDZ": {
       "code": "CDZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real consumer expenditures on durable goods divided by the noninstitutional population 16+, i.e. per-capita real durables consumption (2017$ vintage); its log LCDZ enters the durables consumption equation.",
+      "short_name": "Consumer Durables Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "CG": {
@@ -27967,9 +27967,9 @@
     "CGZ3": {
       "code": "CGZ3",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Households' financial capital gains or losses summed over the current and prior two quarters, divided by the same three quarters of nominal potential output (price deflator times potential output); a scaled, smoothed capital-gains ratio.",
+      "short_name": "Capital Gains Over Potential Output (3-Qtr)",
+      "units": "ratio",
       "used_in_equations": []
     },
     "CN": {
@@ -28015,9 +28015,9 @@
     "CNZ": {
       "code": "CNZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real consumer expenditures on nondurable goods divided by the noninstitutional population 16+, i.e. per-capita real nondurables consumption (2017$ vintage); its log LCNZ enters the nondurables consumption equation.",
+      "short_name": "Consumer Nondurables Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "COG": {
@@ -28036,9 +28036,9 @@
     "COGS": {
       "code": "COGS",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Combined real purchases of consumption and investment goods by all governments, i.e. federal (COG) plus state & local (COS), in 2017$ (vintage); its per-capita log LCOGSZ enters the model.",
+      "short_name": "Total Government Goods Purchases",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "COS": {
@@ -28073,9 +28073,9 @@
     "CSZ": {
       "code": "CSZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real consumer expenditures on services divided by the noninstitutional population 16+, i.e. per-capita real services consumption (2017$ vintage); its log LCSZ is the LHS of the services consumption equation.",
+      "short_name": "Consumer Services Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "CTB": {
@@ -28169,9 +28169,9 @@
     "D1": {
       "code": "D1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Temporary 0/1 sub-period dummy REUSED in the estimation script (different breakpoints each time) to build time-varying constants such as cnst2cs/cnst2l2/cnst2kk; not a single fixed-window economic series.",
+      "short_name": "Temporary Time-Constant Dummy 1",
+      "units": "dummy (0/1)",
       "used_in_equations": []
     },
     "D1G": {
@@ -28193,9 +28193,9 @@
     "D2": {
       "code": "D2",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Temporary 0/1 middle-subperiod dummy reused with different windows to build time-varying constants; not a single fixed-window series.",
+      "short_name": "Temporary Time-Constant Dummy 2",
+      "units": "dummy (0/1)",
       "used_in_equations": []
     },
     "D20083": {
@@ -28475,9 +28475,9 @@
     "D3": {
       "code": "D3",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Temporary 0/1 final-subperiod dummy reused with different windows to build time-varying constants; not a single fixed-window series.",
+      "short_name": "Temporary Time-Constant Dummy 3",
+      "units": "dummy (0/1)",
       "used_in_equations": []
     },
     "D3G": {
@@ -28650,9 +28650,9 @@
     "DELTA1": {
       "code": "DELTA1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Derived coefficient BETA1/(1-BETA2) used in the price/wage transforms LWFQZ = LWFQ - DELTA1*LPF(-1) and LPFZ = LPF - DELTA1*LPF(-1).",
+      "short_name": "Price/Wage Lag-Adjustment Coefficient",
+      "units": "coefficient",
       "used_in_equations": []
     },
     "DF": {
@@ -28762,17 +28762,17 @@
     "EXKK": {
       "code": "EXKK",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Firm capital held above the required amount, EXKK = KK - KKMIN; the investment equation uses the lagged log ratio log(KK/KKMIN), NOT log(EXKK).",
+      "short_name": "Excess Capital",
+      "units": "B2017$",
       "used_in_equations": []
     },
     "EXL": {
       "code": "EXL",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Firm jobs above required jobs, EXL = JF - JHMIN/HFS; the jobs/hours equations use the log ratio log[JF/(JHMIN/HFS)], NOT log(EXL).",
+      "short_name": "Excess Labor",
+      "units": "millions (jobs)",
       "used_in_equations": []
     },
     "EXPG": {
@@ -28786,9 +28786,9 @@
     "EXPGZGDP": {
       "code": "EXPGZGDP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Ratio of federal government net expenditures to nominal GDP; a dimensionless measure of the federal fiscal stance relative to the size of the economy.",
+      "short_name": "Federal Net Expenditures-to-GDP",
+      "units": "ratio",
       "used_in_equations": []
     },
     "EXPS": {
@@ -29153,9 +29153,9 @@
     "IHHZ": {
       "code": "IHHZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Households' real residential (housing) investment divided by the noninstitutional population 16+, i.e. per-capita real residential investment (2017$ vintage); its log LIHHZ is the LHS of the housing-investment equation.",
+      "short_name": "Housing Investment Per Person",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "IKB": {
@@ -29223,9 +29223,9 @@
     "IMZ": {
       "code": "IMZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real imports of goods and services divided by noninstitutional population (per-capita scaled import demand), in B2017$ per capita.",
+      "short_name": "Imports Per Capita",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "INS": {
@@ -29255,9 +29255,9 @@
     "INTFZ": {
       "code": "INTFZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Net interest payments of the firm sector divided by firm net financial liabilities (INTF/AAF), an implied effective interest rate on firm-sector debt.",
+      "short_name": "Firm Implied Interest Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "INTG": {
@@ -29271,9 +29271,9 @@
     "INTGADJ": {
       "code": "INTGADJ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Policy assumption giving the fraction of federal net interest payments removed in the adjusted-interest scenario (JGINTG = INTG - INTGADJ*INTG); 0 means no adjustment, 0.4 means a 40% shave.",
+      "short_name": "Federal Interest Shave Share",
+      "units": "fraction",
       "used_in_equations": []
     },
     "INTGR": {
@@ -29295,9 +29295,9 @@
     "INTGZGDP": {
       "code": "INTGZGDP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Net interest payments of the federal government as a share of nominal GDP (INTG/GDP).",
+      "short_name": "Federal Interest As Share Of GDP",
+      "units": "ratio",
       "used_in_equations": []
     },
     "INTS": {
@@ -29775,9 +29775,9 @@
     "JHGSZ": {
       "code": "JHGSZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Total government worker-hours (federal civilian, military, and state-and-local jobs times their average hours) divided by noninstitutional population: (JG*HG+JM*HM+JS*HS)/POP.",
+      "short_name": "Government Worker-Hours Per Capita",
+      "units": "hours per capita",
       "used_in_equations": []
     },
     "JHIA0": {
@@ -29943,9 +29943,9 @@
     "KDZ": {
       "code": "KDZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Stock of consumer durable goods divided by noninstitutional population (KD/POP), in B2017$ per capita.",
+      "short_name": "Durable-Goods Stock Per Capita",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "KH": {
@@ -29961,9 +29961,9 @@
     "KHZ": {
       "code": "KHZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Stock of housing of the household sector divided by noninstitutional population (KH/POP), in B2017$ per capita.",
+      "short_name": "Housing Stock Per Capita",
+      "units": "B2017$ per capita",
       "used_in_equations": []
     },
     "KK": {
@@ -29998,9 +29998,9 @@
     "L1Z": {
       "code": "L1Z",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Labor force of men 25-54 divided by the noninstitutional population of men 25-54 (L1/POP1), i.e. the participation rate for that group.",
+      "short_name": "Men 25-54 Labor-Force Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "L2": {
@@ -30017,9 +30017,9 @@
     "L2Z": {
       "code": "L2Z",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Labor force of women 25-54 divided by the noninstitutional population of women 25-54 (L2/POP2), i.e. the participation rate for that group.",
+      "short_name": "Women 25-54 Labor-Force Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "L3": {
@@ -30036,17 +30036,17 @@
     "L3Z": {
       "code": "L3Z",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Labor force of all others 16+ divided by the noninstitutional population of all others 16+ (L3/POP3), i.e. the participation rate for that group.",
+      "short_name": "All-Others Labor-Force Rate",
+      "units": "ratio",
       "used_in_equations": []
     },
     "LAAZ": {
       "code": "LAAZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of household total net wealth per capita, log(AA/POP), used as an explanatory variable in the consumption and labor-force equations.",
+      "short_name": "Log Household Wealth Per Capita",
+      "units": "log of B2017$ per capita",
       "used_in_equations": []
     },
     "LAM": {
@@ -30064,49 +30064,49 @@
     "LCDZ": {
       "code": "LCDZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of real consumer durable-goods expenditure per capita, log(CD/POP); the dependent variable of the durables consumption equation (eq 3).",
+      "short_name": "Log Durables Consumption Per Capita",
+      "units": "log of B2017$ per capita",
       "used_in_equations": []
     },
     "LCNZ": {
       "code": "LCNZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of real consumer nondurable-goods expenditure per capita, log(CN/POP); the dependent variable of the nondurables consumption equation (eq 2).",
+      "short_name": "Log Nondurables Consumption Per Capita",
+      "units": "log of B2017$ per capita",
       "used_in_equations": []
     },
     "LCOGSZ": {
       "code": "LCOGSZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of total government real purchases of consumption and investment goods per capita, log((COG+COS)/POP), used as a first-stage instrument in estimation.",
+      "short_name": "Log Govt Goods Purchases Per Capita",
+      "units": "log of B2017$ per capita",
       "used_in_equations": []
     },
     "LCSZ": {
       "code": "LCSZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of real consumer services expenditure per capita, log(CS/POP); the dependent variable of the services consumption equation (eq 1).",
+      "short_name": "Log Services Consumption Per Capita",
+      "units": "log of B2017$ per capita",
       "used_in_equations": []
     },
     "LCURL1Q": {
       "code": "LCURL1Q",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of lagged currency per lagged population deflated by the CURRENT nonfarm price deflator: LOG(CUR(-1)/(POP(-1)*PF)). (Not PF(-1).)",
+      "short_name": "Log Lagged Currency per Person (Current-Deflated)",
+      "units": "log of real B$ per capita",
       "used_in_equations": []
     },
     "LCURZ": {
       "code": "LCURZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of real per-capita currency holdings, log(CUR/(POP*PF)); the dependent variable of the currency-demand equation (eq 26).",
+      "short_name": "Log Real Currency Per Capita",
+      "units": "log of real B$ per capita",
       "used_in_equations": []
     },
     "LCUSTZ": {
@@ -30120,41 +30120,41 @@
     "LDF": {
       "code": "LDF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of net dividends paid by the firm sector, log(DF), a transform of the dividend variable used in the dividend equation (eq 18).",
+      "short_name": "Log Firm Dividends",
+      "units": "log of B$",
       "used_in_equations": []
     },
     "LDF1": {
       "code": "LDF1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of the quarterly growth factor of firm dividends, log(DF/DF(-1)); the dependent variable of the dividend equation (eq 18).",
+      "short_name": "Log Dividend Growth",
+      "units": "log change",
       "used_in_equations": []
     },
     "LEX": {
       "code": "LEX",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of real exports of goods and services, log(EX), in B2017$.",
+      "short_name": "Log Exports",
+      "units": "log of B2017$",
       "used_in_equations": []
     },
     "LEXKK": {
       "code": "LEXKK",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of the ratio of actual firm capital stock to the capital required to produce current output, log(KK/KKMIN); a measure of excess (idle) capital used in the investment equation (eq 12).",
+      "short_name": "Log Excess Capital Ratio",
+      "units": "log of ratio",
       "used_in_equations": []
     },
     "LEXL": {
       "code": "LEXL",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Natural log of the ratio of actual firm jobs to the jobs required to produce current output, log(JF/(JHMIN/HFS)); a measure of excess (hoarded) labor used in the jobs and hours equations (eqs 13-14).",
+      "short_name": "Log Excess Labor Ratio",
+      "units": "log of ratio",
       "used_in_equations": []
     },
     "LEXZ": {
@@ -30570,9 +30570,9 @@
     "LYZ": {
       "code": "LYZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Log of real total production per person, log(Y/POP) — output (B2017$) divided by noninstitutional population 16+ (millions), used as a scale regressor in the import demand equation.",
+      "short_name": "Log Output Per Person",
+      "units": "log ratio",
       "used_in_equations": []
     },
     "M1": {
@@ -30901,9 +30901,9 @@
     "PCGDPD4": {
       "code": "PCGDPD4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Year-over-year inflation rate of the GDP price deflator (GDPD), measured as the percent change over the past four quarters.",
+      "short_name": "GDP Inflation, 4-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCGDPR": {
@@ -30917,9 +30917,9 @@
     "PCGDPR4": {
       "code": "PCGDPR4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Year-over-year growth rate of real GDP (GDPR, B2017$), measured as the percent change over the past four quarters.",
+      "short_name": "Real GDP Growth, 4-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCM1": {
@@ -30935,17 +30935,17 @@
     "PCM1L1A": {
       "code": "PCM1L1A",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Lagged annualized M1 money-growth term active only during the 1979:4-1982:3 monetary-targeting regime (dummy D794823 times PCM1 lagged one quarter), used as a regressor in the Fed interest-rate rule.",
+      "short_name": "Lagged M1 Growth (Volcker Period)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCM1L1B": {
       "code": "PCM1L1B",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Lagged annualized M1 money growth times D20083 (=1 in 1952.1-2008.3, 0 otherwise), so ACTIVE THROUGH 2008:3 and zero after, used in the Fed interest-rate rule. (First pass inverted the date window.)",
+      "short_name": "Lagged M1 Growth (Through 2008:3)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCN": {
@@ -30966,41 +30966,41 @@
     "PCPD": {
       "code": "PCPD",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Annualized inflation of the domestic-sales price deflator PD, 100*((PD/PD(-1))^4-1) (gross price ratio compounded, not the percent change raised to the 4th power).",
+      "short_name": "Domestic Inflation Rate (Annualized)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCPD4": {
       "code": "PCPD4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Year-over-year inflation rate of the domestic-sales price deflator (PD), measured as the percent change over the past four quarters.",
+      "short_name": "Domestic Inflation, 4-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCPD8": {
       "code": "PCPD8",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Two-year (eight-quarter) annualized inflation rate of the domestic-sales price deflator (PD), measured as the percent change over the past eight quarters expressed at an annual rate.",
+      "short_name": "Domestic Inflation, 8-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCPF": {
       "code": "PCPF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Annualized inflation of the nonfarm-sales price deflator PF, 100*((PF/PF(-1))^4-1) (gross ratio compounded).",
+      "short_name": "Nonfarm Price Inflation (Annualized)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCPF4": {
       "code": "PCPF4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Year-over-year inflation rate of the nonfarm-sales price deflator (PF), measured as the percent change over the past four quarters.",
+      "short_name": "Nonfarm Price Inflation, 4-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCS": {
@@ -31021,25 +31021,25 @@
     "PCWF": {
       "code": "PCWF",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Annualized growth of firm average hourly earnings excluding overtime WF, 100*((WF/WF(-1))^4-1).",
+      "short_name": "Firm Wage Growth (Annualized)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCY": {
       "code": "PCY",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Annualized growth of real total production Y, 100*((Y/Y(-1))^4-1) (gross ratio compounded); keep B2017$ vintage.",
+      "short_name": "Output Growth (Annualized)",
+      "units": "percent",
       "used_in_equations": []
     },
     "PCY4": {
       "code": "PCY4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Year-over-year growth rate of real total production (Y, B2017$), measured as the percent change over the past four quarters.",
+      "short_name": "Output Growth, 4-Quarter",
+      "units": "percent",
       "used_in_equations": []
     },
     "PD": {
@@ -31093,9 +31093,9 @@
     "PIEB": {
       "code": "PIEB",
       "defined_by_equation": 134,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Before-tax profits of the financial (bank) sector (b), in billions of current dollars (B$); defined in the newer FAIR appendix Eq. 134 as PIEB = GSB + DB + TBG + TBS + CTGB.",
+      "short_name": "Before-Tax Profits, Financial Sector",
+      "units": "B$",
       "used_in_equations": []
     },
     "PIEF": {
@@ -31109,17 +31109,17 @@
     "PIEFA": {
       "code": "PIEFA",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Before-tax firm profits minus corporate profit taxes to federal & state/local and taxes to the rest of the world: PIEF-TFG-TFS-TFR, nominal B$. (TFR = generic taxes f->r.)",
+      "short_name": "After-Tax Firm Profits",
+      "units": "B$",
       "used_in_equations": []
     },
     "PIEFAMM": {
       "code": "PIEFAMM",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "After-tax firm profits (PIEFA, B$) with a floor of 4 billion dollars applied, ensuring the value stays positive so its logarithm can be taken in the dividend-payout equation.",
+      "short_name": "After-Tax Firm Profits (Floored)",
+      "units": "B$",
       "used_in_equations": []
     },
     "PIEFRET": {
@@ -31442,41 +31442,41 @@
     "RB1": {
       "code": "RB1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "One-quarter change in the corporate/long-term bond rate (RB), in percentage points.",
+      "short_name": "Change in Bond Rate",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "RBA": {
       "code": "RBA",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "After-tax bond rate: the bond rate (RB) multiplied by one minus the federal and state/local corporate tax rates, in percentage points.",
+      "short_name": "After-Tax Bond Rate",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "RBA4": {
       "code": "RBA4",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Real after-tax bond rate, in percentage points: the after-tax bond rate (RBA) minus year-over-year domestic inflation (PCPD4).",
+      "short_name": "Real After-Tax Bond Rate",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "RBLMRSL2": {
       "code": "RBLMRSL2",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Term-structure regressor in the bond-rate equation: the bond rate lagged one quarter minus the three-month Treasury bill rate lagged two quarters, in percentage points.",
+      "short_name": "Lagged Bond Spread Over T-Bill",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "RBMRSL2": {
       "code": "RBMRSL2",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Term-structure dependent variable in the bond-rate equation: the current bond rate minus the three-month Treasury bill rate lagged two quarters, in percentage points.",
+      "short_name": "Bond Spread Over Lagged T-Bill",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "RECG": {
@@ -31492,9 +31492,9 @@
     "RECGZGDP": {
       "code": "RECGZGDP",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Federal government net receipts as a fraction of nominal GDP (RECG divided by GDP).",
+      "short_name": "Federal Receipts Share of GDP",
+      "units": "ratio",
       "used_in_equations": []
     },
     "RECS": {
@@ -31532,17 +31532,17 @@
     "RMACDZ": {
       "code": "RMACDZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Constructed regressor equal to the after-tax mortgage rate (RMA) scaled by 0.01 and multiplied by the time trend (T), used in a durable-goods/consumption equation.",
+      "short_name": "After-Tax Mortgage Rate x Trend",
+      "units": "constructed (rate x trend)",
       "used_in_equations": []
     },
     "RMALIHHZ": {
       "code": "RMALIHHZ",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Constructed regressor equal to the after-tax mortgage rate lagged one quarter (RMA), scaled by 0.002 and multiplied by the time trend (T), used in a household investment/housing equation.",
+      "short_name": "Lagged After-Tax Mortgage Rate x Trend",
+      "units": "constructed (rate x trend)",
       "used_in_equations": []
     },
     "RMLMRSL2": {
@@ -31652,9 +31652,9 @@
     "RSX": {
       "code": "RSX",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Project helper series that holds a prescribed path for the three-month Treasury bill rate; in base-RS simulation runs RS is forced to equal RSX via IDENT RS=RSX so the bill-rate path matches a chosen reference run, in percentage points.",
+      "short_name": "T-Bill Rate Override Helper",
+      "units": "percentage points",
       "used_in_equations": []
     },
     "SB": {
@@ -31902,17 +31902,17 @@
     "T1": {
       "code": "T1",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "First time-trend breakpoint, expressed as a value of FAIR's quarterly time index T (where T=1 in 1952:1), used together with T2 to build the spline trend-shift constants (CNST2CS, CNST2L2, CNST2KK) for equations whose time trend changes across sub-periods.",
+      "short_name": "Trend-Break Period Index 1",
+      "units": "time-index value (quarters since 1952:1)",
       "used_in_equations": []
     },
     "T2": {
       "code": "T2",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Second time-trend breakpoint, expressed as a value of FAIR's quarterly time index T (where T=1 in 1952:1), used together with T1 to build the spline trend-shift constants (CNST2CS, CNST2L2, CNST2KK) for equations whose time trend changes across sub-periods.",
+      "short_name": "Trend-Break Period Index 2",
+      "units": "time-index value (quarters since 1952:1)",
       "used_in_equations": []
     },
     "TBG": {
@@ -32305,17 +32305,17 @@
     "UBGH": {
       "code": "UBGH",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Fraction of total unemployment-insurance benefits (UB) attributed to the federal government; it scales UB in the federal government saving identity, with the remainder (UBSH = 1 - UBGH) assigned to state-and-local governments; default value 0.5.",
+      "short_name": "Federal Share Of Unemployment Benefits",
+      "units": "share (fraction 0-1)",
       "used_in_equations": []
     },
     "UBSH": {
       "code": "UBSH",
       "defined_by_equation": null,
-      "description": "",
-      "short_name": "",
-      "units": "",
+      "description": "Fraction of total unemployment-insurance benefits (UB) attributed to state-and-local governments, defined as 1 minus the federal share (UBSH = 1 - UBGH); it scales UB in the state-and-local government saving identity; default value 0.5.",
+      "short_name": "State Share Of Unemployment Benefits",
+      "units": "share (fraction 0-1)",
       "used_in_equations": []
     },
     "UMM": {
