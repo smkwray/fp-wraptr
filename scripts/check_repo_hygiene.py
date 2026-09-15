@@ -13,7 +13,6 @@ FORBIDDEN_DIRS = {
     "__pycache__",
 }
 
-FORBIDDEN_ONEDRIVE_ARTIFACT_GLOB = "*-DEVICE_E*"
 FORBIDDEN_ONEDRIVE_ARTIFACT_SCOPES = ("src", "tests")
 
 
@@ -43,12 +42,31 @@ def scan(root: Path) -> list[Path]:
         if p.exists():
             found.append(p)
 
+    return found
+
+
+def private_terms(root: Path) -> list[str]:
+    candidates = [root / ".private-denylist", *sorted(root.glob(".*-private-denylist"))]
+    for candidate in candidates:
+        if candidate.is_file():
+            terms = [
+                line.strip().lower()
+                for line in candidate.read_text(encoding="utf-8").splitlines()
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+            if terms:
+                return terms
+    return []
+
+
+def scan_private_artifact_paths(root: Path, terms: list[str]) -> list[Path]:
+    found: list[Path] = []
     for scope in FORBIDDEN_ONEDRIVE_ARTIFACT_SCOPES:
         scoped_root = root / scope
-        if not scoped_root.exists() or not scoped_root.is_dir():
+        if not scoped_root.is_dir():
             continue
-        for path in scoped_root.rglob(FORBIDDEN_ONEDRIVE_ARTIFACT_GLOB):
-            if path.is_file():
+        for path in scoped_root.rglob("*"):
+            if path.is_file() and any(term in path.name.lower() for term in terms):
                 found.append(path)
     return found
 
@@ -77,6 +95,11 @@ def main(argv: list[str] | None = None) -> int:
         "--root", default=".", help="Project root (auto-detected via pyproject.toml)"
     )
     parser.add_argument(
+        "--require-private",
+        action="store_true",
+        help="Require the ignored private denylist and scan working artifact filenames.",
+    )
+    parser.add_argument(
         "--fix-caches",
         action="store_true",
         help="Delete fixable cache dirs (__pycache__, .pytest_cache, .ruff_cache) before failing.",
@@ -85,6 +108,12 @@ def main(argv: list[str] | None = None) -> int:
 
     root = find_root(Path(args.root))
     found = scan(root)
+    if args.require_private:
+        terms = private_terms(root)
+        if not terms:
+            print("HYGIENE FAIL: private denylist is missing or has no active terms.")
+            return 2
+        found.extend(scan_private_artifact_paths(root, terms))
     if found and args.fix_caches:
         removed, skipped = cleanup_fixable(found)
         if removed:
@@ -107,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- {p}")
     print()
     print("Fix: delete these entries and use external venv + WINEPREFIX outside the repo.")
-    print("Also remove OneDrive artifact files matching '*-DEVICE_E*' under src/ and tests/.")
+    print("Also remove private-identifier artifact files reported under src/ and tests/.")
     print("Hint: configure a project-specific external venv in .env and run scripts/uvsafe ...")
     return 2
 
