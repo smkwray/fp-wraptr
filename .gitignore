@@ -87,6 +87,8 @@ artifacts-*/
 # Environment
 .env
 .env.local
+.private-denylist
+.worktrees/
 
 # Coverage
 htmlcov/
