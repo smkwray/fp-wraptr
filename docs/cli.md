@@ -237,7 +237,7 @@ Example:
 
 ```bash
 fp parity examples/baseline.yaml --with-drift
-fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient
+fp parity my_scenario.yaml --left fpexe --right fp-r --lenient   # scenario with fp_home and fpr.bundle_path
 fp parity examples/baseline.yaml --with-drift --save-golden artifacts/parity-golden
 fp parity examples/baseline.yaml --with-drift --regression artifacts/parity-golden
 fp parity examples/baseline.yaml --with-drift --quick
@@ -247,7 +247,6 @@ Preset note:
 - `fp parity` uses `fppy.eq_flags_preset=parity` by default; opt out with `fppy.eq_flags_preset: default` in scenario YAML.
 - See [`docs/parity.md`](parity.md#eq_flags_presetparity-default-and-opt-out) for behavior details.
 - `fp-r` parity requires a scenario that includes both the usual FP assets (`fp_home`) and `fpr.bundle_path`.
-- A tracked `fpexe` vs `fp-r` example is included at `examples/fpr_real_stock_eq_parity.yaml`.
 - The default parity compare window now starts at the scenario `forecast_start` unless the caller overrides it.
 - `--save-golden` and `--regression` work for explicit pairs too; `fppy`-specific triage artifacts still only exist when `fppy` is one side of the run.
 

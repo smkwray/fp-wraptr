@@ -120,8 +120,7 @@ Notes:
 - The example scenario is `examples/fpr_bundle_demo.yaml`.
 - The demo bundle is `examples/fpr_bundle_demo_bundle.R`.
 - `fp-r` can participate in `fp parity` when a scenario provides both `fp_home` and `fpr.bundle_path`.
-- A reduced `fpexe` vs `fp-r` pair example is `examples/fpr_real_stock_eq_parity.yaml`.
-- Example: `uv run fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient`.
+- Example: `uv run fp parity my_scenario.yaml --left fpexe --right fp-r --lenient`, where the scenario sets both `fp_home` and `fpr.bundle_path`.
 - In a full stock-model comparison against `fp.exe`, `fp-r` stayed within about `0.0045` max absolute difference and about `0.04%` max relative difference.
 
 ## Parity Quickstart

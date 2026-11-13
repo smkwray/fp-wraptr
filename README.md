@@ -110,10 +110,8 @@ For the full parity guide: [Parity docs](https://smkwray.github.io/fp-wraptr/par
 `fp parity` can also compare an explicit engine pair with `--left` and `--right`, including `fpexe` vs `fp-r`, as long as the scenario provides both the normal FP assets and `fpr.bundle_path`.
 
 ```bash
-uv run fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient
+uv run fp parity my_scenario.yaml --left fpexe --right fp-r --lenient
 ```
-
-A small example for `fpexe` vs `fp-r` parity is included at `examples/fpr_real_stock_eq_parity.yaml`.
 
 In a full stock-model comparison against `fp.exe`, `fp-r` stays within about `0.0045` max absolute difference and about `0.04%` max relative difference across all variables and periods.
 
