@@ -51,7 +51,7 @@ normalize_resid_ar1 <- function(resid_ar1, rho_terms = NULL) {
     source_series = as.character(resid_ar1$source_series %||% ""),
     update_source = update_source,
     carry_lag = as.integer(resid_ar1$carry_lag %||% 0L),
-    carry_damp = as.numeric(resid_ar1$carry_damp %||% 1.0),
+    carry_damp = as.numeric(resid_ar1[["carry_damp"]] %||% 1.0),
     carry_damp_mode = carry_damp_mode,
     carry_multipass = isTRUE(resid_ar1$carry_multipass)
   )

@@ -139,10 +139,57 @@ parse_lag_reference <- function(tokens, index) {
   list(name = name, lag = lag, width = width)
 }
 
+# fp.for SYNTAX reduces "**" against a pending "**" (IPREC), so A**B**C is
+# (A**B)**C. R parses ^ right-associatively; rotate unparenthesized chains.
+fp_left_associate_power <- function(expr) {
+  if (!is.call(expr)) {
+    return(expr)
+  }
+  for (k in seq_along(expr)[-1L]) {
+    expr[[k]] <- fp_left_associate_power(expr[[k]])
+  }
+  if (!identical(expr[[1L]], as.name("^")) || length(expr) != 3L) {
+    return(expr)
+  }
+  rotate <- function(base, rhs) {
+    if (is.call(rhs) && identical(rhs[[1L]], as.name("^")) && length(rhs) == 3L) {
+      return(call("^", rotate(base, rhs[[2L]]), rhs[[3L]]))
+    }
+    call("^", base, rhs)
+  }
+  rotate(expr[[2L]], expr[[3L]])
+}
+
+# fp.for TURBO2 runtime rules: a missing operand, a negative base, or an
+# exponent above 200 in magnitude gives a missing result (0**0 is 1); EXP of
+# an argument at or above 200 in magnitude and LOG of a non-positive argument
+# are missing. Missing is NA here and is written as -99.
+fp_expression_ops <- list(
+  `^` = function(base, power) {
+    out <- base::`^`(base, power)
+    out[is.na(base) | is.na(power) | (!is.na(base) & base < 0) | (!is.na(power) & abs(power) > 200)] <- NA_real_
+    out
+  },
+  exp = function(x) {
+    out <- base::exp(x)
+    out[!is.na(x) & abs(x) >= 200] <- NA_real_
+    out
+  },
+  log = function(x) {
+    out <- rep(NA_real_, length(x))
+    ok <- !is.na(x) & x > 0
+    out[ok] <- base::log(x[ok])
+    out
+  }
+)
+
 compile_expression <- function(text) {
   normalized_text <- gsub("**", "^", as.character(text), fixed = TRUE)
   tokens <- tokenize_expression(normalized_text)
-  fn_map <- c(LOG = "log", EXP = "exp", ABS = "abs", MAX = "max", MIN = "min")
+  fn_map <- c(LOG = "log", EXP = "exp", ABS = "abs", MAX = "max", MIN = "min", NEG = "`-`")
+  # fp.for LEX resolves NEG/ABS/LOG/EXP followed by "(" as functions before
+  # trying series lags, so EXP(1) is e, not a lag-1 read of a series "EXP".
+  fp_native_fns <- c("NEG", "ABS", "LOG", "EXP")
   output <- character()
   references <- data.frame(
     name = character(),
@@ -157,6 +204,12 @@ compile_expression <- function(text) {
       if (!is.null(coef_call)) {
         output <- c(output, sprintf(".fp_coef(%dL, %dL)", coef_call$row, coef_call$col))
         i <- i + coef_call$width
+        next
+      }
+      if (toupper(token$value) %in% fp_native_fns &&
+        i < length(tokens) && identical(tokens[[i + 1L]]$value, "(")) {
+        output <- c(output, unname(fn_map[[toupper(token$value)]]))
+        i <- i + 1L
         next
       }
       lag_ref <- parse_lag_reference(tokens, i)
@@ -184,6 +237,15 @@ compile_expression <- function(text) {
       i <- i + 1L
       next
     }
+    # fp.for LEX: a "-" right after a binary operator is not an operator but
+    # the sign of the following numeric constant, so A*-2**2 is A*((-2)**2).
+    if (identical(token$value, "-") && i > 1L && i < length(tokens) &&
+      tokens[[i - 1L]]$value %in% c("+", "-", "*", "/", "^") &&
+      identical(tokens[[i + 1L]]$type, "number")) {
+      output <- c(output, sprintf("(-%s)", tokens[[i + 1L]]$value))
+      i <- i + 2L
+      next
+    }
     output <- c(output, token$value)
       i <- i + 1L
     }
@@ -192,7 +254,7 @@ compile_expression <- function(text) {
     original_text = as.character(text),
     normalized_text = normalized_text,
     r_expression = r_expression,
-    parsed_expression = parse(text = r_expression)[[1]],
+    parsed_expression = fp_left_associate_power(parse(text = r_expression)[[1]]),
     tokens = tokens,
     references = references
   )
@@ -206,7 +268,7 @@ evaluate_compiled_expression <- function(
   series_overrides = NULL,
   lag_only_overrides = FALSE
 ) {
-  expr <- compiled$parsed_expression %||% parse(text = compiled$r_expression)[[1]]
+  expr <- compiled$parsed_expression %||% fp_left_associate_power(parse(text = compiled$r_expression)[[1]])
   coef_values <- state$coef_values %||% state$coefficients %||% list()
   normalize_fp_series_value <- function(value) {
     numeric_value <- as.numeric(value)
@@ -260,7 +322,7 @@ evaluate_compiled_expression <- function(
   }
   eval(
     expr,
-    envir = list(.fp_value = .fp_value, .fp_coef = .fp_coef),
+    envir = c(list(.fp_value = .fp_value, .fp_coef = .fp_coef), fp_expression_ops),
     enclos = baseenv()
   )
 }
@@ -277,7 +339,7 @@ evaluate_compiled_expression_positions <- function(
   if (!length(period_indices)) {
     return(numeric())
   }
-  expr <- compiled$parsed_expression %||% parse(text = compiled$r_expression)[[1]]
+  expr <- compiled$parsed_expression %||% fp_left_associate_power(parse(text = compiled$r_expression)[[1]])
   coef_values <- state$coef_values %||% state$coefficients %||% list()
   normalize_fp_series_values <- function(values) {
     numeric_values <- as.numeric(values)
@@ -330,14 +392,15 @@ evaluate_compiled_expression_positions <- function(
   }
   eval(
     expr,
-    envir = list(
-      .fp_value = .fp_value,
-      .fp_coef = .fp_coef,
-      max = pmax,
-      min = pmin,
-      log = log,
-      exp = exp,
-      abs = abs
+    envir = c(
+      list(
+        .fp_value = .fp_value,
+        .fp_coef = .fp_coef,
+        max = pmax,
+        min = pmin,
+        abs = abs
+      ),
+      fp_expression_ops
     ),
     enclos = baseenv()
   )

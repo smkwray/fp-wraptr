@@ -25,8 +25,18 @@ class FpRBackendError(Exception):
 _INPUT_FILE_RE = re.compile(r"\bFILE\s*=\s*(?P<name>[^\s]+)", re.IGNORECASE)
 
 
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+def _default_fp_r_home(module_file: Path | None = None) -> Path:
+    """Locate the bundled fp-r runtime.
+
+    A source checkout keeps it at ``<repo>/fp-r`` (``src/fp_wraptr/runtime/fpr.py``); an
+    installed wheel force-includes it at ``site-packages/fp-r`` next to ``fp_wraptr``.
+    """
+    here = Path(module_file or __file__).resolve()
+    candidates = (here.parents[3] / "fp-r", here.parents[2] / "fp-r")
+    for candidate in candidates:
+        if (candidate / "scripts" / "run_backend_bundle.R").is_file():
+            return candidate
+    return candidates[0]
 
 
 def _select_primary_output(work_dir: Path) -> Path | None:
@@ -43,7 +53,7 @@ class FpRBackend:
 
     bundle_path: Path | None = None
     fp_home: Path = field(default_factory=lambda: Path("FM"))
-    fp_r_home: Path = field(default_factory=lambda: _repo_root() / "fp-r")
+    fp_r_home: Path = field(default_factory=_default_fp_r_home)
     rscript_path: Path | None = None
     timeout_seconds: int = 1200
     semantics_profile: str = "compat"
@@ -161,7 +171,9 @@ class FpRBackend:
             f"@ source: {src.resolve()}",
             "",
         ]
-        lhs_pattern = re.compile(r"^\s*(CREATE|GENR|IDENT|LHS)\s+([A-Za-z][A-Za-z0-9_]*)\s*=", re.IGNORECASE)
+        lhs_pattern = re.compile(
+            r"^\s*(CREATE|GENR|IDENT|LHS)\s+([A-Za-z][A-Za-z0-9_]*)\s*=", re.IGNORECASE
+        )
 
         def _extract_lhs(statement_lines: list[str]) -> str:
             statement_text = "\n".join(statement_lines)
@@ -453,8 +465,7 @@ class FpRBackend:
                 missing.append("fp_r_report.txt")
             if missing:
                 raise FpRBackendError(
-                    "fp-r backend completed without required artifacts: "
-                    + ", ".join(missing)
+                    "fp-r backend completed without required artifacts: " + ", ".join(missing)
                 )
 
         return RunResult(

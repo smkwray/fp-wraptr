@@ -74,8 +74,12 @@ write_pabev <- function(frame, path) {
   for (column in names(values_only)) {
     writeLines(sprintf("LOAD %s;", column), con)
     values <- as.numeric(values_only[[column]])
+    # fp.exe LOADFORMAT marks missing values as -99; sprintf would emit "NA",
+    # which fp-wraptr's PABEV/LOADFORMAT parser cannot read.
+    tokens <- sprintf("%.12f", values)
+    tokens[!is.finite(values)] <- "-99"
     chunks <- split(
-      sprintf("%.12f", values),
+      tokens,
       ceiling(seq_along(values) / 4L)
     )
     for (chunk in chunks) {
@@ -86,6 +90,22 @@ write_pabev <- function(frame, path) {
 }
 
 write_pabev(result$series, pabev_path)
+
+# fp.exe prints "Solution error. Iteration limit ... reached" and keeps going;
+# surface the same condition instead of leaving it only in the diagnostics CSV.
+diag_frame <- result$diagnostics %||% data.frame()
+unconverged_periods <- if (nrow(diag_frame) && "converged" %in% names(diag_frame)) {
+  as.character(diag_frame$period[!(as.logical(diag_frame$converged) %in% TRUE)])
+} else {
+  character()
+}
+if (length(unconverged_periods)) {
+  message(sprintf(
+    "fp-r warning: solve did not converge (iteration limit) for %d period(s): %s",
+    length(unconverged_periods),
+    paste(unconverged_periods, collapse = ",")
+  ))
+}
 
 report <- list(
   bundle_name = result$bundle_name %||% bundle$name %||% "<unnamed>",
@@ -104,6 +124,7 @@ report_lines <- c(
   sprintf("diagnostics_path=%s", report$diagnostics_path),
   sprintf("pabev_path=%s", report$pabev_path),
   sprintf("periods=%s", paste(report$periods, collapse = ",")),
-  sprintf("order=%s", paste(report$order, collapse = ","))
+  sprintf("order=%s", paste(report$order, collapse = ",")),
+  sprintf("unconverged_periods=%s", paste(unconverged_periods, collapse = ","))
 )
 writeLines(report_lines, report_path)

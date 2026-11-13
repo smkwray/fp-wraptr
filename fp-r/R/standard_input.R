@@ -85,7 +85,7 @@ window_periods_in_frame <- function(frame, window_start, window_end) {
   periods[periods %in% as.character(frame$period)]
 }
 
-apply_extrapolate_frame <- function(frame, window_start, window_end, variables = character(), include_all_columns = TRUE) {
+apply_extrapolate_frame <- function(frame, window_start, window_end, variables = character(), include_all_columns = TRUE, overwrite = FALSE) {
   if (!nrow(frame)) {
     return(frame)
   }
@@ -100,11 +100,34 @@ apply_extrapolate_frame <- function(frame, window_start, window_end, variables =
   if (include_all_columns) {
     variable_names <- unique(c(variable_names, setdiff(names(working), "period")))
   }
+  # fp.for CRX (the EXTRAPOLATE command) sets every period of the SMPL to the
+  # value at NBEG-1, replacing data already present in the window. The
+  # fill-gaps mode below is kept for internal callers that are not the command.
+  anchor_pos <- match(periods[[1L]], working$period) - 1L
   for (name in variable_names) {
+    if (isTRUE(overwrite) && !isTRUE(include_all_columns) && !(name %in% names(working))) {
+      # fp.for CRX: "Error. Variable name ... not found." and nothing changes.
+      warning(sprintf("EXTRAPOLATE: variable %s not found; nothing extrapolated", name), call. = FALSE)
+      next
+    }
     if (!(name %in% names(working))) {
       working[[name]] <- NA_real_
     }
     values <- as.numeric(working[[name]])
+    if (isTRUE(overwrite)) {
+      if (anchor_pos < 1L) {
+        next
+      }
+      anchor <- values[[anchor_pos]]
+      # fp.for CRX copies the anchor as stored, including the -99 missing sentinel;
+      # later CHANGEVAR arithmetic (GET1) then operates on that literal value.
+      if (!is.finite(anchor)) {
+        anchor <- NA_real_
+      }
+      values[match(periods, working$period)] <- anchor
+      working[[name]] <- values
+      next
+    }
     for (period in periods) {
       pos <- match(period, working$period)
       if (is.na(pos) || pos <= 1L) {
@@ -2980,8 +3003,8 @@ parse_setupsolve_options <- function(statement) {
   if (!is.null(parsed$RHORESIDUPDATESOURCE)) {
     control$eq_rho_resid_update_source <- tolower(parsed$RHORESIDUPDATESOURCE)
   }
-  if (!is.null(parsed$RHORESIDCARRYDAMP)) {
-    control$eq_rho_resid_carry_damp <- as.numeric(parsed$RHORESIDCARRYDAMP)
+  if (!is.null(parsed[["RHORESIDCARRYDAMP"]])) {
+    control$eq_rho_resid_carry_damp <- as.numeric(parsed[["RHORESIDCARRYDAMP"]])
   }
   if (!is.null(parsed$RHORESIDCARRYDAMPMODE)) {
     control$eq_rho_resid_carry_damp_mode <- tolower(parsed$RHORESIDCARRYDAMPMODE)
@@ -3849,6 +3872,10 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
     if (identical(command, "LOADDATA")) {
       load_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_load <- resolve_fp_source_path(load_name, search_dirs)
+      if (is.null(resolved_load)) {
+        # fp.exe reports "Data set ... not found" and loads nothing.
+        warning(sprintf("LOADDATA: data file %s not found; nothing loaded", load_name), call. = FALSE)
+      }
       if (!is.null(resolved_load)) {
         working <- merge_fm_numeric_frames(
           working,
@@ -3898,12 +3925,16 @@ prepare_standard_runtime <- function(statements, frame, search_dirs, default_fme
 
     if (identical(command, "EXTRAPOLATE")) {
       if (!is.null(active_window)) {
+        extrapolate_variable <- extract_fp_named_arg(raw, key = "VARIABLE") %||% ""
+        extrapolate_all <- !nzchar(extrapolate_variable) || identical(toupper(extrapolate_variable), "ALL")
+        extrapolate_targets <- if (extrapolate_all) exogenous_targets else extrapolate_variable
         working <- apply_extrapolate_frame(
           working,
           window_start = active_window[[1]],
           window_end = active_window[[2]],
-          variables = exogenous_targets,
-          include_all_columns = TRUE
+          variables = extrapolate_targets,
+          include_all_columns = extrapolate_all,
+          overwrite = TRUE
         )
       }
       next
@@ -6067,6 +6098,10 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
     if (identical(command, "LOADDATA")) {
       load_name <- extract_fp_file_arg(raw, key = "FILE")
       resolved_load <- resolve_fp_source_path(load_name, sources$search_dirs)
+      if (is.null(resolved_load)) {
+        # fp.exe reports "Data set ... not found" and loads nothing.
+        warning(sprintf("LOADDATA: data file %s not found; nothing loaded", load_name), call. = FALSE)
+      }
       if (!is.null(resolved_load)) {
         working <- merge_fm_numeric_frames(
           working,
@@ -6159,20 +6194,25 @@ run_standard_input_deck <- function(entry_input, fmdata_path = NULL, fmexog_path
 
     if (identical(command, "EXTRAPOLATE")) {
       if (!is.null(active_window)) {
+        extrapolate_variable <- extract_fp_named_arg(raw, key = "VARIABLE") %||% ""
+        extrapolate_all <- !nzchar(extrapolate_variable) || identical(toupper(extrapolate_variable), "ALL")
+        extrapolate_targets <- if (extrapolate_all) exogenous_targets else extrapolate_variable
         working <- apply_extrapolate_frame(
           working,
           window_start = active_window[[1]],
           window_end = active_window[[2]],
-          variables = exogenous_targets,
-          include_all_columns = TRUE
+          variables = extrapolate_targets,
+          include_all_columns = extrapolate_all,
+          overwrite = TRUE
         )
         if (!length(solve_results)) {
           protected_frame <- apply_extrapolate_frame(
             protected_frame,
             window_start = active_window[[1]],
             window_end = active_window[[2]],
-            variables = exogenous_targets,
-            include_all_columns = TRUE
+            variables = extrapolate_targets,
+            include_all_columns = extrapolate_all,
+            overwrite = TRUE
           )
         }
         if (!length(solve_results) && nzchar(forecast_trace_start) &&

@@ -464,7 +464,7 @@ build_reduced_eq_spec <- function(parsed_eq, terms, setupsolve = list()) {
       source_series = if (nzchar(source_suffix)) sprintf("%s%s", parsed_eq$target, source_suffix) else "",
       update_source = as.character(setupsolve$eq_rho_resid_update_source %||% "structural"),
       carry_lag = 0L,
-      carry_damp = as.numeric(setupsolve$eq_rho_resid_carry_damp %||% 1.0),
+      carry_damp = as.numeric(setupsolve[["eq_rho_resid_carry_damp"]] %||% 1.0),
       carry_damp_mode = as.character(setupsolve$eq_rho_resid_carry_damp_mode %||% "term"),
       carry_multipass = FALSE
     )

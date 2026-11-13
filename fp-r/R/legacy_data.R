@@ -372,37 +372,29 @@ merge_fm_numeric_frames <- function(base_frame, loaded_frame) {
     check.names = FALSE
   )
 
-  merge_one <- function(frame, name, carry_forward = FALSE) {
+  merge_one <- function(frame, name) {
     values <- rep(NA_real_, length(all_periods))
     names(values) <- all_periods
     if (name %in% names(frame)) {
       values[as.character(frame$period)] <- as.numeric(frame[[name]])
     }
-    if (carry_forward) {
-      last_value <- NA_real_
-      for (idx in seq_along(values)) {
-        if (is.finite(values[[idx]])) {
-          last_value <- values[[idx]]
-        } else if (is.finite(last_value)) {
-          values[[idx]] <- last_value
-        }
-      }
-    }
     as.numeric(values)
   }
 
+  # fp.for LOAD writes only the periods of the LOAD block: a new series is
+  # missing (-99) elsewhere and existing values outside the block are kept.
+  # This used to zero-fill new series and carry every existing series' last
+  # value forward, so unset data read as 0 or a flat path instead of missing.
   base_columns <- setdiff(names(base_frame), "period")
   loaded_columns <- setdiff(names(loaded_frame), "period")
   for (name in base_columns) {
-    merged[[name]] <- merge_one(base_frame, name, carry_forward = TRUE)
+    merged[[name]] <- merge_one(base_frame, name)
   }
   for (name in loaded_columns) {
     if (!(name %in% names(merged))) {
-      merged[[name]] <- 0
+      merged[[name]] <- NA_real_
     }
-    incoming <- merge_one(loaded_frame, name, carry_forward = FALSE)
-    base_missing <- is.na(merged[[name]])
-    merged[[name]][base_missing] <- 0
+    incoming <- merge_one(loaded_frame, name)
     have_incoming <- !is.na(incoming)
     merged[[name]][have_incoming] <- incoming[have_incoming]
   }
@@ -452,6 +444,31 @@ apply_fmexog_rows <- function(base_frame, rows) {
       working[[variable]] <- NA_real_
     }
     is_vector <- isTRUE(row$is_vector[[1]])
+
+    # fp.for GET1 (CHANGEVAR): ADD* adjust the existing Y(J), CHGDIF* chain
+    # from Y(J-1); *SAME* take one value, *DIF* one value per period. These
+    # used to fall through to "set the level", silently replacing the series.
+    if (method %in% c("ADDSAMEABS", "ADDSAMEPCT", "ADDDIFABS", "ADDDIFPCT", "CHGDIFABS", "CHGDIFPCT")) {
+      per_period <- if (length(values) >= length(periods)) {
+        values[seq_along(periods)]
+      } else {
+        c(values, rep(values[[length(values)]], length(periods) - length(values)))
+      }
+      series <- as.numeric(working[[variable]])
+      for (k in seq_along(periods)) {
+        position <- index_positions[[periods[[k]]]]
+        current_value <- series[[position]]
+        baseline <- if (startsWith(method, "CHG")) {
+          prev_value <- if (position > 1L) series[[position - 1L]] else NA_real_
+          first_finite(c(prev_value, current_value, 0))
+        } else {
+          first_finite(c(current_value, 0))
+        }
+        series[[position]] <- if (endsWith(method, "ABS")) baseline + per_period[[k]] else baseline * (1 + per_period[[k]])
+      }
+      working[[variable]] <- series
+      next
+    }
 
     if (is_vector) {
       if (length(values) == length(periods)) {
