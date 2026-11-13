@@ -638,9 +638,10 @@ class FairPyBackend:
             return_code=int(proc.returncode),
         )
 
-        # Prefer PABEV parity contract output if present; fall back to fmout.
+        # PABEV/PACEV is fppy's output. The work dir's fmout.txt is the staged fp.exe
+        # stock output, so it is never reported as this run's result.
         output_file = None
-        for candidate in ("PABEV.TXT", "pabev.txt", "fmout.txt"):
+        for candidate in ("PABEV.TXT", "pabev.txt", "PACEV.TXT", "pacev.txt"):
             path = work_dir / candidate
             if path.exists():
                 output_file = path

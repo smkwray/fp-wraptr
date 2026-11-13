@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-__all__ = ["SolveErrorMatch", "scan_solution_errors"]
+__all__ = ["SolveErrorMatch", "scan_run_solution_errors", "scan_solution_errors"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +28,11 @@ class SolveErrorMatch:
 
 _SOLUTION_ERROR_RE = re.compile(
     r"Solution error in\s+(?P<solve>\w+)\.\s*(?:ITERS\s*=\s*(?P<iters>\d+)\s+(?P<period>\d{4}\.[1-4]))?",
+    re.IGNORECASE,
+)
+# fp.for SOL: on hitting MAXITERS it prints this, keeps the unconverged iterate and moves on.
+_ITERATION_LIMIT_RE = re.compile(
+    r"Solution error\.\s*Iteration limit of\s+(?P<limit>\d+)\s+reached for observation number\s+(?P<obs>\d+)",
     re.IGNORECASE,
 )
 _ITERS_LINE_RE = re.compile(
@@ -70,6 +75,18 @@ def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
                 last_iters = (None, None)
             continue
 
+        limit = _ITERATION_LIMIT_RE.search(line)
+        if limit:
+            matches.append(
+                SolveErrorMatch(
+                    solve="iteration_limit",
+                    iters=int(limit.group("limit")),
+                    period=None,
+                    match=line,
+                )
+            )
+            continue
+
         m = _SOLUTION_ERROR_RE.search(line)
         if not m:
             continue
@@ -93,3 +110,12 @@ def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
             if len(raw_matches) >= 10:
                 break
     return raw_matches
+
+
+def scan_run_solution_errors(run_dir: Path) -> list[SolveErrorMatch]:
+    """Scan a run artifact directory (its fmout.txt, else work/fmout.txt) for solve errors."""
+    run_dir = Path(run_dir)
+    for candidate in (run_dir, run_dir / "work"):
+        if (candidate / "fmout.txt").exists():
+            return scan_solution_errors(candidate)
+    return []

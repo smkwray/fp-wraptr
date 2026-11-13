@@ -19,7 +19,8 @@ from typing import Any
 
 import yaml
 
-from fp_wraptr.io.parser import FPOutputData, parse_fp_output
+from fp_wraptr.io.loadformat import read_loadformat
+from fp_wraptr.io.parser import ForecastVariable, FPOutputData, parse_fp_output
 from fp_wraptr.io.writer import patch_input_file, write_exogenous_override_file
 from fp_wraptr.runtime.backend import ModelBackend, RunResult
 from fp_wraptr.runtime.fairpy import FairPyBackend
@@ -127,6 +128,19 @@ def backend_requires_fp_home(backend_name: str | None) -> bool:
     }
 
 
+def scenario_requires_fp_home(config: ScenarioConfig, backend_name: str | None = None) -> bool:
+    """Return whether running ``config`` on ``backend_name`` needs FP model files in fp_home.
+
+    fp-r bundle runs (``fpr.bundle_path`` set) are self-contained; every other
+    backend/mode stages the raw FM input files.
+    """
+    name = str(backend_name or getattr(config, "backend", None) or "fpexe").strip().lower()
+    fpr_settings = getattr(config, "fpr", None) or {}
+    if name in {"fpr", "fp-r", "fp_r"} and fpr_settings.get("bundle_path") not in (None, ""):
+        return False
+    return backend_requires_fp_home(name)
+
+
 def validate_fp_home(fp_home: Path) -> None:
     """Validate that fp_home exists and contains required model files."""
     fp_home = Path(fp_home)
@@ -231,6 +245,8 @@ def run_scenario(
 
     selected_backend: ModelBackend
     semantics_profile = get_backend_semantics_profile(getattr(config, "semantics_profile", None))
+    # fp-r bundle runs are self-contained: no FM/ inputs are staged for them.
+    fpr_bundle_mode = False
     if backend is not None:
         selected_backend = backend
     else:
@@ -289,6 +305,8 @@ def run_scenario(
                 timeout_seconds=timeout_seconds,
                 semantics_profile=semantics_profile.name,
             )
+            bundle = selected_backend.bundle_path
+            fpr_bundle_mode = bundle is not None and bundle.exists()
         elif backend_name == "both":
             from fp_wraptr.analysis.parity import run_parity
             from fp_wraptr.runtime.backend import RunResult
@@ -327,74 +345,96 @@ def run_scenario(
         else:
             raise ValueError(f"Unknown backend: {backend_name!r} (expected fpexe|fppy|fp-r|both)")
 
-    # Copy data files to work dir
-    overlay_dir = getattr(config, "input_overlay_dir", None)
-    overlay_path = Path(overlay_dir) if overlay_dir is not None else None
-
-    if isinstance(selected_backend, FPExecutable):
-        selected_backend._copy_data_files(work_dir)
-        for fname in _REQUIRED_MODEL_FILES:
-            _copy_file_with_overlay_precedence(
-                fp_home=config.fp_home,
-                dest=work_dir,
-                name=fname,
-                overlay_dir=overlay_path,
-            )
-    else:
-        _copy_model_files(config.fp_home, work_dir, overlay_dir=overlay_path)
-
-    # Apply input patches if any
-    input_file = work_dir / config.input_file
-    overlay_input = overlay_path / config.input_file if overlay_path is not None else None
-    base_input = config.fp_home / config.input_file
-    if overlay_input is not None and overlay_input.exists():
-        shutil.copy2(overlay_input, input_file)
-    elif not input_file.exists() and base_input.exists():
-        shutil.copy2(base_input, input_file)
-
-    if not input_file.exists():
-        searched: list[str] = [str(config.fp_home / config.input_file)]
-        if overlay_path is not None:
-            searched.append(str(overlay_path / config.input_file))
-        raise FileNotFoundError(
-            "Scenario input file not found. "
-            f"input_file={config.input_file!r} searched: {', '.join(searched)}"
-        )
-
-    if config.input_patches:
-        patch_input_file(input_file, config.input_patches, input_file)
-
-    # Write exogenous overrides.
-    #
-    # Keep fp.exe-compatible behavior by writing merged baseline+scenario exogenous
-    # adjustments back to `fmexog.txt` (the canonical template filename).
-    if config.overrides:
-        overrides_dict = {
-            name: {"method": ov.method, "value": ov.value} for name, ov in config.overrides.items()
-        }
-        exogenous_path = work_dir / "fmexog.txt"
-        write_exogenous_override_file(
-            base_fmexog=config.fp_home / "fmexog.txt",
-            variables=overrides_dict,
-            sample_start=config.forecast_start,
-            sample_end=config.forecast_end,
-            output_path=exogenous_path,
-        )
-        # Keep an inspection copy with an explicit name for operator debugging.
-        shutil.copy2(exogenous_path, work_dir / "fmexog_override.txt")
-
+    input_file: Path | None = None
     input_manifest: InputTreeManifest | None = None
-    try:
-        input_manifest = prepare_work_dir_for_fp_run(
-            entry_input=input_file,
-            work_dir=work_dir,
-            overlay_dir=getattr(config, "input_overlay_dir", None),
-            fp_home=config.fp_home,
-        )
-    except Exception as exc:
-        # For missing includes, fail with a path-focused error message early.
-        raise RuntimeError(f"Failed to prepare FP input tree: {exc}") from exc
-    else:
+    if not fpr_bundle_mode:
+        # Copy data files to work dir
+        overlay_dir = getattr(config, "input_overlay_dir", None)
+        overlay_path = Path(overlay_dir) if overlay_dir is not None else None
+
+        if isinstance(selected_backend, FPExecutable):
+            selected_backend._copy_data_files(work_dir)
+            for fname in _REQUIRED_MODEL_FILES:
+                _copy_file_with_overlay_precedence(
+                    fp_home=config.fp_home,
+                    dest=work_dir,
+                    name=fname,
+                    overlay_dir=overlay_path,
+                )
+        else:
+            _copy_model_files(config.fp_home, work_dir, overlay_dir=overlay_path)
+
+        # Apply input patches if any
+        input_file = work_dir / config.input_file
+        overlay_input = overlay_path / config.input_file if overlay_path is not None else None
+        base_input = config.fp_home / config.input_file
+        if overlay_input is not None and overlay_input.exists():
+            shutil.copy2(overlay_input, input_file)
+        elif not input_file.exists() and base_input.exists():
+            shutil.copy2(base_input, input_file)
+
+        if not input_file.exists():
+            searched: list[str] = [str(config.fp_home / config.input_file)]
+            if overlay_path is not None:
+                searched.append(str(overlay_path / config.input_file))
+            raise FileNotFoundError(
+                "Scenario input file not found. "
+                f"input_file={config.input_file!r} searched: {', '.join(searched)}"
+            )
+
+        if config.input_patches:
+            patch_input_file(input_file, config.input_patches, input_file)
+
+        try:
+            input_manifest = prepare_work_dir_for_fp_run(
+                entry_input=input_file,
+                work_dir=work_dir,
+                overlay_dir=getattr(config, "input_overlay_dir", None),
+                fp_home=config.fp_home,
+            )
+        except Exception as exc:
+            # For missing includes, fail with a path-focused error message early.
+            raise RuntimeError(f"Failed to prepare FP input tree: {exc}") from exc
+
+        # Write exogenous overrides after staging: staging re-resolves nested includes
+        # (fmexog.txt among them) from overlay_dir/fp_home and would overwrite them.
+        #
+        # The staged file (overlay over stock) is the merge base, and the merged result
+        # replaces every staged case variant the deck may INPUT (e.g. FMEXOG.TXT on a
+        # case-sensitive filesystem).
+        if config.overrides:
+            overrides_dict = {
+                name: {"method": ov.method, "value": ov.value}
+                for name, ov in config.overrides.items()
+            }
+            exog_names = ["fmexog.txt"]
+            if input_manifest is not None:
+                exog_names += [
+                    name
+                    for name in input_manifest.include_files
+                    if name.lower() == "fmexog.txt" and name != "fmexog.txt"
+                ]
+            # Merge onto a spelling that was actually staged: staging copies only the first
+            # of several case variants, and on a case-sensitive filesystem the others do not
+            # exist. Prefer the latest include-derived alias (it holds the overlay content).
+            exogenous_path = next(
+                (work_dir / name for name in reversed(exog_names) if (work_dir / name).is_file()),
+                work_dir / "fmexog.txt",
+            )
+            write_exogenous_override_file(
+                base_fmexog=exogenous_path,
+                variables=overrides_dict,
+                sample_start=config.forecast_start,
+                sample_end=config.forecast_end,
+                output_path=exogenous_path,
+            )
+            for name in exog_names:
+                variant = work_dir / name
+                if not (variant.exists() and variant.samefile(exogenous_path)):
+                    shutil.copy2(exogenous_path, variant)
+            # Keep an inspection copy with an explicit name for operator debugging.
+            shutil.copy2(exogenous_path, work_dir / "fmexog_override.txt")
+
         if config.input_patches and input_manifest is not None:
             for name in (input_manifest.entry_input_file, *input_manifest.include_files):
                 staged = work_dir / name
@@ -429,9 +469,13 @@ def run_scenario(
     run_result = selected_backend.run(input_file=input_file, work_dir=work_dir)
     result.run_result = run_result
 
+    # fppy and fp-r emit LOADFORMAT output only; the fmout.txt in their work dir is the
+    # staged fp.exe stock output (a coefficient input), not a result of this run.
+    loadformat_backend = _is_loadformat_backend(selected_backend)
+
     # Copy key outputs to artifacts, if present.
     fmout_path = work_dir / "fmout.txt"
-    if fmout_path.exists():
+    if fmout_path.exists() and not loadformat_backend:
         shutil.copy2(fmout_path, run_dir / "fmout.txt")
     pabev_path = work_dir / "PABEV.TXT"
     if pabev_path.exists():
@@ -464,9 +508,47 @@ def run_scenario(
         shutil.copy2(primary, run_dir / "LOADFORMAT.DAT")
 
     # Parse output
-    output_file = run_dir / "fmout.txt"
-    if output_file.exists():
-        result.parsed_output = parse_fp_output(output_file)
+    chart_variables = config.track_variables or None
+    if loadformat_backend:
+        loadformat_output = next(
+            (
+                run_dir / name
+                for name in ("LOADFORMAT.DAT", "PABEV.TXT", "PACEV.TXT")
+                if (run_dir / name).exists()
+            ),
+            None,
+        )
+        if loadformat_output is not None:
+            try:
+                result.parsed_output = parsed_output_from_loadformat(
+                    loadformat_output,
+                    forecast_start=config.forecast_start,
+                    forecast_end=config.forecast_end,
+                )
+            except ValueError as exc:
+                # Keep the solved run, but record that its output could not be read.
+                diagnostics = dict(result.backend_diagnostics or {})
+                diagnostics["output_parse_error"] = f"{loadformat_output.name}: {exc}"
+                result.backend_diagnostics = diagnostics
+        if result.parsed_output is not None:
+            if chart_variables is None:
+                chart_variables = [
+                    name
+                    for name in _DEFAULT_CHART_VARIABLES
+                    if name in result.parsed_output.variables
+                ] or None
+    else:
+        output_file = run_dir / "fmout.txt"
+        if output_file.exists():
+            result.parsed_output = parse_fp_output(output_file)
+            from fp_wraptr.runtime.solve_errors import scan_run_solution_errors
+
+            solve_errors = scan_run_solution_errors(run_dir)
+            if solve_errors:
+                # fp.exe continues past non-converged periods; surface it on the result.
+                diagnostics = dict(result.backend_diagnostics or {})
+                diagnostics["solve_errors"] = [item.to_dict() for item in solve_errors]
+                result.backend_diagnostics = diagnostics
 
     # Generate chart
     if result.parsed_output and result.parsed_output.variables:
@@ -476,7 +558,7 @@ def run_scenario(
             chart_path = run_dir / "forecast.png"
             plot_forecast(
                 result.parsed_output,
-                variables=config.track_variables or None,
+                variables=chart_variables,
                 output_path=chart_path,
             )
             result.chart_path = chart_path
@@ -484,6 +566,74 @@ def run_scenario(
             pass  # matplotlib not installed
 
     return result
+
+
+# The stock deck's PRINTVAR set, used to chart LOADFORMAT runs with no track_variables.
+_DEFAULT_CHART_VARIABLES = ("PCY", "PCPF", "UR", "PIEF", "GDPR")
+
+
+def _is_loadformat_backend(backend: object) -> bool:
+    from fp_wraptr.runtime.fpr import FpRBackend
+
+    return isinstance(backend, FairPyBackend | FpRBackend)
+
+
+# fp.for GET0 prints this in place of a percent change whose previous level is zero.
+_PCT_CHANGE_ZERO_BASE = 99999.0
+
+
+def _previous_quarter(period: str) -> str:
+    year_text, quarter_text = str(period).split(".")
+    year, quarter = int(year_text), int(quarter_text)
+    return f"{year - 1}.4" if quarter == 1 else f"{year}.{quarter - 1}"
+
+
+def parsed_output_from_loadformat(
+    path: Path, *, forecast_start: str, forecast_end: str
+) -> FPOutputData:
+    """Build run results from a LOADFORMAT file (PABEV/PACEV/LOADFORMAT.DAT).
+
+    Mirrors fp.exe's printed dynamic quarterly forecast tables: the window starts at
+    the base period (the quarter before ``forecast_start``); ``changes`` are first
+    differences and ``pct_changes`` are ``((Y/Y(-1))**4 - 1) * 100``, both taken
+    against the preceding quarter in the file. A zero previous level gives fp.exe's
+    99999 sentinel. Static-simulation tables (against observed levels) are not
+    reproduced.
+    """
+    periods, series = read_loadformat(path)
+    base_period = _previous_quarter(forecast_start)
+    window = [p for p in periods if base_period <= p <= forecast_end]
+    index = {p: i for i, p in enumerate(periods)}
+    variables: dict[str, ForecastVariable] = {}
+    for var_id, (name, values) in enumerate(series.items(), start=1):
+        levels: list[float] = []
+        changes: list[float] = []
+        pct_changes: list[float] = []
+        for period in window:
+            i = index[period]
+            level = float(values[i])
+            previous = float(values[i - 1]) if i > 0 else float("nan")
+            levels.append(level)
+            changes.append(level - previous)
+            if previous == 0.0:
+                pct_changes.append(_PCT_CHANGE_ZERO_BASE)
+            else:
+                pct_changes.append(100.0 * ((level / previous) ** 4 - 1.0))
+        variables[name] = ForecastVariable(
+            var_id=var_id,
+            name=name,
+            levels=levels,
+            changes=changes,
+            pct_changes=pct_changes,
+        )
+    return FPOutputData(
+        model_title=f"LOADFORMAT output ({Path(path).name})",
+        forecast_start=forecast_start,
+        forecast_end=forecast_end,
+        base_period=base_period,
+        periods=window,
+        variables=variables,
+    )
 
 
 def _copy_model_files(fp_home: Path, dest: Path, *, overlay_dir: Path | None = None) -> None:

@@ -14,7 +14,11 @@ from fp_wraptr.runtime.fairpy import FairPyBackend, FairPyBackendError
 from fp_wraptr.runtime.fp_exe import FPExecutable, FPExecutableError, FPRunResult
 from fp_wraptr.runtime.fpr import FpRBackend, FpRBackendError
 from fp_wraptr.scenarios.config import ScenarioConfig
-from fp_wraptr.scenarios.runner import load_scenario_config, run_scenario
+from fp_wraptr.scenarios.runner import (
+    load_scenario_config,
+    run_scenario,
+    scenario_requires_fp_home,
+)
 
 
 def test_run_result_success(tmp_path):
@@ -274,7 +278,9 @@ def test_fpr_wrapper_restores_smpl_after_identity_overlay(tmp_path):
     assert "2025.4 2025.4" in last_smpl_before_solve
 
 
-def test_fpr_backend_run_raw_input_mode_runs_direct_nonbaseline_input_in_compat(tmp_path, monkeypatch):
+def test_fpr_backend_run_raw_input_mode_runs_direct_nonbaseline_input_in_compat(
+    tmp_path, monkeypatch
+):
     fp_r_home = tmp_path / "fp-r"
     scripts_dir = fp_r_home / "scripts"
     scripts_dir.mkdir(parents=True)
@@ -338,9 +344,7 @@ def test_fpr_backend_run_raw_input_mode_runs_direct_nonbaseline_input_in_compat(
     assert not (work_dir / "fp_r_identity_overlay.txt").exists()
 
 
-def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(
-    tmp_path, monkeypatch
-):
+def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(tmp_path, monkeypatch):
     config = ScenarioConfig(
         name="fpr_raw_input",
         fp_home=tmp_path / "FM",
@@ -349,7 +353,14 @@ def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(
         fpr={"rscript_path": str(tmp_path / "Rscript")},
     )
     config.fp_home.mkdir(parents=True, exist_ok=True)
-    for name in ("fminput.txt", "fmdata.txt", "fmage.txt", "fmexog.txt", "fmout.txt", "psehigh.txt"):
+    for name in (
+        "fminput.txt",
+        "fmdata.txt",
+        "fmage.txt",
+        "fmexog.txt",
+        "fmout.txt",
+        "psehigh.txt",
+    ):
         (config.fp_home / name).write_text(f"{name}\n", encoding="utf-8")
     Path(str(config.fpr["rscript_path"])).write_text("", encoding="utf-8")
 
@@ -366,7 +377,9 @@ def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(
         (work_dir / "PACEV.TXT").write_text("pacev\n", encoding="utf-8")
         (work_dir / "fp_r_series.csv").write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
         (work_dir / "fp_r_report.txt").write_text("ok\n", encoding="utf-8")
-        (work_dir / "fp_r_diagnostics.csv").write_text("period,iters\n2025.1,1\n", encoding="utf-8")
+        (work_dir / "fp_r_diagnostics.csv").write_text(
+            "period,iters\n2025.1,1\n", encoding="utf-8"
+        )
         return RunResult(
             return_code=0,
             stdout="ok",
@@ -384,6 +397,9 @@ def test_run_scenario_fp_r_raw_input_stages_and_copies_artifacts(
     assert result.success is True
     assert (result.output_dir / "PACEV.TXT").exists()
     assert (result.output_dir / "LOADFORMAT.DAT").read_text(encoding="utf-8") == "pacev\n"
+    # An unreadable LOADFORMAT keeps the run but is reported, never silently dropped.
+    assert result.parsed_output is None
+    assert "LOADFORMAT.DAT" in result.backend_diagnostics["output_parse_error"]
     assert (result.output_dir / "fp_r_series.csv").exists()
     assert (result.output_dir / "fp_r_report.txt").exists()
 
@@ -407,7 +423,9 @@ def test_run_scenario_passes_shared_semantics_profile_to_backends(tmp_path, monk
         assert self.semantics_profile == "canonical"
         assert work_dir is not None
         work_dir.mkdir(parents=True, exist_ok=True)
-        (work_dir / "PABEV.TXT").write_text("SMPL 2025.4 2025.4;\nLOAD A;\n1.0\n'END'\n", encoding="utf-8")
+        (work_dir / "PABEV.TXT").write_text(
+            "SMPL 2025.4 2025.4;\nLOAD A;\n1.0\n'END'\n", encoding="utf-8"
+        )
         return RunResult(
             return_code=0,
             stdout="ok",
@@ -446,11 +464,14 @@ def test_fp_r_boundary_contract_script_runs_when_rscript_is_available(tmp_path):
         pytest.skip("Rscript not available")
 
     repo_root = Path(__file__).resolve().parents[1]
+    script = repo_root / "fp-r" / "scripts" / "check_boundary_contracts.R"
+    if not script.exists():
+        pytest.skip("fp-r boundary-contract script is not part of this checkout")
     work_dir = tmp_path / "boundary-contracts"
     subprocess.run(
         [
             "Rscript",
-            str(repo_root / "fp-r" / "scripts" / "check_boundary_contracts.R"),
+            str(script),
             "--work-dir",
             str(work_dir),
         ],
@@ -554,7 +575,10 @@ def test_fairpy_backend_thread_env_overrides_emit_expected_vars() -> None:
     }
 
 
-def test_fairpy_backend_runtime_records_requested_threads(tmp_path, monkeypatch) -> None:
+@pytest.mark.parametrize("output_name", ["PABEV.TXT", "PACEV.TXT"])
+def test_fairpy_backend_runtime_records_requested_threads(
+    tmp_path, monkeypatch, output_name
+) -> None:
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     work_dir = tmp_path / "work"
@@ -588,7 +612,7 @@ def test_fairpy_backend_runtime_records_requested_threads(tmp_path, monkeypatch)
         def __init__(self, *args, **kwargs):
             nonlocal captured_env
             captured_env = dict(kwargs.get("env") or {})
-            Path(kwargs["cwd"]).joinpath("PABEV.TXT").write_text(
+            Path(kwargs["cwd"]).joinpath(output_name).write_text(
                 "SMPL 2025.4 2025.4;\nLOAD A;\n1.0\n'END'\n",
                 encoding="utf-8",
             )
@@ -612,6 +636,9 @@ def test_fairpy_backend_runtime_records_requested_threads(tmp_path, monkeypatch)
     result = backend.run(input_file=work_dir / "fminput.txt", work_dir=work_dir)
 
     assert result.return_code == 0
+    # fppy's LOADFORMAT result is the run's output, whichever of PABEV/PACEV it wrote.
+    assert result.output_file is not None
+    assert result.output_file.name.upper() == output_name
     assert captured_env["OMP_NUM_THREADS"] == "5"
     runtime_payload = json.loads((work_dir / "fppy.runtime.json").read_text(encoding="utf-8"))
     assert runtime_payload["num_threads_requested"] == 5
@@ -1147,3 +1174,83 @@ def test_fp_executable_run_persists_stdout_stderr_artifacts(tmp_path, monkeypatc
     assert (tmp_path / "work" / "fp-exe.stderr.txt").read_text(
         encoding="utf-8"
     ) == "SAMPLE STDERR\n"
+
+
+def test_fpr_bundle_scenarios_do_not_require_fp_home() -> None:
+    # Bundle-backed fp-r runs are self-contained, so a checkout without the
+    # (non-redistributed) FM/ model files must still be able to run them.
+    bundle = ScenarioConfig(name="demo", backend="fp-r", fpr={"bundle_path": "demo_bundle.R"})
+    assert scenario_requires_fp_home(bundle) is False
+    assert scenario_requires_fp_home(bundle, "fp_r") is False
+
+    # Raw-input fp-r and every other engine read FM/ inputs, so they must validate them.
+    raw_input = ScenarioConfig(name="raw", backend="fp-r")
+    assert scenario_requires_fp_home(raw_input) is True
+    for engine in ("fpexe", "fppy", "both"):
+        assert scenario_requires_fp_home(bundle, engine) is True
+
+
+@pytest.mark.parametrize(
+    "include_names",
+    [
+        ("FMEXOG.TXT",),
+        ("fmexog.txt", "FMEXOG.TXT"),
+        ("FMEXOG.TXT", "FmExog.txt"),
+    ],
+)
+def test_run_scenario_preserves_overlay_while_adding_override(
+    tmp_path, monkeypatch, include_names
+):
+    # Stock decks INPUT the exogenous file in upper case; a deck may INPUT it more than once
+    # under different spellings. On case-sensitive filesystems (CI) only the first spelling
+    # is staged, and the overlay's settings must still survive in every alias.
+    fp_home = tmp_path / "FM"
+    fp_home.mkdir()
+    deck = "".join(f"INPUT FILE={name};\n" for name in include_names) + "SOLVE;\n"
+    (fp_home / "fminput.txt").write_text(deck, encoding="utf-8")
+    for name in ("fmdata.txt", "fmage.txt", "fmout.txt"):
+        (fp_home / name).write_text(f"{name}\n", encoding="utf-8")
+    exog = "SMPL 2026.1 2026.2;\nCHANGEVAR;\nA SAMEVALUE\n{value}\n;\nRETURN;\n"
+    (fp_home / "fmexog.txt").write_text(exog.format(value=1), encoding="utf-8")
+    overlay = tmp_path / "overlay"
+    overlay.mkdir()
+    (overlay / "fmexog.txt").write_text(exog.format(value=9), encoding="utf-8")
+
+    seen: dict[str, str] = {}
+
+    def fake_run(self, input_file=None, work_dir=None, extra_env=None):
+        # Every case variant of the exogenous file the deck could open.
+        for child in work_dir.iterdir():
+            if child.name.lower() == "fmexog.txt":
+                seen[child.name] = child.read_text(encoding="utf-8")
+        return RunResult(
+            return_code=0,
+            stdout="",
+            stderr="",
+            working_dir=work_dir,
+            input_file=input_file,
+            output_file=None,
+            duration_seconds=0.0,
+        )
+
+    monkeypatch.setattr(FairPyBackend, "check_available", lambda self: True)
+    monkeypatch.setattr(FairPyBackend, "run", fake_run)
+
+    config = ScenarioConfig(
+        name="overlay_override",
+        fp_home=fp_home,
+        backend="fppy",
+        forecast_start="2026.1",
+        forecast_end="2026.2",
+        input_overlay_dir=overlay,
+        overrides={"B": {"method": "SAMEVALUE", "value": 2}},
+    )
+    run_scenario(config, output_dir=tmp_path / "artifacts")
+
+    assert seen
+    for text in seen.values():
+        lines = text.splitlines()
+        # The overlay's A=9 survives; the stock A=1 does not come back.
+        assert lines[lines.index("A SAMEVALUE") + 1] == "9"
+        assert "1" not in lines
+        assert lines[lines.index("B SAMEVALUE") + 1] == "2.0"

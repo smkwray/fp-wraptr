@@ -17,6 +17,22 @@ FM_DIR = Path(__file__).parent.parent / "FM"
 HAS_FM = FM_DIR.exists() and (FM_DIR / "fmout.txt").exists()
 requires_fm = pytest.mark.skipif(not HAS_FM, reason="FM/ data files not available")
 
+# Exact-value checks below were recorded from this Fair model release. They pin the
+# parsers to known numbers in a real fmout/fmdata/fmexog, so they only apply to it.
+FM_RELEASE = "US MODEL FEBRUARY 20, 2026"
+
+
+def _fm_release_matches() -> bool:
+    if not HAS_FM:
+        return False
+    head = (FM_DIR / "fmout.txt").read_text(encoding="utf-8", errors="replace")[:4000]
+    return FM_RELEASE in head
+
+
+requires_fm_release = pytest.mark.skipif(
+    not _fm_release_matches(), reason=f"FM/ is not the {FM_RELEASE!r} release these values pin"
+)
+
 
 class TestImports:
     """Verify all package modules import without error."""
@@ -523,13 +539,13 @@ LOAD Y;
 END;
 """
 
-    @requires_fm
+    @requires_fm_release
     def test_parse_real_fmdata(self):
         from fp_wraptr.io.input_parser import parse_fm_data
 
         data = parse_fm_data(FM_DIR / "fmdata.txt")
         assert data["sample_start"] == "1952.1"
-        assert data["sample_end"] == "2025.3"
+        assert data["sample_end"] == "2025.4"
         assert "CS" in data["series"]
         assert len(data["series"]["CS"]) >= 1
         assert len(data["series"]["CS"][0]["values"]) > 200
@@ -576,13 +592,13 @@ RETURN;
         assert changes["ISZQ"]["method"] is None
         assert len(changes["INTS"]["values"]) == 3
 
-    @requires_fm
+    @requires_fm_release
     def test_parse_real_fmexog(self):
         from fp_wraptr.io.input_parser import parse_fmexog
 
         data = parse_fmexog(FM_DIR / "fmexog.txt")
-        assert len(data["blocks"]) == 3
-        assert data["blocks"][0]["sample_start"] == "2025.4"
+        assert len(data["blocks"]) == 1
+        assert data["blocks"][0]["sample_start"] == "2026.1"
         assert "CCGQ" in {c["variable"] for c in data["blocks"][0]["changes"]}
         assert any(c["variable"] == "INTS" for c in data["blocks"][0]["changes"])
 
@@ -646,6 +662,8 @@ class TestScenarioRunner:
             "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;\n",
             encoding="utf-8",
         )
+        # fminput includes fmexog.txt, so the staged input tree needs it to exist.
+        (fp_home / "fmexog.txt").write_text("SMPL 2025.4 2029.4;\nRETURN;\n", encoding="utf-8")
 
         def fake_run(self, input_file, work_dir, extra_env=None):
             output_path = work_dir / "fmout.txt"
@@ -713,6 +731,8 @@ class TestScenarioOverridePipeline:
             "SOLVE DYNAMIC OUTSIDE FILEVAR=KEYBOARD NORESET;\n",
             encoding="utf-8",
         )
+        # fminput includes fmexog.txt, so the staged input tree needs it to exist.
+        (fp_home / "fmexog.txt").write_text("SMPL 2025.4 2029.4;\nRETURN;\n", encoding="utf-8")
 
         monkeypatch.setattr(
             FPExecutable,
@@ -1077,7 +1097,7 @@ class TestToDict:
         assert d["solve_iterations"][0]["period"] == "2025.4"
 
 
-@requires_fm
+@requires_fm_release
 class TestIntegration:
     """Integration tests requiring FM/ data files."""
 
@@ -1085,11 +1105,11 @@ class TestIntegration:
         from fp_wraptr.io.parser import parse_fp_output
 
         result = parse_fp_output(FM_DIR / "fmout.txt")
-        assert result.forecast_start == "2025.4"
+        assert result.forecast_start == "2026.1"
         assert result.forecast_end == "2029.4"
-        assert result.base_period == "2025.3"
-        assert len(result.periods) == 18
-        assert result.periods[0] == "2025.3"
+        assert result.base_period == "2025.4"
+        assert len(result.periods) == 17
+        assert result.periods[0] == "2025.4"
         assert result.periods[-1] == "2029.4"
 
     def test_parse_real_output_variables(self):
@@ -1102,17 +1122,17 @@ class TestIntegration:
         # Check exact values for PCY (first variable)
         pcy = result.variables["PCY"]
         assert pcy.var_id == 427
-        assert len(pcy.levels) == 18
-        assert pcy.levels[0] == pytest.approx(5.0353)  # base period
-        assert pcy.levels[1] == pytest.approx(4.2968)  # first forecast
-        assert pcy.levels[-1] == pytest.approx(2.5923)  # last forecast
+        assert len(pcy.levels) == 17
+        assert pcy.levels[0] == pytest.approx(2.4268)  # base period
+        assert pcy.levels[1] == pytest.approx(3.4491)  # first forecast
+        assert pcy.levels[-1] == pytest.approx(2.8745)  # last forecast
 
-        assert len(pcy.changes) == 18
-        assert pcy.changes[0] == pytest.approx(-0.58871)
-        assert pcy.changes[3] == pytest.approx(-0.04528, rel=1e-3)  # packed sci notation
+        assert len(pcy.changes) == 17
+        assert pcy.changes[0] == pytest.approx(-2.6633)
+        assert pcy.changes[3] == pytest.approx(-0.28368)
 
-        assert len(pcy.pct_changes) == 18
-        assert pcy.pct_changes[0] == pytest.approx(-35.744)
+        assert len(pcy.pct_changes) == 17
+        assert pcy.pct_changes[0] == pytest.approx(-94.833)
 
     def test_parse_real_output_ur(self):
         """UR uses scientific notation for all level values."""
@@ -1121,8 +1141,8 @@ class TestIntegration:
         result = parse_fp_output(FM_DIR / "fmout.txt")
         ur = result.variables["UR"]
         assert ur.var_id == 87
-        assert ur.levels[0] == pytest.approx(0.043373, rel=1e-4)
-        assert ur.levels[1] == pytest.approx(0.041789, rel=1e-4)
+        assert ur.levels[0] == pytest.approx(0.044664, rel=1e-4)  # printed 0.44664E-01
+        assert ur.levels[1] == pytest.approx(0.043399, rel=1e-4)
 
     def test_parse_real_output_estimations(self):
         from fp_wraptr.io.parser import parse_fp_output
@@ -1134,25 +1154,25 @@ class TestIntegration:
         eq10 = result.estimations[0]
         assert eq10.equation_number == 10
         assert eq10.dependent_var == "LPF"
-        assert eq10.n_obs == 287
+        assert eq10.n_obs == 288
         assert eq10.r_squared == pytest.approx(0.99997)
-        assert eq10.durbin_watson == pytest.approx(2.11699)
-        assert eq10.rho_iterations == 5
-        assert eq10.overid_pvalue == pytest.approx(0.0)
-        assert eq10.overid_df == 6
+        assert eq10.durbin_watson == pytest.approx(2.17248)
+        assert eq10.rho_iterations == 7
+        assert eq10.overid_pvalue == pytest.approx(0.00053)
+        assert eq10.overid_df == 7
 
         # Verify coefficient count and first coefficient
         assert len(eq10.coefficients) == 16
         first_coef = eq10.coefficients[0]
         assert first_coef.var_name == "LPF"
-        assert first_coef.estimate == pytest.approx(0.886852027)
+        assert first_coef.estimate == pytest.approx(0.848282145)
 
     def test_parse_real_output_solve_iterations(self):
         from fp_wraptr.io.parser import parse_fp_output
 
         result = parse_fp_output(FM_DIR / "fmout.txt")
-        assert len(result.solve_iterations) == 17
-        assert result.solve_iterations[0].period == "2025.4"
+        assert len(result.solve_iterations) == 16
+        assert result.solve_iterations[0].period == "2026.1"
         assert result.solve_iterations[0].iterations == 40
         assert result.solve_iterations[-1].period == "2029.4"
 
@@ -1167,9 +1187,9 @@ class TestIntegration:
 
         result = parse_fp_output(FM_DIR / "fmout.txt")
         df = result.to_dataframe()
-        assert len(df) == 18
+        assert len(df) == 17
         assert list(df.columns) == ["PCY", "PCPF", "UR", "PIEF", "GDPR"]
-        assert df.index[0] == "2025.3"
+        assert df.index[0] == "2025.4"
         assert df.index[-1] == "2029.4"
 
     def test_parse_real_input(self):
