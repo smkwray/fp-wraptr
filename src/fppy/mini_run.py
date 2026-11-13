@@ -200,6 +200,16 @@ def _first_finite(values: list[float]) -> float:
     return 0.0
 
 
+_CHANGEVAR_RELATIVE_METHODS = frozenset({
+    "ADDSAMEABS",
+    "ADDSAMEPCT",
+    "ADDDIFABS",
+    "ADDDIFPCT",
+    "CHGDIFABS",
+    "CHGDIFPCT",
+})
+
+
 def _apply_fmexog_rows(base: pd.DataFrame, rows: pd.DataFrame) -> pd.DataFrame:
     if rows.empty:
         return base
@@ -244,6 +254,27 @@ def _apply_fmexog_rows(base: pd.DataFrame, rows: pd.DataFrame) -> pd.DataFrame:
 
         is_vector_raw = row.get("is_vector")
         is_vector = False if pd.isna(is_vector_raw) else bool(is_vector_raw)
+
+        if method in _CHANGEVAR_RELATIVE_METHODS:
+            # fp.for GET1: ADD* methods adjust the existing value Y(J); CHGDIF*
+            # methods chain from Y(J-1). SAME takes one value, DIF one per period.
+            if len(values) >= len(periods):
+                per_period = values[: len(periods)]
+            else:
+                per_period = values + [values[-1]] * (len(periods) - len(values))
+            series = pd.to_numeric(working[column], errors="coerce")
+            for period, value in zip(periods, per_period, strict=True):
+                position = index_positions[period]
+                current_value = float(series.iat[position])
+                if method.startswith("CHG"):
+                    prev_value = float(series.iat[position - 1]) if position > 0 else math.nan
+                    baseline = _first_finite([prev_value, current_value, 0.0])
+                else:
+                    baseline = _first_finite([current_value, 0.0])
+                updated = baseline + value if method.endswith("ABS") else baseline * (1.0 + value)
+                working.at[period, column] = updated
+                series.iat[position] = updated
+            continue
 
         if is_vector:
             if len(values) == len(periods):
@@ -297,41 +328,36 @@ def _apply_fmexog_rows(base: pd.DataFrame, rows: pd.DataFrame) -> pd.DataFrame:
 def _apply_extrapolate_variables(
     frame: pd.DataFrame,
     *,
-    variables: set[str],
     active_window: tuple[str, str] | None,
-    include_all_columns: bool = False,
+    variable: str | None = None,
 ) -> pd.DataFrame:
-    if not variables and not include_all_columns:
-        return frame
+    """fp.for CRX: copy the value one period before the SMPL window into every
+    window period, overwriting what is there (missing values included).
+
+    ``EXTRAPOLATE;`` applies to every variable; ``EXTRAPOLATE VARIABLE=X;`` to X only.
+    """
     periods = _active_window_periods(frame, active_window=active_window)
     if not periods:
         return frame
+    index_positions = {str(period): idx for idx, period in enumerate(frame.index)}
+    window_positions = [index_positions[period] for period in periods]
+    source_position = min(window_positions) - 1
+    if source_position < 0:
+        raise ValueError(f"EXTRAPOLATE window starts at {periods[0]}, which has no prior period")
+
+    if variable is None:
+        columns = list(frame.columns)
+    else:
+        column = _resolve_column_name(frame, variable)
+        if column not in frame.columns:
+            raise KeyError(f"EXTRAPOLATE variable {variable!r} not found")
+        columns = [column]
 
     working = frame.copy(deep=True)
-    index_positions = {str(period): idx for idx, period in enumerate(working.index)}
-    variable_names: set[str] = set(str(name) for name in variables)
-    if include_all_columns:
-        variable_names.update(str(column) for column in working.columns)
-    for variable in sorted(variable_names):
-        column = _resolve_column_name(working, variable)
-        if column not in working.columns:
-            working[column] = pd.Series(index=working.index, dtype="float64")
+    for column in columns:
         series = pd.to_numeric(working[column], errors="coerce")
-        for period in periods:
-            position = index_positions.get(period)
-            if position is None:
-                continue
-            current = float(series.iat[position])
-            if not math.isnan(current):
-                continue
-            if position <= 0:
-                continue
-            prev_value = float(series.iat[position - 1])
-            if math.isnan(prev_value):
-                continue
-            series.iat[position] = prev_value
+        series.iloc[window_positions] = series.iat[source_position]
         working[column] = series
-
     return working
 
 
@@ -366,7 +392,6 @@ def _apply_runtime_preloads(
 ) -> pd.DataFrame:
     output = data.copy(deep=True)
     active_window: tuple[str, str] | None = None
-    exogenous_variables: set[str] = set()
 
     for record in records:
         if record.command == FPCommand.SMPL:
@@ -402,16 +427,14 @@ def _apply_runtime_preloads(
             continue
 
         if isinstance(parsed, ExogenousCommand):
-            exogenous_variables.add(parsed.variable.upper())
             continue
 
         if isinstance(parsed, ExtrapolateCommand):
             try:
                 output = _apply_extrapolate_variables(
                     output,
-                    variables=exogenous_variables,
                     active_window=active_window,
-                    include_all_columns=True,
+                    variable=parsed.variable,
                 )
             except Exception as exc:  # pragma: no cover - explicit diagnostic path
                 issues.append(MiniRunIssue(record.line_number, record.statement, _error_text(exc)))
@@ -743,7 +766,6 @@ def run_mini_run(
     active_window_tuple: tuple[str, str] | None = None
     active_window_plan: object | None = None
     assignment_buffer: list[FPCommandRecord] = []
-    exogenous_variables: set[str] = set()
 
     executed_steps = 0
     executed_line_numbers: list[int] = []
@@ -811,9 +833,12 @@ def run_mini_run(
                 break
             try:
                 window = parse_smpl_statement(record.statement)
-            except Exception:
-                active_window_tuple = None
-                active_window_plan = None
+            except Exception as exc:
+                # fp.exe rejects the statement and keeps the previous SMPL; never
+                # fall back to "no window", which would apply later commands to
+                # every period.
+                if _append_issue_for_record(record, exc):
+                    break
             else:
                 active_window_tuple = (str(window.start), str(window.end))
                 active_window_plan = window
@@ -880,16 +905,14 @@ def run_mini_run(
             continue
 
         if isinstance(parsed, ExogenousCommand):
-            exogenous_variables.add(parsed.variable.upper())
             continue
 
         if isinstance(parsed, ExtrapolateCommand):
             try:
                 output = _apply_extrapolate_variables(
                     output,
-                    variables=exogenous_variables,
                     active_window=active_window_tuple,
-                    include_all_columns=True,
+                    variable=parsed.variable,
                 )
             except Exception as exc:  # pragma: no cover - explicit diagnostic path
                 if _append_issue_for_record(record, exc):

@@ -61,7 +61,7 @@ class SetYyToYCommand:
 
 @dataclass(frozen=True)
 class ExtrapolateCommand:
-    pass
+    variable: str | None = None  # None means all variables (fp.for default VARIABLE=ALL)
 
 
 RuntimeCommand: TypeAlias = (
@@ -203,6 +203,9 @@ def parse_runtime_command(record: FPCommandRecord) -> RuntimeCommand | None:
         return SetYyToYCommand()
 
     if command == FPCommand.EXTRAPOLATE:
-        return ExtrapolateCommand()
+        variable = _extract_variable_arg(statement)
+        if variable is not None and variable.upper() == "ALL":
+            variable = None
+        return ExtrapolateCommand(variable=variable)
 
     return None

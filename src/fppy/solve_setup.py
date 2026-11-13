@@ -85,10 +85,19 @@ def _maybe_float(value: str | None) -> float | None:
         return None
 
 
-def extract_setupsolve_config(records: Iterable[FPCommandRecord]) -> SetupSolveConfig:
+def extract_setupsolve_config(
+    records: Iterable[FPCommandRecord], *, before_line: int | None = None
+) -> SetupSolveConfig:
+    """Merge SETUPSOLVE options in deck order (fp.exe keeps earlier options).
+
+    ``before_line`` is the SOLVE line: SETUPSOLVE statements after it do not
+    apply to that solve.
+    """
     merged: dict[str, str] = {}
     for record in records:
         if record.command != FPCommand.SETUPSOLVE:
+            continue
+        if before_line is not None and int(record.line_number) >= int(before_line):
             continue
         merged.update(parse_setupsolve_statement(record.statement))
 

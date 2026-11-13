@@ -15,13 +15,17 @@ _ASSIGNMENT_RE: Final = re.compile(
     r"^(?P<command>GENR|IDENT|LHS|CREATE)\s+(?P<body>.+)$",
     re.IGNORECASE | re.DOTALL,
 )
-_LAG_RE: Final = re.compile(r"\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\(\s*(?P<lag>[+-]?\d+)\s*\)")
+# Intrinsics take arguments, not lags: LOG(2) is a call, X(2) is a lead of X.
+_LAG_RE: Final = re.compile(
+    r"\b(?!(?i:LOG|EXP|ABS)\()(?P<name>[A-Za-z_][A-Za-z0-9_]*)\(\s*(?P<lag>[+-]?\d+)\s*\)"
+)
 _FUNCTION_RE: Final = re.compile(r"\b(?P<func>LOG|EXP|ABS)\s*\(", re.IGNORECASE)
 _COEF_CALL_RE: Final = re.compile(
     r"\bCOEF\s*\(\s*(?P<row>[+-]?\d+)\s*,\s*(?P<col>[+-]?\d+)\s*\)",
     re.IGNORECASE,
 )
-_IDENTIFIER_RE: Final = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
+# Skip letters inside numeric literals such as "1.E-3" (the "E" is not a name).
+_IDENTIFIER_RE: Final = re.compile(r"(?<![0-9.])\b[A-Za-z_][A-Za-z0-9_]*\b")
 _SERIES_TOKEN_RE: Final = re.compile(r"[^A-Za-z0-9_]")
 _TRAILING_SEMICOLON_RE: Final = re.compile(r";\s*$")
 _INTERNAL_WHITESPACE_RE: Final = re.compile(r"\s+")

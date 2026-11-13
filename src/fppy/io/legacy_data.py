@@ -78,6 +78,9 @@ def parse_fmexog_text(text: str) -> pd.DataFrame:
     current_window_end: str | None = None
     current_window_size: int | None = None
     in_changevar = False
+    # fp.exe applies the previous line's option to a line that names none
+    # (checked against fp.exe on the stock model); reset per CHANGEVAR block.
+    block_method: str | None = None
 
     pending_scalar = False
     pending_variable: str | None = None
@@ -144,6 +147,7 @@ def parse_fmexog_text(text: str) -> pd.DataFrame:
                 generate_smpl_period_index(current_window_start, current_window_end)
             )
             in_changevar = False
+            block_method = None
             continue
 
         if first == "CHANGEVAR":
@@ -151,6 +155,7 @@ def parse_fmexog_text(text: str) -> pd.DataFrame:
                 raise ValueError("CHANGEVAR encountered before SMPL statement.")
             _close_pending()
             in_changevar = True
+            block_method = None
             continue
 
         if first == "RETURN":
@@ -203,13 +208,15 @@ def parse_fmexog_text(text: str) -> pd.DataFrame:
         variable = tokens[0]
         method: str | None = None
         is_vector = False
-        value_text = line
+        # Values come after the variable name, never from digits inside it
+        # (`POP1` alone on a line must not read as the value 1).
+        value_text = line[line.find(variable) + len(variable) :]
 
         if len(tokens) >= 2:
             # Method present only when the second token is non-numeric and non-delimiter.
             if not _is_numeric_token(tokens[1]):
                 method = tokens[1].strip(";'\"")
-                value_text = line[line.find(method) + len(method) :]
+                value_text = value_text[value_text.find(method) + len(method) :]
                 if line_has_semicolon:
                     is_vector = True
 
@@ -219,6 +226,11 @@ def parse_fmexog_text(text: str) -> pd.DataFrame:
         elif line_has_semicolon and len(tokens) == 1:
             # VAR ; vector with no method
             is_vector = True
+
+        if method is None and not line_has_semicolon:
+            method = block_method
+        # `VAR ;` (a data list) clears the inherited option, as fp.exe's ';' token does.
+        block_method = method if not (line_has_semicolon and len(tokens) == 1) else None
 
         extracted = _extract_numbers(value_text)
 

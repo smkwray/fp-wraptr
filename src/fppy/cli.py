@@ -3429,10 +3429,14 @@ def _records_for_eq_iteration(
     context_assignments_first_iter_only: bool,
     context_keep_create_all_iters: bool = False,
     retain_assignment_targets: frozenset[str] = frozenset(),
+    pre_executed_create_lines: frozenset[int] = frozenset(),
 ) -> list:
     # FP semantics: CREATE is executed once at definition time and never
     # replayed during solve iterations.  Always strip CREATE on iteration > 1
-    # regardless of the context_keep_create_all_iters flag.
+    # regardless of the context_keep_create_all_iters flag.  A CREATE the
+    # pre-solve pass already executed is stripped on every iteration: replaying
+    # it over its command-time SMPL would overwrite later CHANGEVAR/GENR/
+    # EXTRAPOLATE edits and values solved for earlier periods.
     #
     # GENR/IDENT/LHS are part of the SOLA pass order (EQ -> LHS -> IDENT ->
     # GENR) and MUST be re-evaluated on every iteration.  In Fortran FP these
@@ -3442,6 +3446,14 @@ def _records_for_eq_iteration(
     strip_create = iteration > 1
     if strip_create:
         return [r for r in records if r.command != FPCommand.CREATE]
+    if pre_executed_create_lines:
+        return [
+            r
+            for r in records
+            if not (
+                r.command == FPCommand.CREATE and int(r.line_number) in pre_executed_create_lines
+            )
+        ]
     return records
 
 
@@ -5101,10 +5113,21 @@ def _cmd_mini_run(
         eq_backfill_record_count = sum(
             1 for record in eq_records if record.command in {FPCommand.EQ, FPCommand.LHS}
         )
+        pre_solve_issue_lines = {
+            int(issue["line"]) for issue in issues if isinstance(issue, dict) and "line" in issue
+        }
+        pre_solve_executed_lines = {int(line) for line in executed_line_numbers}
+        pre_executed_create_lines = frozenset(
+            int(record.line_number)
+            for record in pre_solve_records
+            if record.command == FPCommand.CREATE
+            and int(record.line_number) in pre_solve_executed_lines
+            and int(record.line_number) not in pre_solve_issue_lines
+        )
 
         if eq_use_setupsolve:
             eq_setupsolve_started = time.monotonic()
-            setupsolve = extract_setupsolve_config(eq_records)
+            setupsolve = extract_setupsolve_config(eq_records, before_line=solve_active_line)
             setupsolve_summary = _serialize_setupsolve_for_summary(setupsolve)
             eq_backfill_min_iters = setupsolve.miniters
             eq_backfill_max_iters = setupsolve.maxiters or 100
@@ -5636,6 +5659,7 @@ def _cmd_mini_run(
                         eq_backfill_period_sequential_context_keep_create_all_iters
                     ),
                     retain_assignment_targets=iteration_assignment_targets,
+                    pre_executed_create_lines=pre_executed_create_lines,
                 )
                 effective_rho_resid_ar1 = _resolve_rho_resid_ar1_enabled_for_iteration(
                     eq_backfill_rho_resid_ar1,
