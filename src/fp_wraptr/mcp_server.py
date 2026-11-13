@@ -146,13 +146,12 @@ def _repo_root() -> Path:
 
 
 def _run_summary_payload(*, run_id: str, artifacts_dir: Path | None = None) -> dict[str, object]:
-    from fp_wraptr.run_artifacts import scan_artifacts
+    from fp_wraptr.run_artifacts import load_saved_run_output, scan_artifacts
 
     root = artifacts_dir or (_repo_root() / "artifacts")
     for run in scan_artifacts(root):
         if run.run_dir.name != str(run_id).strip():
             continue
-        fmout = run.run_dir / "fmout.txt"
         payload: dict[str, object] = {
             "run_id": run.run_dir.name,
             "scenario_name": run.config.name if run.config else run.scenario_name,
@@ -163,10 +162,10 @@ def _run_summary_payload(*, run_id: str, artifacts_dir: Path | None = None) -> d
             "has_chart": run.has_chart,
             "description": run.config.description if run.config else "",
         }
-        if fmout.exists():
-            parsed = _load_parsed_output(str(fmout))
-            payload["periods"] = parsed.get("periods", [])
-            payload["variables"] = sorted(parsed.get("variables", {}).keys())
+        parsed = load_saved_run_output(run.run_dir)
+        if parsed is not None:
+            payload["periods"] = list(parsed.periods)
+            payload["variables"] = sorted(parsed.variables)
         return payload
     raise FileNotFoundError(f"Run not found: {run_id}")
 
@@ -693,15 +692,22 @@ def run_fp_scenario(
     except Exception as exc:
         return _error_payload(f"Scenario run failed: {exc}", path=str(scenario_path))
 
+    from fp_wraptr.run_artifacts import saved_run_output_path
+
     out_dir = result.output_dir
-    fmout_path = out_dir / "fmout.txt" if out_dir else None
+    output_path = saved_run_output_path(out_dir) if out_dir else None
 
     summary = {
         "name": config.name,
         "success": result.success,
         "backend": backend.strip().lower() or str(getattr(config, "backend", "fpexe") or "fpexe"),
         "output_dir": str(out_dir),
-        "fmout_path": str(fmout_path) if fmout_path and fmout_path.exists() else None,
+        "output_path": str(output_path) if output_path is not None else None,
+        "fmout_path": (
+            str(output_path)
+            if output_path is not None and output_path.name == "fmout.txt"
+            else None
+        ),
         "chart_path": str(result.chart_path) if result.chart_path else None,
         "forecast": {},
     }
@@ -1506,7 +1512,7 @@ def get_latest_run(
         scenario_filter: Optional scenario name substring to filter by.
         limit: Number of recent runs to return (default 1).
     """
-    from fp_wraptr.run_artifacts import latest_runs, scan_artifacts
+    from fp_wraptr.run_artifacts import latest_runs, saved_run_output_path, scan_artifacts
 
     runs = scan_artifacts(Path(artifacts_dir))
     if scenario_filter:
@@ -1516,14 +1522,17 @@ def get_latest_run(
     top = latest_runs(runs, limit=max(1, limit), has_output=False)
     entries = []
     for run in top:
-        fmout = run.run_dir / "fmout.txt"
+        output = saved_run_output_path(run.run_dir)
         parity = run.run_dir / "parity_report.json"
         entries.append({
             "scenario_name": run.config.name if run.config else run.scenario_name,
             "timestamp": run.timestamp,
             "run_dir": str(run.run_dir),
             "has_output": run.has_output,
-            "fmout_path": str(fmout) if fmout.exists() else None,
+            "output_path": str(output) if output is not None else None,
+            "fmout_path": str(output)
+            if output is not None and output.name == "fmout.txt"
+            else None,
             "has_parity_report": parity.exists(),
             "backend_hint": run.backend_hint,
             "description": run.config.description if run.config else "",

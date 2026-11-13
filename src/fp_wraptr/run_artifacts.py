@@ -7,6 +7,9 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
+from fp_wraptr.io.parser import FPOutputData, parse_fp_output
 from fp_wraptr.scenarios.config import ScenarioConfig
 
 _RUN_DIR_RE = re.compile(r"^(?P<scenario_name>.+)_(?P<timestamp>\d{8}_\d{6})$")
@@ -201,3 +204,58 @@ def scan_artifacts(artifacts_dir: Path) -> list[RunArtifact]:
 
     runs.sort(key=_artifact_sort_key, reverse=True)
     return runs
+
+
+# Backends whose result is LOADFORMAT output. Their work/fmout.txt is the staged fp.exe
+# stock output (a coefficient input), never a result of the run.
+LOADFORMAT_BACKENDS = frozenset({"fppy", "fairpy", "fair-py", "fp-py", "fpr", "fp-r", "fp_r"})
+_LOADFORMAT_OUTPUT_NAMES = ("LOADFORMAT.DAT", "PABEV.TXT", "PACEV.TXT")
+
+
+def saved_run_backend(run_dir: Path) -> str:
+    """Backend recorded in a run's scenario.yaml (``fpexe`` when absent or unreadable)."""
+    try:
+        raw = yaml.safe_load((Path(run_dir) / "scenario.yaml").read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return "fpexe"
+    backend = raw.get("backend") if isinstance(raw, dict) else None
+    return str(backend or "fpexe").strip().lower()
+
+
+def saved_run_output_path(run_dir: Path) -> Path | None:
+    """The file holding a saved run's result.
+
+    fp.exe runs: their fmout.txt. fppy/fp-r runs: their LOADFORMAT output.
+    """
+    run_dir = Path(run_dir)
+    names: tuple[str, ...] = _LOADFORMAT_OUTPUT_NAMES
+    if saved_run_backend(run_dir) not in LOADFORMAT_BACKENDS:
+        names = ("fmout.txt", *names)
+    return next((run_dir / name for name in names if (run_dir / name).exists()), None)
+
+
+def load_saved_run_output(run_dir: Path) -> FPOutputData | None:
+    """Parse a saved run's result (None when the run has no output file).
+
+    LOADFORMAT output is windowed to the saved scenario's forecast; without a
+    scenario.yaml the whole file is used.
+    """
+    from fp_wraptr.io.loadformat import read_loadformat
+    from fp_wraptr.scenarios.runner import parsed_output_from_loadformat
+
+    run_dir = Path(run_dir)
+    path = saved_run_output_path(run_dir)
+    if path is None:
+        return None
+    if path.name == "fmout.txt":
+        return parse_fp_output(path)
+    scenario_path = run_dir / "scenario.yaml"
+    if scenario_path.exists():
+        config = ScenarioConfig.from_yaml(scenario_path)
+        start, end = config.forecast_start, config.forecast_end
+    else:
+        periods, _ = read_loadformat(path)
+        if not periods:
+            raise ValueError(f"{path} contains no periods")
+        start, end = periods[min(1, len(periods) - 1)], periods[-1]
+    return parsed_output_from_loadformat(path, forecast_start=start, forecast_end=end)

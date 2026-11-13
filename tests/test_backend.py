@@ -458,6 +458,17 @@ def test_fpr_public_example_runs_when_rscript_is_available(tmp_path):
     assert (result.output_dir / "fp_r_series.csv").exists()
     assert (result.output_dir / "fp_r_report.txt").exists()
 
+    # The reported window must match the bundle (data from 2024.4, solved 2025.1-2025.4),
+    # both in the immediate result and when the saved run is reopened.
+    from fp_wraptr.run_artifacts import load_saved_run_output
+
+    expected_periods = ["2024.4", "2025.1", "2025.2", "2025.3", "2025.4"]
+    for parsed in (result.parsed_output, load_saved_run_output(result.output_dir)):
+        assert parsed is not None
+        assert parsed.forecast_start == "2025.1"
+        assert parsed.forecast_end == "2025.4"
+        assert parsed.periods == expected_periods
+
 
 def test_fp_r_boundary_contract_script_runs_when_rscript_is_available(tmp_path):
     if shutil.which("Rscript") is None:

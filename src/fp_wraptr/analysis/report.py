@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from fp_wraptr.analysis.diff import diff_outputs
-from fp_wraptr.io.parser import FPOutputData, parse_fp_output
+from fp_wraptr.io.parser import FPOutputData
+from fp_wraptr.run_artifacts import load_saved_run_output
 from fp_wraptr.scenarios.config import ScenarioConfig
 
 
@@ -24,10 +25,7 @@ def _read_scenario(run_dir: Path) -> tuple[ScenarioConfig | None, str]:
 
 
 def _read_output(run_dir: Path) -> FPOutputData | None:
-    output_path = run_dir / "fmout.txt"
-    if not output_path.exists():
-        return None
-    return parse_fp_output(output_path)
+    return load_saved_run_output(run_dir)
 
 
 def _top_levels_table_rows(parsed_output: FPOutputData) -> list[tuple[str, float]]:
@@ -108,13 +106,13 @@ def build_run_report(
     if baseline_dir is None:
         return "\n".join(lines)
 
-    baseline_output_path = _normalize_path(baseline_dir) / "fmout.txt"
-    if not baseline_output_path.exists():
+    baseline_path = _normalize_path(baseline_dir)
+    baseline_output = load_saved_run_output(baseline_path)
+    if baseline_output is None:
         lines.append("## Baseline comparison")
-        lines.append(f"Baseline output missing: `{baseline_output_path}`")
+        lines.append(f"Baseline output missing in `{baseline_path}`")
         return "\n".join(lines)
 
-    baseline_output = parse_fp_output(baseline_output_path)
     comparison = diff_outputs(baseline_output, parsed_output, top_n=10)
     lines.extend([
         "## Baseline comparison",

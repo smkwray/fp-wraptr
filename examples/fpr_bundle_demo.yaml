@@ -6,6 +6,9 @@
 name: fpr_bundle_demo
 description: "Self-contained bundle-backed fp-r demo"
 backend: fp-r
+# The bundle's own window: data from 2024.4, solved 2025.1-2025.4.
+forecast_start: "2025.1"
+forecast_end: "2025.4"
 track_variables:
   - GDP
   - CONS

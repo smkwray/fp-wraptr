@@ -1285,3 +1285,24 @@ def test_export_pages_bundle_refuses_runs_fp_exe_did_not_converge(tmp_path: Path
         allow_solve_errors=True,
     )
     assert result.solve_error_runs == {"fixture-run": 2}
+
+
+def test_export_pages_bundle_ignores_staged_stock_output_of_fppy_run(tmp_path: Path) -> None:
+    # fppy stages fp.exe's stock fmout.txt in work/ as a coefficient input. Errors in
+    # that file are not this run's solve errors and must not block a clean export.
+    run_dir = _write_run(tmp_path, scenario_name="scenario", timestamp="20260306_120000")
+    scenario_path = run_dir / "scenario.yaml"
+    payload = yaml.safe_load(scenario_path.read_text(encoding="utf-8"))
+    payload["backend"] = "fppy"
+    scenario_path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+    (run_dir / "work").mkdir()
+    (run_dir / "work" / "fmout.txt").write_text(ITERATION_LIMIT_FMOUT, encoding="utf-8")
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    _write_spec(spec_path)
+
+    result = export_pages_bundle(
+        spec_path=spec_path,
+        artifacts_dir=tmp_path / "artifacts",
+        out_dir=tmp_path / "public" / "model-runs",
+    )
+    assert result.solve_error_runs == {}

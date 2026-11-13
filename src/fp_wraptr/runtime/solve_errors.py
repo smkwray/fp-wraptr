@@ -113,8 +113,16 @@ def scan_solution_errors(work_dir: Path) -> list[SolveErrorMatch]:
 
 
 def scan_run_solution_errors(run_dir: Path) -> list[SolveErrorMatch]:
-    """Scan a run artifact directory (its fmout.txt, else work/fmout.txt) for solve errors."""
+    """Scan an fp.exe run directory (its fmout.txt, else work/fmout.txt) for solve errors.
+
+    fppy/fp-r runs (backend per their scenario.yaml) are not scanned: their work/fmout.txt
+    is the staged fp.exe stock output, not their own solution.
+    """
+    from fp_wraptr.run_artifacts import LOADFORMAT_BACKENDS, saved_run_backend
+
     run_dir = Path(run_dir)
+    if saved_run_backend(run_dir) in LOADFORMAT_BACKENDS:
+        return []
     for candidate in (run_dir, run_dir / "work"):
         if (candidate / "fmout.txt").exists():
             return scan_solution_errors(candidate)

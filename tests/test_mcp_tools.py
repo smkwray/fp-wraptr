@@ -6,12 +6,16 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from fp_wraptr.mcp_server import (
+    _run_summary_payload,
     create_scenario,
     describe_variable,
     describe_variable_sources,
+    diff_runs,
     explain_equation,
+    get_latest_run,
     get_run_history,
     list_output_equations,
     list_output_variables,
@@ -692,3 +696,40 @@ def test_update_model_from_fred_tool_success(monkeypatch, tmp_path: Path) -> Non
     assert Path(payload["report_path"]) == report_path
     assert payload["report"]["selected_variable_count"] == 1
     assert fmdata_path.exists()
+
+
+def _write_loadformat_run(root: Path, name: str, ur: list[float]) -> Path:
+    """A saved fppy run: LOADFORMAT result, staged stock fmout.txt only in work/."""
+    run_dir = root / f"{name}_20261113_120000"
+    (run_dir / "work").mkdir(parents=True)
+    (run_dir / "scenario.yaml").write_text(
+        f"name: {name}\nbackend: fppy\nforecast_start: '2026.1'\nforecast_end: '2026.2'\n",
+        encoding="utf-8",
+    )
+    values = "\n".join(str(v) for v in ur)
+    (run_dir / "LOADFORMAT.DAT").write_text(
+        f"SMPL 2025.3 2026.2;\nLOAD UR;\n{values}\n'END'\n", encoding="utf-8"
+    )
+    _write_fmout(run_dir / "work" / "fmout.txt")
+    return run_dir
+
+
+def test_diff_runs_compares_loadformat_only_runs(tmp_path: Path) -> None:
+    base = _write_loadformat_run(tmp_path, "base", [0.05, 0.04, 0.045, 0.05])
+    scen = _write_loadformat_run(tmp_path, "scen", [0.05, 0.04, 0.045, 0.06])
+    payload = json.loads(diff_runs(str(base), str(scen)))
+    assert "error" not in payload
+    assert payload["deltas"]["UR"]["abs_delta"] == pytest.approx(0.01)
+
+
+def test_saved_loadformat_run_summary_and_output_path(tmp_path: Path) -> None:
+    run_dir = _write_loadformat_run(tmp_path, "base", [0.05, 0.04, 0.045, 0.05])
+    summary = _run_summary_payload(run_id=run_dir.name, artifacts_dir=tmp_path)
+    # The saved scenario's window, starting at the base period.
+    assert summary["periods"] == ["2025.4", "2026.1", "2026.2"]
+    assert summary["variables"] == ["UR"]
+
+    latest = json.loads(get_latest_run(artifacts_dir=str(tmp_path)))["runs"][0]
+    assert latest["output_path"] == str(run_dir / "LOADFORMAT.DAT")
+    # The staged stock fmout.txt is not this run's output.
+    assert latest["fmout_path"] is None

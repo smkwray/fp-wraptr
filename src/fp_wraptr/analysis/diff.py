@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fp_wraptr.io.parser import FPOutputData, parse_fp_output
+from fp_wraptr.io.parser import FPOutputData
 
 __all__ = [
     "diff_outputs",
@@ -49,7 +49,9 @@ def diff_run_dirs(
     dir_b: Path | str,
     top_n: int = 20,
 ) -> dict:
-    """Compare two run directories by parsing their fmout.txt files.
+    """Compare two saved run directories by their results.
+
+    fp.exe runs are read from fmout.txt, fppy/fp-r runs from their LOADFORMAT output.
 
     Args:
         dir_a: First run directory (baseline).
@@ -59,21 +61,21 @@ def diff_run_dirs(
     Returns:
         Dict with comparison summary.
     """
+    from fp_wraptr.run_artifacts import load_saved_run_output
+
     dir_a = Path(dir_a)
     dir_b = Path(dir_b)
-    output_a = dir_a / "fmout.txt"
-    output_b = dir_b / "fmout.txt"
+    parsed_a = load_saved_run_output(dir_a)
+    parsed_b = load_saved_run_output(dir_b)
 
-    if not output_a.exists() or not output_b.exists():
-        missing = []
-        if not output_a.exists():
-            missing.append(str(output_a))
-        if not output_b.exists():
-            missing.append(str(output_b))
-        return {"error": f"Missing output files: {', '.join(missing)}", "deltas": {}}
-
-    parsed_a = parse_fp_output(output_a)
-    parsed_b = parse_fp_output(output_b)
+    if parsed_a is None or parsed_b is None:
+        missing = [
+            str(d) for d, parsed in ((dir_a, parsed_a), (dir_b, parsed_b)) if parsed is None
+        ]
+        return {
+            "error": f"No run output (fmout.txt or LOADFORMAT) in: {', '.join(missing)}",
+            "deltas": {},
+        }
 
     return diff_outputs(parsed_a, parsed_b, top_n=top_n)
 

@@ -5,7 +5,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from fp_wraptr.io.parser import FPOutputData, parse_fp_output
+from fp_wraptr.io.parser import FPOutputData
+from fp_wraptr.run_artifacts import load_saved_run_output, saved_run_output_path
 from fp_wraptr.scenarios.config import ScenarioConfig
 from fp_wraptr.scenarios.runner import ScenarioResult
 
@@ -45,10 +46,10 @@ def _load_or_parse_output(
     if result.parsed_output:
         return result.parsed_output, ""
 
-    output_path = result.output_dir / "fmout.txt"
-    if not output_path.exists():
-        return None, f"Missing fmout.txt in {result.output_dir}"
-    return parse_fp_output(output_path), ""
+    parsed = load_saved_run_output(result.output_dir)
+    if parsed is None:
+        return None, f"No run output in {result.output_dir}"
+    return parsed, ""
 
 
 def compare_to_golden(
@@ -58,8 +59,8 @@ def compare_to_golden(
 ) -> dict:
     """Compare a scenario result against a stored golden output."""
     golden_dir = Path(golden_dir)
-    golden_path = golden_dir / "fmout.txt"
-    if not golden_path.exists():
+    baseline_output = load_saved_run_output(golden_dir)
+    if baseline_output is None:
         return {"matches": False, "variable_diffs": {}, "max_delta": float("inf")}
 
     scenario_output, scenario_error = _load_or_parse_output(result)
@@ -71,7 +72,6 @@ def compare_to_golden(
             "error": scenario_error,
         }
 
-    baseline_output = parse_fp_output(golden_path)
     deltas = {}
     max_delta = 0.0
 
@@ -138,14 +138,21 @@ def compare_to_golden(
 
 
 def save_golden(result: ScenarioResult, golden_dir: Path) -> Path:
-    """Copy `fmout.txt` into a golden directory."""
+    """Copy a run's result file (fp.exe fmout.txt or LOADFORMAT output) into a golden directory.
+
+    The run's scenario.yaml is copied too, so a LOADFORMAT golden keeps its backend and
+    forecast window.
+    """
     golden_dir = Path(golden_dir)
     golden_dir.mkdir(parents=True, exist_ok=True)
 
-    source = result.output_dir / "fmout.txt"
-    if not source.exists():
-        raise FileNotFoundError(f"No fmout.txt to save at {result.output_dir}")
+    source = saved_run_output_path(result.output_dir)
+    if source is None:
+        raise FileNotFoundError(f"No run output to save at {result.output_dir}")
 
-    destination = golden_dir / "fmout.txt"
+    destination = golden_dir / source.name
     shutil.copy2(source, destination)
+    scenario = result.output_dir / "scenario.yaml"
+    if scenario.exists():
+        shutil.copy2(scenario, golden_dir / "scenario.yaml")
     return destination

@@ -6,8 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fp_wraptr.analysis.diff import diff_run_dirs
-from fp_wraptr.io.parser import parse_fp_output
-from fp_wraptr.run_artifacts import latest_runs, scan_artifacts
+from fp_wraptr.run_artifacts import latest_runs, load_saved_run_output, scan_artifacts
 from fp_wraptr.scenarios.authoring.compiler import (
     compile_bundle_workspace,
     compile_scenario_workspace,
@@ -773,10 +772,9 @@ def build_visualization_view(
     ]
     run_payloads: list[dict[str, object]] = []
     for run_dir in resolved_run_dirs:
-        fmout = run_dir / "fmout.txt"
-        if not fmout.exists():
+        parsed = load_saved_run_output(run_dir)
+        if parsed is None:
             continue
-        parsed = parse_fp_output(fmout)
         if not variables:
             variables = list(parsed.variables.keys())[:5]
         series_payload: dict[str, object] = {}
