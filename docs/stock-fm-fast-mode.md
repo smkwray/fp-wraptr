@@ -1,13 +1,13 @@
 # Stock FM Fast Mode
 
-This runbook documents the fastest currently validated stock-FM path with low divergence versus `fp.exe`.
+This page documents the fastest validated `fppy` settings for the stock model with low divergence versus `fp.exe`.
 
 ## What this mode is
 
 - Scope: stock FM (`FM/fminput.txt`) only.
 - Goal: maximize `fppy` speed while keeping divergence tightly bounded versus `fp.exe`.
-- Current validated profile (2026-03-07):
-  - runtime: ~99-101s (about 5x faster than the prior ~506.5s baseline)
+- Measured profile on the stock model:
+  - runtime: ~99-101s (down from ~506.5s before the solver-path and cache optimizations)
   - `max % diff` vs `fp.exe`: `0.0376329663%`
   - `p95 % diff` vs `fp.exe`: `0.0000441579%`
   - convergence: `converged`
@@ -36,7 +36,7 @@ Why explicit `eq_flags_preset`:
 ## Run command
 
 ```bash
-scripts/uvsafe fp run <your-scenario>.yaml \
+uv run fp run <your-scenario>.yaml \
   --backend fppy \
   --fp-home /path/to/FM \
   --output-dir /tmp/fp_wraptr_stock_fast_runs
@@ -48,7 +48,7 @@ scripts/uvsafe fp run <your-scenario>.yaml \
 2. Evaluate the `fppy` run against that reference with the stock KPI harness:
 
 ```bash
-scripts/uvsafe python -B scripts/stock_fm_speed_divergence_eval.py \
+uv run python -B scripts/stock_fm_speed_divergence_eval.py \
   --label stock_fast_eval \
   --run-dir <fppy_run_dir> \
   --fpexe-output <fpexe_run_dir>/work_fpexe/PACEV.TXT \
@@ -65,7 +65,7 @@ Use these stock-FM gates:
 - stop reason is converged
 - convergence classification is converged
 
-Current validated results are substantially tighter than those gates.
+The measured results above are substantially tighter than those gates.
 
 ## Notes on threading
 

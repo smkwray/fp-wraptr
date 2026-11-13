@@ -20,6 +20,17 @@ from tests.test_authoring import _make_repo
 runner = CliRunner()
 
 
+def _stub_fp_home(path: Path) -> Path:
+    """Create placeholder FP model files so CLI fp_home validation passes.
+
+    Tests that stub out the engines still go through `validate_fp_home`, which
+    only checks the files exist; the Fair model data itself is not redistributed.
+    """
+    for name in ("fminput.txt", "fmdata.txt", "fmage.txt", "fmexog.txt"):
+        (path / name).write_text("", encoding="utf-8")
+    return path
+
+
 def _write_dictionary_json(path):
     payload = {
         "model_version": "2025-12-23",
@@ -498,7 +509,7 @@ def test_run_backend_both_emits_parity_report(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: both_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: both_cli\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     output_root = tmp_path / "artifacts"
     result = runner.invoke(
@@ -544,7 +555,7 @@ def test_run_backend_both_prints_seed_diagnostics_when_available(tmp_path, monke
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: both_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: both_cli\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
     output_root = tmp_path / "artifacts"
     result = runner.invoke(
         app,
@@ -600,7 +611,7 @@ def test_run_backend_both_prints_runtime_profile_when_available(tmp_path, monkey
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: both_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: both_cli\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
     output_root = tmp_path / "artifacts"
 
     result = runner.invoke(
@@ -617,8 +628,8 @@ def test_run_backend_both_prints_runtime_profile_when_available(tmp_path, monkey
 def test_run_backend_both_rejects_baseline_option(tmp_path):
     scenario = tmp_path / "scenario.yaml"
     baseline = tmp_path / "baseline.yaml"
-    scenario.write_text(f"name: both_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
-    baseline.write_text(f"name: base_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: both_cli\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
+    baseline.write_text(f"name: base_cli\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     result = runner.invoke(
         app,
@@ -642,7 +653,6 @@ def test_run_backend_fpr_flows_through_to_run_scenario(tmp_path, monkeypatch):
     scenario.write_text(f"name: fpr_cli\nfp_home: {tmp_path}\n", encoding="utf-8")
 
     observed: dict[str, object] = {}
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
 
     def fake_load_scenario_config(path):
         assert Path(path) == scenario
@@ -695,7 +705,6 @@ def test_run_backend_fpr_skips_fp_home_validation(tmp_path, monkeypatch):
     scenario.write_text("name: fpr_cli\nbackend: fp-r\n", encoding="utf-8")
 
     observed = {"validated": False}
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
 
     monkeypatch.setattr(
         "fp_wraptr.scenarios.runner.load_scenario_config",
@@ -703,7 +712,10 @@ def test_run_backend_fpr_skips_fp_home_validation(tmp_path, monkeypatch):
             name="fpr_cli",
             fp_home=tmp_path / "missing-fm",
             backend="fp-r",
-            fpr={"bundle_path": str(tmp_path / "bundle.R"), "rscript_path": str(tmp_path / "Rscript")},
+            fpr={
+                "bundle_path": str(tmp_path / "bundle.R"),
+                "rscript_path": str(tmp_path / "Rscript"),
+            },
         ),
     )
 
@@ -753,14 +765,16 @@ def test_fpr_compare_skips_fp_home_validation(tmp_path, monkeypatch):
     expected.write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
 
     observed = {"validated": False}
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
     monkeypatch.setattr(
         "fp_wraptr.scenarios.runner.load_scenario_config",
         lambda _path: ScenarioConfig(
             name="fpr_compare",
             fp_home=tmp_path / "missing-fm",
             backend="fp-r",
-            fpr={"bundle_path": str(tmp_path / "bundle.R"), "rscript_path": str(tmp_path / "Rscript")},
+            fpr={
+                "bundle_path": str(tmp_path / "bundle.R"),
+                "rscript_path": str(tmp_path / "Rscript"),
+            },
         ),
     )
 
@@ -809,8 +823,6 @@ def test_fpr_compare_writes_report_for_seeded_slice(tmp_path, monkeypatch):
     scenario.write_text("name: fpr_compare\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
     expected = tmp_path / "expected.csv"
     expected.write_text("period,A\n2025.1,1.0\n2025.2,2.0\n", encoding="utf-8")
-
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
 
     def fake_load_scenario_config(path):
         assert Path(path) == scenario
@@ -877,7 +889,6 @@ def test_fpr_compare_uses_expected_csv_from_scenario_config(tmp_path, monkeypatc
     expected = tmp_path / "expected.csv"
     expected.write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
 
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
     monkeypatch.setattr(
         "fp_wraptr.scenarios.runner.load_scenario_config",
         lambda _path: ScenarioConfig(
@@ -937,7 +948,6 @@ def test_fpr_compare_exits_nonzero_on_mismatch(tmp_path, monkeypatch):
     expected = tmp_path / "expected.csv"
     expected.write_text("period,A\n2025.1,1.0\n", encoding="utf-8")
 
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
     monkeypatch.setattr(
         "fp_wraptr.scenarios.runner.load_scenario_config",
         lambda _path: ScenarioConfig(name="fpr_compare_bad", fp_home=tmp_path, backend="fp-r"),
@@ -995,7 +1005,6 @@ def test_fpr_compare_requires_expected_csv_when_not_in_scenario(tmp_path, monkey
     scenario = tmp_path / "scenario.yaml"
     scenario.write_text("name: fpr_compare_missing\nfp_home: .\nbackend: fp-r\n", encoding="utf-8")
 
-    monkeypatch.setattr("fp_wraptr.cli.assert_no_forbidden_dirs", lambda _root: None)
     monkeypatch.setattr(
         "fp_wraptr.scenarios.runner.load_scenario_config",
         lambda _path: ScenarioConfig(name="fpr_compare_missing", fp_home=tmp_path, backend="fp-r"),
@@ -1031,7 +1040,9 @@ def test_run_backend_both_passes_gate_pabev_end(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: both_cli_gate\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(
+        f"name: both_cli_gate\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8"
+    )
 
     result = runner.invoke(
         app,
@@ -1074,7 +1085,7 @@ def test_run_backend_both_parity_quick_sets_gate_end_to_forecast_start(tmp_path,
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
     scenario.write_text(
-        f"name: both_cli_quick\nfp_home: {tmp_path}\nforecast_start: '2030.1'\n",
+        f"name: both_cli_quick\nfp_home: {_stub_fp_home(tmp_path)}\nforecast_start: '2030.1'\n",
         encoding="utf-8",
     )
 
@@ -1115,7 +1126,9 @@ def test_run_backend_both_strict_failure_prints_run_dir(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: both_cli_gate_fail\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(
+        f"name: both_cli_gate_fail\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8"
+    )
 
     result = runner.invoke(
         app,
@@ -1145,7 +1158,7 @@ def test_run_unknown_backend_reports_expected_choices(tmp_path):
 
     assert result.exit_code != 0
     assert isinstance(result.exception, ValueError)
-    assert "expected fpexe|fppy|both" in str(result.exception)
+    assert "expected fpexe|fppy|fp-r|both" in str(result.exception)
 
 
 def test_parity_command_save_golden(tmp_path, monkeypatch):
@@ -1192,7 +1205,7 @@ def test_parity_command_save_golden(tmp_path, monkeypatch):
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: baseline\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: baseline\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     golden_root = tmp_path / "golden"
     result = runner.invoke(
@@ -1338,7 +1351,9 @@ def test_parity_command_gate_pabev_end_can_suppress_late_window_failure(tmp_path
     from fp_wraptr.analysis.parity import ParityResult
 
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: gate_window\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(
+        f"name: gate_window\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8"
+    )
 
     def fake_run_parity(
         config, output_dir, fp_home_override=None, gate=None, fingerprint_lock=None
@@ -1401,7 +1416,7 @@ def test_parity_command_quick_sets_gate_end_to_forecast_start(tmp_path, monkeypa
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
     scenario.write_text(
-        f"name: quick_gate\nfp_home: {tmp_path}\nforecast_start: '2031.2'\n",
+        f"name: quick_gate\nfp_home: {_stub_fp_home(tmp_path)}\nforecast_start: '2031.2'\n",
         encoding="utf-8",
     )
 
@@ -1415,7 +1430,9 @@ def test_parity_command_failure_prints_run_dir(tmp_path, monkeypatch):
     from fp_wraptr.analysis.parity import ParityResult
 
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: strict_fail\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(
+        f"name: strict_fail\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8"
+    )
 
     def fake_run_parity(
         config, output_dir, fp_home_override=None, gate=None, fingerprint_lock=None
@@ -1474,7 +1491,7 @@ def test_parity_command_prints_seed_diagnostics_when_available(tmp_path, monkeyp
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: baseline\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: baseline\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     result = runner.invoke(app, ["parity", str(scenario)])
     assert result.exit_code == 0
@@ -1527,7 +1544,7 @@ def test_parity_command_prints_runtime_profile_when_available(tmp_path, monkeypa
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: baseline\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: baseline\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     result = runner.invoke(app, ["parity", str(scenario)])
     assert result.exit_code == 0
@@ -1541,7 +1558,7 @@ def test_parity_command_warns_on_fpexe_solution_errors(tmp_path, monkeypatch):
     from fp_wraptr.analysis.parity import EngineRunSummary, ParityResult
 
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: warn_case\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: warn_case\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     def fake_run_parity(
         config, output_dir, fp_home_override=None, gate=None, fingerprint_lock=None
@@ -1579,7 +1596,9 @@ def test_parity_command_warns_when_wine_missing(tmp_path, monkeypatch):
     from fp_wraptr.analysis.parity import EngineRunSummary, ParityResult
 
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: wine_missing\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(
+        f"name: wine_missing\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8"
+    )
 
     def fake_run_parity(
         config, output_dir, fp_home_override=None, gate=None, fingerprint_lock=None
@@ -1709,7 +1728,7 @@ def test_parity_command_regression_flag_fails_on_new_findings(tmp_path, monkeypa
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: baseline\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: baseline\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     result = runner.invoke(
         app,
@@ -1766,7 +1785,7 @@ def test_parity_command_regression_missing_golden_dir_fails(tmp_path, monkeypatc
 
     monkeypatch.setattr("fp_wraptr.analysis.parity.run_parity", fake_run_parity)
     scenario = tmp_path / "scenario.yaml"
-    scenario.write_text(f"name: baseline\nfp_home: {tmp_path}\n", encoding="utf-8")
+    scenario.write_text(f"name: baseline\nfp_home: {_stub_fp_home(tmp_path)}\n", encoding="utf-8")
 
     missing_golden = tmp_path / "does_not_exist_golden"
     result = runner.invoke(
@@ -2202,21 +2221,6 @@ def test_batch_command_with_nonexistent_yaml(tmp_path):
     assert result.exit_code != 0
     output = (result.stdout + result.stderr).lower()
     assert "unable to read scenario" in output or "not found" in output
-
-
-def test_dashboard_command_without_streamlit(monkeypatch):
-    import fp_wraptr.cli as cli_module
-
-    monkeypatch.setattr(
-        cli_module.importlib.util,
-        "find_spec",
-        lambda *args, **kwargs: None,
-    )
-    result = runner.invoke(app, ["dashboard"])
-
-    assert result.exit_code == 1
-    output = (result.stdout + result.stderr).lower()
-    assert "streamlit is not installed" in output
 
 
 def test_version_command():

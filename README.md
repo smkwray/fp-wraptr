@@ -28,7 +28,7 @@
 
 fp-wraptr wraps Ray Fair's [US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on top of decades of economic modeling work — all from Python.
 
-It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring — pick variables, tweak assumptions, run, and compare results from a chat interface or the Streamlit dashboard.
+It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring — pick variables, tweak assumptions, run, and compare results from a chat interface or the command line.
 
 It now supports three solver paths: the original `fp.exe`, the pure-Python `fppy` engine, and a bundle-backed R solver via `fp-r`.
 
@@ -53,11 +53,11 @@ It now supports three solver paths: the original `fp.exe`, the pure-Python `fppy
 - **Three solver paths** — run `fp.exe`, the pure-Python solver (`fppy`), or the bundle-backed R solver (`fp-r`)
 - **Batch runner** — execute multiple scenarios with diff and regression testing
 - **Dependency graph** — trace "why did variable X change?" through 130+ equations
-- **Dashboard** — 12-page Streamlit app with Plotly charts for run exploration and comparison
+- **Model Runs Explorer** — export completed runs as a static site for browsing and sharing results
 - **Data pipelines** — FRED, BEA, and BLS ingestion with safe-lane update workflows
 - **Scenario DSL** — human-readable DSL compiler for compact scenario definitions
 - **Dictionary** — variable and equation lookup with source coverage and quality reports
-- **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
+- **MCP server** — 43 tools for LLM-assisted exploration and scenario authoring
 - **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
 
 ## Quick start
@@ -69,21 +69,21 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Clone and set up
 git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
-scripts/uvsync --all-extras
+uv sync --all-extras          # creates the project-local .venv
 
-# Run smoke tests
-scripts/uvsafe python -m pytest
+# Run the test suite (tests that need FM/, fp.exe, or Rscript skip when those are missing)
+uv run pytest
 
 # Try the CLI
-scripts/uvsafe fp --help
-scripts/uvsafe fp io parse-output FM/fmout.txt
-scripts/uvsafe fp viz plot FM/fmout.txt --var PCY
-scripts/uvsafe fp run examples/fpr_bundle_demo.yaml --backend fp-r
-scripts/uvsafe fp run examples/baseline.yaml --backend both
-scripts/uvsafe fp parity examples/baseline.yaml --with-drift
-```
+uv run fp --help
+uv run fp run examples/fpr_bundle_demo.yaml --backend fp-r   # needs only Rscript
 
-If a stale repo-local `.venv/` exists, delete it first and rerun `scripts/uvsync`.
+# These need the Fair model files in FM/ (see Prerequisites)
+uv run fp io parse-output FM/fmout.txt
+uv run fp viz plot FM/fmout.txt --var PCY
+uv run fp run examples/baseline.yaml --backend both
+uv run fp parity examples/baseline.yaml --with-drift
+```
 
 ## Solver backends
 
@@ -91,7 +91,7 @@ fp-wraptr currently supports three execution backends:
 
 - **`fpexe`** — the original Fair-Parke Windows binary (`fp.exe`). Battle-hardened FORTRAN. Runs via Wine on macOS/Linux.
 - **`fppy`** — a pure-Python re-implementation of the FP solver core. No Wine, no binary blobs. Archie is learning to fly.
-- **`fp-r`** — a bundle-backed R solver path. It runs prebuilt `fp-r` bundles through `Rscript` and emits the same `PABEV.TXT` / `LOADFORMAT.DAT` style artifacts consumed elsewhere in the repo.
+- **`fp-r`** — a bundle-backed R solver path. It runs prebuilt `fp-r` bundles through `Rscript` and emits the same `PABEV.TXT` / `LOADFORMAT.DAT` style artifacts as the other backends.
 
 Parity mode still defaults to the two-engine `fp.exe` vs `fppy` contract:
 
@@ -103,35 +103,23 @@ fp parity examples/baseline.yaml --with-drift
 fp run examples/baseline.yaml --backend both
 ```
 
-Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. The latest stock-model parity run shows zero hard fails, an average relative difference of 0.000047%, and a max relative gap under 0.04%.
+Parity validation enforces hard-fail invariants (missing values, sign flips, discrete jumps) and produces `parity_report.json` with per-variable diff metrics. A full stock-model parity run shows zero hard fails, an average relative difference of 0.000047%, and a max relative gap under 0.04%.
 
-For the full parity operator playbook: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
+For the full parity guide: [Parity docs](https://smkwray.github.io/fp-wraptr/parity/)
 
 `fp parity` can also compare an explicit engine pair with `--left` and `--right`, including `fpexe` vs `fp-r`, as long as the scenario provides both the normal FP assets and `fpr.bundle_path`.
 
 ```bash
-scripts/uvsafe fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient
+uv run fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient
 ```
 
-A small tracked example for `fpexe` vs `fp-r` parity is included at `examples/fpr_real_stock_eq_parity.yaml`.
+A small example for `fpexe` vs `fp-r` parity is included at `examples/fpr_real_stock_eq_parity.yaml`.
 
-In a direct full-FM compare against stock `fp.exe`, `fp-r` currently stays within about `0.0037489%` max relative diff and about `0.00449383` max absolute diff.
+In a full stock-model comparison against `fp.exe`, `fp-r` stays within about `0.0045` max absolute difference and about `0.04%` max relative difference across all variables and periods.
 
 ## Parity quickstart
 
-Step-by-step guide covering both engines, parity comparison, triage, and dashboard launch: [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
-
-## Dashboard
-
-The Streamlit dashboard gives you 12 interactive pages for exploring runs, comparing scenarios, and diagnosing parity:
-
-```bash
-fp dashboard --artifacts-dir artifacts --port 8501
-```
-
-Pages include: Run Panels, Compare Runs, New Run, Equation Graph, Equations, Tweak Scenario, Sensitivity, Historical Fit, Dictionary, Data Update, and Parity.
-
-See the [Dashboard guide](https://smkwray.github.io/fp-wraptr/dashboard/) for the full walkthrough.
+Step-by-step guide covering both engines, parity comparison, and triage: [Parity quickstart](https://smkwray.github.io/fp-wraptr/quickstart/#parity-quickstart)
 
 ## Model Runs Explorer
 
@@ -189,10 +177,9 @@ fp-wraptr/
     runtime/            # Subprocess wrappers (fp.exe + fppy + fp-r backends)
     scenarios/          # Scenario config, runner, batch, bundles, DSL
     analysis/           # Run comparison, diff, dependency graph, parity, triage
-    dashboard/          # Streamlit dashboard helpers (artifacts, charts)
     data/               # FRED/BEA/BLS data update pipelines
     viz/                # Charts and plots
-    mcp_server.py       # FastMCP server (44 tools, 9 resources, 6 prompts)
+    mcp_server.py       # FastMCP server (43 tools, 9 resources, 6 prompts)
   src/fppy/             # Vendored pure-Python FP solver core
     cli.py              # Solver CLI
     eq_solver.py        # Equation system solver
@@ -202,14 +189,12 @@ fp-wraptr/
     parity.py           # Parity output formatting
     ...                 # + config, dependency, io/, etc.
   fp-r/                 # Bundle-backed R runtime surface for the fp-r backend
-  apps/dashboard/       # Streamlit dashboard (12 pages)
-  tests/                # Pytest suite (81 files, 500+ tests)
+  tests/                # Pytest suite
   docs/                 # MkDocs documentation
   examples/             # Example scenario configs (YAML)
-  bundles/              # Bundle configurations (multi-variant runs)
+  public/model-runs/    # Published Model Runs Explorer bundle
   logo/                 # Mascot logos (Rex, Raptr, Archie)
-  FM/                   # Local FP runtime assets (gitignored)
-  fortran_sc/           # FORTRAN source for fp.exe (reference)
+  FM/                   # Your local Fair model files (not distributed)
 ```
 
 ## CLI reference
@@ -224,7 +209,6 @@ fp batch scenario.yaml ...                     # Run multiple scenarios
 fp report run_dir                              # Render a run report
 fp graph fminput.txt                           # Inspect dependency graph
 fp history                                     # List historic runs
-fp dashboard                                   # Start Streamlit dashboard
 fp diff run_a/ run_b/                          # Compare two completed runs
 fp io parse-output FM/fmout.txt                # Parse FP output to JSON
 fp io parse-input FM/fminput.txt               # Parse FP input
@@ -255,20 +239,20 @@ See the [Parity docs](https://smkwray.github.io/fp-wraptr/parity/) for interpret
 
 ### The `fp-r` bundle-backed solver
 
-`fp-r` is the R solver path currently exposed through bundle-backed scenarios. A scenario YAML can point `fpr.bundle_path` at a prebuilt `fp-r` bundle and run it with:
+`fp-r` is the R solver path, exposed through bundle-backed scenarios. A scenario YAML can point `fpr.bundle_path` at a prebuilt `fp-r` bundle and run it with:
 
 ```bash
 fp run examples/fpr_bundle_demo.yaml --backend fp-r
 ```
 
-The phase-1 public contract for `fp-r` is intentionally narrow:
+The `fp-r` backend has a deliberately narrow scope:
 
-- it is bundle-backed, not a full tracked raw-`fminput.txt` replacement path yet
+- it is bundle-backed, not a full raw-`fminput.txt` replacement
 - it emits `PABEV.TXT` / `PACEV.TXT`, `LOADFORMAT.DAT`, `fp_r_series.csv`, and `fp_r_report.txt`
 - it can participate in `fp parity` when the scenario provides both `fp_home` and `fpr.bundle_path`, for example `fp parity scenario.yaml --left fpexe --right fp-r`
-- parity golden-save and regression flows now work for explicit pairs too
-- the tracked self-contained demo is `examples/fpr_bundle_demo.yaml`
-- the accepted direct stock-`fp.exe` full-FM compare is already tight: about `0.0037489%` max relative diff (`HFF`) and about `0.00449383` max absolute diff (`AAF`)
+- parity golden-save and regression flows work for explicit pairs too
+- the self-contained demo is `examples/fpr_bundle_demo.yaml` (no `FM/` or `fp.exe` needed)
+- against stock `fp.exe` on the full model it stays within about `0.0045` max absolute difference and about `0.04%` max relative difference
 
 ## MCP server
 
@@ -282,7 +266,7 @@ uv run fastmcp dev fp-mcp
 uv run fp-mcp
 ```
 
-44 tools covering scenario runs, workspace management, dictionary lookup, data updates, and more. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the full list.
+43 tools covering scenario runs, workspace management, dictionary lookup, data updates, and more. See the [MCP Tools reference](https://smkwray.github.io/fp-wraptr/mcp-tools/) for the full list.
 
 9 resources are registered:
 
@@ -298,7 +282,7 @@ Config file for MCP discoverability: `.mcp.json` (Claude Code).
 ## Development
 
 ```bash
-uv sync --extra dev
+uv sync --all-extras
 uv run ruff check src/ tests/     # Lint
 uv run ruff format src/ tests/    # Format
 uv run pytest                     # Test
@@ -314,20 +298,9 @@ Real fp.exe integration tests are in `tests/test_fp_integration.py` and use the
 FP_HOME=/path/to/FM uv run pytest -m requires_fp tests/test_fp_integration.py -q
 ```
 
-In CI, the optional `fp-integration` job is gated by repo variable
-`FP_INTEGRATION_ENABLED=true`.
-
-Provisioning options for `FM/` assets on runner:
-- Runner-local directory:
-  - Set repository variable `FP_ASSETS_SOURCE_DIR` to an absolute path on the runner.
-- Archive download:
-  - Set secret `FP_ASSETS_ARCHIVE_URL` (HTTPS URL to zip/tar archive containing FM files).
-  - Optional secret `FP_ASSETS_BEARER_TOKEN` for authenticated downloads.
-  - Optional variable `FP_ASSETS_ARCHIVE_SHA256` for integrity verification.
-  - Optional variable `FP_ASSETS_ARCHIVE_TYPE` as `zip` or `tar` (`auto` by default).
-
-The CI provisioning script is:
-- `scripts/ci/provision_fp_assets.sh`
+To run them in your own CI, provision `FM/` with `scripts/ci/provision_fp_assets.sh` (see the
+[Parity docs](https://smkwray.github.io/fp-wraptr/parity/) for its inputs) and set the repository
+variable `FP_INTEGRATION_ENABLED=true` to enable the optional `fp-integration` job.
 
 ## License
 

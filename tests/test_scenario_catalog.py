@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from fp_wraptr.scenarios.catalog import (
     ScenarioCatalog,
     load_scenario_catalog,
@@ -73,6 +75,8 @@ def test_load_scenario_catalog_missing_file_returns_empty_catalog(tmp_path: Path
 
 def test_canonical_catalog_is_curated_stock_and_pse_only() -> None:
     repo_root = Path(__file__).resolve().parents[1]
+    if not (repo_root / "projects_local" / "scenario_catalog.yaml").exists():
+        pytest.skip("local scenario catalog is not distributed with the repository")
 
     catalog = load_scenario_catalog(repo_root=repo_root)
 

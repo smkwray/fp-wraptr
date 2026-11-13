@@ -1,7 +1,7 @@
 # Running `fp.exe` (Fair–Parke / FP program) from the command line
 This is a practical command reference for **running the Fair–Parke (FP) program executable (`fp.exe`)** in a reproducible way.
 
-It’s written to be “LLM-friendly”: copy/pasteable commands + minimal narrative.
+It favors copy/pasteable commands with minimal narrative.
 
 > Notes
 > - Official docs often show the executable as `FP` at a DOS prompt. On Windows, that’s effectively `fp.exe`.
@@ -9,34 +9,32 @@ It’s written to be “LLM-friendly”: copy/pasteable commands + minimal narra
 
 ---
 
-## 0) Local environment (this repo + macOS Wine)
-For this project on this machine, use:
-- Wine: `/opt/homebrew/bin/wine`
-- Model root: `/path/to/your/FM`
+## Quick start with fp-wraptr (macOS/Linux via Wine)
+fp-wraptr calls `wine` from your `PATH` and, unless `WINEPREFIX` is set, uses the prefix
+`~/.wine-fp-wraptr`.
 
 ```bash
 # Optional: set once for this shell
 export FP_HOME=/path/to/your/FM
-export WINE_BINARY=/opt/homebrew/bin/wine
 ```
 
 Quick smoke test from shell:
 ```bash
 cd "$FP_HOME"
 printf "INPUT FILE=fminput.txt;\n" > /tmp/FPINPUT.in
-"$WINE_BINARY" fp.exe > /tmp/fp_sanity.out < /tmp/FPINPUT.in
+wine fp.exe > /tmp/fp_sanity.out < /tmp/FPINPUT.in
 ```
 
-Project CLI entrypoint (runs scenarios through `fp-wraptr`):
+Run a scenario through `fp-wraptr`:
 ```bash
 cd /path/to/fp-wraptr
 FP_HOME="$FP_HOME" uv run fp run examples/baseline.yaml
 ```
-(or `--fp-home "$FP_HOME"` explicitly on the command).
+(or pass `--fp-home "$FP_HOME"` explicitly on the command).
 
 ---
 
-## 0) Mental model: how FP runs
+## Mental model: how FP runs
 FP is a command-line program that:
 1) Starts up and asks for an `INPUT` command (or you supply it via stdin).
 2) Runs commands from a **job input file** (default name: `JOB.INP`).
@@ -84,7 +82,7 @@ fp.exe > OUT < IN
 ```bash
 cd fm
 printf "INPUT FILE=FMINPUT.TXT;\n" > IN
-"/opt/homebrew/bin/wine" fp.exe > OUT < IN
+wine fp.exe > OUT < IN
 ```
 
 ### Pattern C: old-school DOS automation with a .BAT (as documented)
@@ -168,7 +166,7 @@ If you’re on Linux and need to run a Windows executable, Wine is the most comm
 Use a dedicated prefix for fp-wraptr so dependencies/config don’t clash with other Wine apps.
 
 ```bash
-export WINEPREFIX="$HOME/.wine-fpwraptr"
+export WINEPREFIX="$HOME/.wine-fp-wraptr"
 # Only when FIRST creating the prefix (if fp.exe is 32-bit):
 export WINEARCH=win32
 winecfg
@@ -177,7 +175,7 @@ winecfg
 After the prefix exists, you generally omit `WINEARCH` and just keep `WINEPREFIX`:
 
 ```bash
-export WINEPREFIX="$HOME/.wine-fpwraptr"
+export WINEPREFIX="$HOME/.wine-fp-wraptr"
 wine --version
 ```
 
@@ -185,7 +183,7 @@ wine --version
 ```bash
 cd fm
 printf "INPUT FILE=FMINPUT.TXT;\n" > IN
-/opt/homebrew/bin/wine fp.exe > OUT < IN
+wine fp.exe > OUT < IN
 ```
 
 ### 4.3 Headless runners (optional)

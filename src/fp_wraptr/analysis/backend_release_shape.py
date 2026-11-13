@@ -16,14 +16,22 @@ def _load_anchor_acceptance_report(path: Path | str) -> dict[str, Any]:
     return payload
 
 
-def _count_rows(rows: list[dict[str, Any]], *, review_scope: str | None = None, explanation_scope: str | None = None) -> int:
+def _count_rows(
+    rows: list[dict[str, Any]],
+    *,
+    review_scope: str | None = None,
+    explanation_scope: str | None = None,
+) -> int:
     count = 0
     for row in rows:
         if str(row.get("classification", "")) != "review":
             continue
         if review_scope is not None and str(row.get("review_scope", "")) != review_scope:
             continue
-        if explanation_scope is not None and str(row.get("explanation_scope", "")) != explanation_scope:
+        if (
+            explanation_scope is not None
+            and str(row.get("explanation_scope", "")) != explanation_scope
+        ):
             continue
         count += 1
     return count
@@ -46,7 +54,9 @@ def build_backend_release_shape_report(
     anchor_rows = list(report.get("anchor_rows", []) or [])
     methodology_rows = list(report.get("methodology_rows", []) or [])
 
-    unexplained_anchor_fp_r = _count_rows(anchor_rows, review_scope="fp_r_leading", explanation_scope="fp_r_leading")
+    unexplained_anchor_fp_r = _count_rows(
+        anchor_rows, review_scope="fp_r_leading", explanation_scope="fp_r_leading"
+    )
     explained_anchor_shared_tails = _count_rows(
         anchor_rows,
         review_scope="fp_r_leading",
@@ -64,7 +74,9 @@ def build_backend_release_shape_report(
         explanation_scope="fp_r_tail_on_shared_split",
     )
 
-    preview_ready = bool(stock_baseline_ok and raw_input_public_ok and modified_decks_run and docs_honest)
+    preview_ready = bool(
+        stock_baseline_ok and raw_input_public_ok and modified_decks_run and docs_honest
+    )
     peer_backend_ready = bool(preview_ready and corpus_green and unexplained_anchor_fp_r == 0)
 
     blockers: list[str] = []
@@ -92,8 +104,12 @@ def build_backend_release_shape_report(
             "corpus_green": bool(corpus_green),
         },
         "counts": {
-            "anchor_review_count": int((report.get("counts", {}) or {}).get("anchor_review_count", 0) or 0),
-            "methodology_review_count": int((report.get("counts", {}) or {}).get("methodology_review_count", 0) or 0),
+            "anchor_review_count": int(
+                (report.get("counts", {}) or {}).get("anchor_review_count", 0) or 0
+            ),
+            "methodology_review_count": int(
+                (report.get("counts", {}) or {}).get("methodology_review_count", 0) or 0
+            ),
             "unexplained_anchor_fp_r_review_count": unexplained_anchor_fp_r,
             "explained_anchor_shared_tail_count": explained_anchor_shared_tails,
             "broad_anchor_split_count": broad_anchor_splits,

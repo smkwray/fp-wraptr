@@ -108,24 +108,13 @@ Auto-generated from source docstrings.
         - plot_forecast
         - plot_comparison
 
-## Dashboard
+## Run Artifacts
 
-### Artifacts
-
-::: fp_wraptr.dashboard.artifacts
+::: fp_wraptr.run_artifacts
     options:
       members:
         - RunArtifact
         - scan_artifacts
-
-### Charts
-
-::: fp_wraptr.dashboard.charts
-    options:
-      members:
-        - forecast_figure
-        - comparison_figure
-        - delta_bar_chart
 
 ## FRED
 
@@ -155,7 +144,7 @@ Auto-generated from source docstrings.
         - FPExecutable
         - FPRunResult
 
-### fair-py Backend (stub)
+### fppy Backend
 
 ::: fp_wraptr.runtime.fairpy
     options:

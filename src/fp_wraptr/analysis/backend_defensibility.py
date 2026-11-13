@@ -65,13 +65,23 @@ def _load_engine_series(
             period_rows[str(period)] = row
         frames[engine] = period_rows
         engine_periods = set(period_rows.keys())
-        common_periods = engine_periods if common_periods is None else (common_periods & engine_periods)
+        common_periods = (
+            engine_periods if common_periods is None else (common_periods & engine_periods)
+        )
 
     ordered_periods = sorted(common_periods or set(), key=_parse_period_key)
     if start:
-        ordered_periods = [period for period in ordered_periods if _parse_period_key(period) >= _parse_period_key(start)]
+        ordered_periods = [
+            period
+            for period in ordered_periods
+            if _parse_period_key(period) >= _parse_period_key(start)
+        ]
     if end:
-        ordered_periods = [period for period in ordered_periods if _parse_period_key(period) <= _parse_period_key(end)]
+        ordered_periods = [
+            period
+            for period in ordered_periods
+            if _parse_period_key(period) <= _parse_period_key(end)
+        ]
 
     aligned: dict[str, dict[str, float]] = {}
     for engine, period_rows in frames.items():
@@ -81,12 +91,16 @@ def _load_engine_series(
     return ordered_periods, aligned
 
 
-def _common_variables(aligned: dict[str, dict[str, dict[str, float]]], periods: list[str]) -> list[str]:
+def _common_variables(
+    aligned: dict[str, dict[str, dict[str, float]]], periods: list[str]
+) -> list[str]:
     if not periods:
         return []
     common: set[str] | None = None
     for engine in ENGINE_ORDER:
-        engine_vars = set.intersection(*(set(aligned[engine][period].keys()) for period in periods))
+        engine_vars = set.intersection(
+            *(set(aligned[engine][period].keys()) for period in periods)
+        )
         common = engine_vars if common is None else (common & engine_vars)
     return sorted(common or set())
 
@@ -140,7 +154,9 @@ def build_backend_defensibility_report(
                 left_value = values[left]
                 right_value = values[right]
                 abs_diff = abs(left_value - right_value)
-                rel_diff = _safe_rel(abs_diff, max(abs(left_value), abs(right_value)), rel_scale_floor)
+                rel_diff = _safe_rel(
+                    abs_diff, max(abs(left_value), abs(right_value)), rel_scale_floor
+                )
                 pair_key = f"{left}__vs__{right}"
                 pair_rows[pair_key].append({
                     "period": period,
@@ -203,7 +219,11 @@ def build_backend_defensibility_report(
 
     summary_rows.sort(
         key=lambda item: (
-            0 if item["classification"] == "review" else 1 if item["classification"] == "close" else 2,
+            0
+            if item["classification"] == "review"
+            else 1
+            if item["classification"] == "close"
+            else 2,
             float(item["max_abs_diff"]),
             float(item["max_rel_pct"]) if math.isfinite(float(item["max_rel_pct"])) else -1.0,
         ),
@@ -219,7 +239,10 @@ def build_backend_defensibility_report(
                 best_by_var[row["variable"]] = row
         top_rows = sorted(
             best_by_var.values(),
-            key=lambda item: (float(item["abs_diff"]), float(item["rel_diff"]) if math.isfinite(float(item["rel_diff"])) else -1.0),
+            key=lambda item: (
+                float(item["abs_diff"]),
+                float(item["rel_diff"]) if math.isfinite(float(item["rel_diff"])) else -1.0,
+            ),
             reverse=True,
         )
         pair_summaries[pair_key] = {

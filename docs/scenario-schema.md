@@ -79,7 +79,7 @@ Optional `fp-r` backend settings (used when `backend: fp-r`).
   - `timeout_seconds` (int, default `120`) — subprocess timeout for the bundle-backed run
   - `expected_csv` (string, optional) — reference CSV used by `fp fpr-compare`
 - Notes:
-  - The phase-1 public `fp-r` surface is bundle-backed.
+  - Bundle-backed `fp-r` runs are self-contained and do not need the `FM/` files in `fp_home`.
   - `fp-r` can participate in `fp parity` when the scenario provides both `fp_home` and `fpr.bundle_path`.
 
 ### `overrides` (dict)

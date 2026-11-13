@@ -2,7 +2,7 @@
 
 `fp-wraptr` ships a FastMCP server for LLM-driven workflows.
 
-The recommended use is now workspace-first authoring: agents discover packs, create managed workspaces, mutate cards/series/variants, compile, run, compare, and hand visualization payloads back to the dashboard.
+The recommended use is workspace-first authoring: agents discover packs, create managed workspaces, mutate cards/series/variants, compile, run, compare, and build chart-ready visualization payloads.
 
 Source of truth: `src/fp_wraptr/mcp_server.py`.
 
@@ -85,4 +85,4 @@ FastMCP prompts are registered for the common workflow tasks:
 - Attach a new series override
 - Build a bundle of policy variants
 - Compare latest family runs
-- Prepare dashboard visualization set
+- Prepare visualization set

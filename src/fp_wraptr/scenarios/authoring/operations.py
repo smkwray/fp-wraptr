@@ -6,8 +6,8 @@ from datetime import datetime
 from pathlib import Path
 
 from fp_wraptr.analysis.diff import diff_run_dirs
-from fp_wraptr.dashboard.artifacts import latest_runs, scan_artifacts
 from fp_wraptr.io.parser import parse_fp_output
+from fp_wraptr.run_artifacts import latest_runs, scan_artifacts
 from fp_wraptr.scenarios.authoring.compiler import (
     compile_bundle_workspace,
     compile_scenario_workspace,
@@ -38,6 +38,7 @@ from fp_wraptr.scenarios.authoring.workspace import (
 )
 from fp_wraptr.scenarios.bundle import run_bundle
 from fp_wraptr.scenarios.catalog import load_scenario_catalog
+
 # NOTE: fp_wraptr.scenarios.packs is imported lazily inside functions that need
 # it to avoid a circular import (packs → authoring.compiler → authoring.__init__
 # → operations → packs).
@@ -803,7 +804,6 @@ def build_visualization_view(
         "pack_id": pack_id or None,
         "variables": variables,
         "runs": run_payloads,
-        "suggested_dashboard_pages": ["0_Run_Panels", "2_Compare_Runs", "3_New_Run"],
     }
 
 

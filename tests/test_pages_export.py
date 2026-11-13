@@ -539,7 +539,9 @@ def test_export_pages_bundle_uses_external_unpriced_handoff_when_present(
 ) -> None:
     overlay_dir = tmp_path / "overlay"
     overlay_dir.mkdir(parents=True, exist_ok=True)
-    (overlay_dir / "GCBURWT.DAT").write_text("SMPL 2025.1 2025.4;\nLOAD GCBURWT;\n 0 0 0 0\n'END'\n", encoding="utf-8")
+    (overlay_dir / "GCBURWT.DAT").write_text(
+        "SMPL 2025.1 2025.4;\nLOAD GCBURWT;\n 0 0 0 0\n'END'\n", encoding="utf-8"
+    )
 
     for scenario_name, timestamp, l2c_values in (
         ("childcare_base", "20260306_120000", [0.50, 0.50, 0.50, 0.50]),
@@ -668,7 +670,14 @@ def test_export_pages_bundle_uses_external_unpriced_handoff_when_present(
     )
     input_contract_path = tmp_path / "input-contract.json"
     input_contract_path.write_text(
-        json.dumps({"required_metadata": {"quantity_basis": {"required_value": "unpriced_active_care_bridge"}}}, indent=2),
+        json.dumps(
+            {
+                "required_metadata": {
+                    "quantity_basis": {"required_value": "unpriced_active_care_bridge"}
+                }
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
     output_contract_path = tmp_path / "output-contract.json"
@@ -719,7 +728,9 @@ def test_export_pages_bundle_uses_external_unpriced_handoff_when_present(
         childcare_regime_output_contract_path=output_contract_path,
     )
 
-    run_payload = json.loads((result.out_dir / "runs" / "childcare-relief.json").read_text(encoding="utf-8"))
+    run_payload = json.loads(
+        (result.out_dir / "runs" / "childcare-relief.json").read_text(encoding="utf-8")
+    )
     assert run_payload["regime_meta"]["unpriced_method"] == "unpriced_external_v1"
     assert run_payload["regime_meta"]["unpriced_source"] == "local_pinned_package"
     assert run_payload["regime_meta"]["unpriced_external"] is False
@@ -970,32 +981,30 @@ def test_export_pages_bundle_allows_authored_controls_that_are_only_used_for_equ
     overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
     overlay_dir.mkdir(parents=True, exist_ok=True)
     (overlay_dir / "fmexog.txt").write_text(
-        "\n".join(
-            [
-                "SMPL 2025.1 2025.1;",
-                "CHANGEVAR;",
-                "JGCOLA ADDDIFABS",
-                "0.0",
-                ";",
-                "SMPL 2025.2 2025.2;",
-                "CHANGEVAR;",
-                "JGCOLA ADDDIFABS",
-                "0.007417071777732875",
-                ";",
-                "SMPL 2025.3 2025.3;",
-                "CHANGEVAR;",
-                "JGCOLA ADDDIFABS",
-                "0.007417071777732875",
-                ";",
-                "SMPL 2025.4 2025.4;",
-                "CHANGEVAR;",
-                "JGCOLA ADDDIFABS",
-                "0.007417071777732875",
-                ";",
-                "RETURN;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "SMPL 2025.1 2025.1;",
+            "CHANGEVAR;",
+            "JGCOLA ADDDIFABS",
+            "0.0",
+            ";",
+            "SMPL 2025.2 2025.2;",
+            "CHANGEVAR;",
+            "JGCOLA ADDDIFABS",
+            "0.007417071777732875",
+            ";",
+            "SMPL 2025.3 2025.3;",
+            "CHANGEVAR;",
+            "JGCOLA ADDDIFABS",
+            "0.007417071777732875",
+            ";",
+            "SMPL 2025.4 2025.4;",
+            "CHANGEVAR;",
+            "JGCOLA ADDDIFABS",
+            "0.007417071777732875",
+            ";",
+            "RETURN;",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -1048,17 +1057,15 @@ def test_export_pages_bundle_ignores_fmexog_pct_change_cards_when_validating_ove
     overlay_dir = tmp_path / "projects_local" / "scenario_overlay"
     overlay_dir.mkdir(parents=True, exist_ok=True)
     (overlay_dir / "fmexog.txt").write_text(
-        "\n".join(
-            [
-                "SMPL 2025.1 2025.4;",
-                "CHANGEVAR;",
-                "CCGQ CHGSAMEPCT",
-                "0.007417072",
-                ";",
-                "RETURN;",
-                "",
-            ]
-        ),
+        "\n".join([
+            "SMPL 2025.1 2025.4;",
+            "CHANGEVAR;",
+            "CCGQ CHGSAMEPCT",
+            "0.007417072",
+            ";",
+            "RETURN;",
+            "",
+        ]),
         encoding="utf-8",
     )
 
@@ -1247,3 +1254,34 @@ def test_model_runs_run_comparison_semantics_match_run_panels_contract() -> None
 
     assert diff_values == [2.0, 5.0, 10.0]
     assert pct_diff_values == pytest.approx([2.0, 5.0, 10.0])
+
+
+ITERATION_LIMIT_FMOUT = (
+    "US MODEL\n"
+    " Solution error. Iteration limit of   100 reached for observation number   301    4.319\n"
+    " Solution error. Iteration limit of   100 reached for observation number   302    4.402\n"
+)
+
+
+def test_export_pages_bundle_refuses_runs_fp_exe_did_not_converge(tmp_path: Path) -> None:
+    # fp.exe keeps non-converged values after hitting its iteration limit; such runs
+    # must not reach the public site unless someone explicitly accepts them.
+    run_dir = _write_run(tmp_path, scenario_name="scenario", timestamp="20260306_120000")
+    (run_dir / "fmout.txt").write_text(ITERATION_LIMIT_FMOUT, encoding="utf-8")
+    spec_path = tmp_path / "public" / "model-runs.spec.yaml"
+    _write_spec(spec_path)
+    out_dir = tmp_path / "public" / "model-runs"
+
+    with pytest.raises(PagesExportError, match=r"fixture-run \(2\)"):
+        export_pages_bundle(
+            spec_path=spec_path, artifacts_dir=tmp_path / "artifacts", out_dir=out_dir
+        )
+    assert not out_dir.exists()
+
+    result = export_pages_bundle(
+        spec_path=spec_path,
+        artifacts_dir=tmp_path / "artifacts",
+        out_dir=out_dir,
+        allow_solve_errors=True,
+    )
+    assert result.solve_error_runs == {"fixture-run": 2}

@@ -60,7 +60,9 @@ def test_identity_decomposition_writes_json_and_csv(tmp_path: Path) -> None:
         identity="Z=X+Y",
         period="2025.4",
     )
-    report_path, csv_path = write_identity_decomposition_report(report, output_dir=tmp_path / "out")
+    report_path, csv_path = write_identity_decomposition_report(
+        report, output_dir=tmp_path / "out"
+    )
 
     assert report_path.exists()
     assert csv_path.exists()

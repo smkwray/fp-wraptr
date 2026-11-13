@@ -1,6 +1,6 @@
 # Baseline parity smoke scenario (short horizon).
 #
-# Purpose: keep CI/Tandy “smoke parity” runs fast and less prone to Wine timeouts,
+# Purpose: keep CI “smoke parity” runs fast and less prone to Wine timeouts,
 # while still exercising the full fp.exe vs fppy parity pipeline.
 
 name: baseline_smoke

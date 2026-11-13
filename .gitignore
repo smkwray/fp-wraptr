@@ -120,14 +120,21 @@ tmp_*.py
 
 # Project-specific scenario families (not part of the toolkit)
 bundles/pse*.yaml
-bundles/private_*.yaml
 examples/pse*.yaml
-examples/private_*.yaml
-public/private-runs.spec.yaml
-public/private-runs/
-src/fp_wraptr/private_family*.py
-tests/test_private_family.py
 
 # fp-r backend (phase-1 public surface stays narrow)
 examples/fp_r_real_*.yaml
 src/fp_wraptr/analysis/shared_slice.py
+
+# Agent orchestration and private contract (never tracked)
+CLAUDE.md
+AGENTS.md
+
+# Project-local data: frozen run archives and working outputs
+/data/
+/var/
+/outputs/
+
+# Maintainer-local identifiers that must never be published
+.private-denylist
+.*-private-denylist

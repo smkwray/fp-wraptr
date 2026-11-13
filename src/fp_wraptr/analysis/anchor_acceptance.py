@@ -131,7 +131,9 @@ def build_anchor_acceptance_report(
     )
 
     summary_by_var = {
-        str(row.get("variable")): row for row in backend_report.get("summary_rows", []) if row.get("variable")
+        str(row.get("variable")): row
+        for row in backend_report.get("summary_rows", [])
+        if row.get("variable")
     }
     focused_summary = {
         str(name): payload for name, payload in (focused_report.get("summary", {}) or {}).items()
@@ -142,14 +144,22 @@ def build_anchor_acceptance_report(
 
     for row in anchor_rows:
         row["review_scope"] = _review_scope(row)
-        row["explanation_scope"] = _explanation_scope(row, focused_summary.get(str(row.get("variable", "")), {}))
+        row["explanation_scope"] = _explanation_scope(
+            row, focused_summary.get(str(row.get("variable", "")), {})
+        )
     for row in methodology_rows:
         row["review_scope"] = _review_scope(row)
-        row["explanation_scope"] = _explanation_scope(row, focused_summary.get(str(row.get("variable", "")), {}))
+        row["explanation_scope"] = _explanation_scope(
+            row, focused_summary.get(str(row.get("variable", "")), {})
+        )
 
     anchor_review_rows = [row for row in anchor_rows if str(row.get("classification")) == "review"]
-    methodology_review_rows = [row for row in methodology_rows if str(row.get("classification")) == "review"]
-    anchor_fp_r_review_rows = [row for row in anchor_review_rows if row.get("review_scope") == "fp_r_leading"]
+    methodology_review_rows = [
+        row for row in methodology_rows if str(row.get("classification")) == "review"
+    ]
+    anchor_fp_r_review_rows = [
+        row for row in anchor_review_rows if row.get("review_scope") == "fp_r_leading"
+    ]
     methodology_fp_r_review_rows = [
         row for row in methodology_review_rows if row.get("review_scope") == "fp_r_leading"
     ]
@@ -175,7 +185,8 @@ def build_anchor_acceptance_report(
             "anchor_broad_review_count": len(anchor_review_rows) - len(anchor_fp_r_review_rows),
             "methodology_review_count": len(methodology_review_rows),
             "methodology_fp_r_review_count": len(methodology_fp_r_review_rows),
-            "methodology_broad_review_count": len(methodology_review_rows) - len(methodology_fp_r_review_rows),
+            "methodology_broad_review_count": len(methodology_review_rows)
+            - len(methodology_fp_r_review_rows),
             "anchor_present_count": len(anchor_rows),
             "methodology_present_count": len(methodology_rows),
         },

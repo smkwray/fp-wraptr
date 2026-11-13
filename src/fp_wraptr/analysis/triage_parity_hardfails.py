@@ -12,8 +12,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from fppy.pabev_parity import toleranced_compare
 from fp_wraptr.analysis.parity_regression import _pabev_paths, _parity_pair_from_report
+from fppy.pabev_parity import toleranced_compare
 
 
 def _read_json(path: Path) -> dict[str, Any]:

@@ -14,7 +14,9 @@ def _write_anchor_report(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def test_backend_release_shape_marks_preview_not_peer_for_explained_shared_tail(tmp_path: Path) -> None:
+def test_backend_release_shape_marks_preview_not_peer_for_explained_shared_tail(
+    tmp_path: Path,
+) -> None:
     anchor_report = tmp_path / "anchor_acceptance_report.json"
     _write_anchor_report(
         anchor_report,
@@ -66,9 +68,14 @@ def test_backend_release_shape_marks_preview_not_peer_for_explained_shared_tail(
     assert "release_corpus_not_green" in report["decision"]["blockers"]
 
 
-def test_backend_release_shape_marks_not_preview_ready_when_core_flags_fail(tmp_path: Path) -> None:
+def test_backend_release_shape_marks_not_preview_ready_when_core_flags_fail(
+    tmp_path: Path,
+) -> None:
     anchor_report = tmp_path / "anchor_acceptance_report.json"
-    _write_anchor_report(anchor_report, {"status": "review", "counts": {}, "anchor_rows": [], "methodology_rows": []})
+    _write_anchor_report(
+        anchor_report,
+        {"status": "review", "counts": {}, "anchor_rows": [], "methodology_rows": []},
+    )
 
     report = build_backend_release_shape_report(
         anchor_report,

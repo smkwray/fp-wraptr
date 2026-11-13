@@ -68,9 +68,7 @@ def normalize_backend_semantics_profile(value: str | None) -> str:
         return "compat"
     if raw not in _PROFILES:
         valid = ", ".join(sorted(_PROFILES))
-        raise ValueError(
-            f"Unknown semantics profile: {value!r} (expected one of {valid})"
-        )
+        raise ValueError(f"Unknown semantics profile: {value!r} (expected one of {valid})")
     return raw
 
 

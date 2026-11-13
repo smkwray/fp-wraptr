@@ -40,7 +40,6 @@ nav:
     - Data Update: data-update.md
     - Parity: parity.md
     - Stock FM Fast Mode: stock-fm-fast-mode.md
-    - Dashboard: dashboard.md
     - Model Runs Export: model-runs.md
   - Agent & MCP:
     - Agent Workflows: agent-workflows.md
@@ -54,9 +53,6 @@ nav:
     - fp.exe Commands: fp_exe_run_commands.md
     - API Reference: api.md
     - Changelog: changelog.md
-
-exclude_docs: |
-  ai-memory.md
 
 plugins:
   - search
@@ -73,6 +69,8 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - pymdownx.details
+  - pymdownx.snippets:
+      check_paths: true
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences:

@@ -158,9 +158,7 @@ def normalize_parity_engine_name(value: str | None) -> str:
     raw = str(value or "").strip().lower()
     normalized = _PARITY_ENGINE_ALIASES.get(raw)
     if normalized is None:
-        raise ValueError(
-            f"Unknown parity engine: {value!r} (expected fpexe|fppy|fp-r)"
-        )
+        raise ValueError(f"Unknown parity engine: {value!r} (expected fpexe|fppy|fp-r)")
     return normalized
 
 
@@ -177,7 +175,9 @@ def _parity_work_dir_name(engine_name: str) -> str:
     return f"work_{normalized}"
 
 
-def _write_stream_artifacts(stdout_path: Path, stderr_path: Path, *, stdout: str, stderr: str) -> None:
+def _write_stream_artifacts(
+    stdout_path: Path, stderr_path: Path, *, stdout: str, stderr: str
+) -> None:
     stdout_path.write_text(str(stdout or ""), encoding="utf-8")
     stderr_path.write_text(str(stderr or ""), encoding="utf-8")
 
@@ -366,7 +366,6 @@ def _run_nondefault_parity_pair(
     right_engine: str,
 ) -> ParityResult:
     import fppy.pabev_parity as pabev_parity
-
     from fp_wraptr.runtime.fpr import FpRBackend
 
     pair = (normalize_parity_engine_name(left_engine), normalize_parity_engine_name(right_engine))
@@ -378,7 +377,6 @@ def _run_nondefault_parity_pair(
         if gate.pabev_start not in (None, "")
         else str(config_run.forecast_start).strip()
     )
-    standard_engines = tuple(engine for engine in pair if engine in {"fpexe", "fppy"})
     bundle_dir: Path | None = None
     expected_outputs: tuple[str, ...] = ()
     if any(engine in {"fpexe", "fppy", "fp-r"} for engine in pair):
@@ -505,7 +503,9 @@ def _run_nondefault_parity_pair(
                 fpexe_retry["attempted"] = True
                 fpexe_retry["trigger"] = "missing_parity_output_and_nonzero_return_code"
                 fpexe_retry["first_return_code"] = int(rr.return_code)
-                rr_retry = fpexe.run(input_file=work_dir / config_run.input_file, work_dir=work_dir)
+                rr_retry = fpexe.run(
+                    input_file=work_dir / config_run.input_file, work_dir=work_dir
+                )
                 _write_stream_artifacts(
                     stdout_path,
                     stderr_path,

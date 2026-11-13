@@ -13,8 +13,8 @@
 git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
 
-# Install with all extras into the configured external venv
-scripts/uvsync --all-extras
+# Install with all extras into the project-local .venv
+uv sync --all-extras
 ```
 
 ## Set up FP model files
@@ -36,10 +36,10 @@ These files are gitignored and not included in the repository.
 
 ```bash
 # Parse to JSON
-scripts/uvsafe fp io parse-output FM/fmout.txt
+uv run fp io parse-output FM/fmout.txt
 
 # Parse to CSV
-scripts/uvsafe fp io parse-output FM/fmout.txt --format csv
+uv run fp io parse-output FM/fmout.txt --format csv
 ```
 
 ## Parse an FP input file (parser contract)
@@ -47,15 +47,14 @@ scripts/uvsafe fp io parse-output FM/fmout.txt --format csv
 Input parser output now uses a normalized key style:
 - command keys are stored in lowercase (for example: `space`, `setupect`, `commands_by_type["smpl"]`)
 - parameter keys are normalized to lowercase/snake_case (for example: `maxvar`, `file`, `solve.params.filevar`)
-- no duplicate alias keys are emitted (for example, `setupecst` was removed; use `setupect` only).
-- Migration note: canonical keys are now required by all in-repo callers and tests.
+- no duplicate alias keys are emitted (for example, use `setupect`, not `setupecst`).
 
 If you consume parser output directly, rely on these canonical keys.
 
 ## Generate a forecast chart
 
 ```bash
-scripts/uvsafe fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
+uv run fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
 ```
 
 ## Export a public run bundle
@@ -63,7 +62,7 @@ scripts/uvsafe fp viz plot FM/fmout.txt --var PCY --var UR --var GDPR
 Once you have curated runs under `artifacts/`, export the static GitHub Pages explorer bundle:
 
 ```bash
-scripts/uvsafe fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
+uv run fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
 ```
 
 That command rewrites `public/model-runs/` with a portable JSON bundle and static browser app.
@@ -89,16 +88,16 @@ track_variables:
 Run it:
 
 ```bash
-scripts/uvsafe fp run examples/baseline.yaml
+uv run fp run examples/baseline.yaml
 ```
 
 ## Run the self-contained `fp-r` demo
 
-This path does not require `FM/` or `fp.exe`. It uses the tracked bundle-backed
-phase-1 `fp-r` surface and only needs `Rscript` to be available.
+This path does not require `FM/` or `fp.exe`. It uses the bundle-backed `fp-r`
+backend and only needs `Rscript` to be available.
 
 ```bash
-scripts/uvsafe fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir artifacts/quickstart_fpr
+uv run fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir artifacts/quickstart_fpr
 ```
 
 Expected artifact layout:
@@ -119,15 +118,15 @@ artifacts/quickstart_fpr/fpr_bundle_demo_<timestamp>/
 
 Notes:
 - The example scenario is `examples/fpr_bundle_demo.yaml`.
-- The tracked demo bundle is `examples/fpr_bundle_demo_bundle.R`.
+- The demo bundle is `examples/fpr_bundle_demo_bundle.R`.
 - `fp-r` can participate in `fp parity` when a scenario provides both `fp_home` and `fpr.bundle_path`.
-- The tracked reduced pair example is `examples/fpr_real_stock_eq_parity.yaml`.
-- Example: `scripts/uvsafe fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient`.
-- The accepted direct stock-`fp.exe` full-FM compare for `fp-r` is already tight: about `0.0037489%` max relative diff and about `0.00449383` max absolute diff.
+- A reduced `fpexe` vs `fp-r` pair example is `examples/fpr_real_stock_eq_parity.yaml`.
+- Example: `uv run fp parity examples/fpr_real_stock_eq_parity.yaml --left fpexe --right fp-r --lenient`.
+- In a full stock-model comparison against `fp.exe`, `fp-r` stayed within about `0.0045` max absolute difference and about `0.04%` max relative difference.
 
 ## Parity Quickstart
 
-Use these commands to go from a clean clone to parity triage artifacts and dashboard views.
+Use these commands to go from a clean clone to parity triage artifacts.
 
 ```bash
 # 1) Run fp.exe only
@@ -147,26 +146,20 @@ uv run fp triage parity-hardfails artifacts/quickstart_parity/<scenario>_<timest
 uv run fp parity examples/baseline.yaml --save-golden artifacts/parity-golden --output-dir artifacts/quickstart_golden
 uv run fp parity examples/baseline.yaml --regression artifacts/parity-golden --output-dir artifacts/quickstart_regression
 
-# 6) Launch dashboard (reads run artifacts from --artifacts-dir)
-uv run fp dashboard --artifacts-dir artifacts/quickstart_parity --port 8501
 ```
 
 Notes:
 - Replace `<scenario>_<timestamp>` with the run directory created by `fp parity`.
-- Dashboard parity page discovers runs under the selected artifacts directory and renders `parity_report.json`, PABEV artifacts, and optional triage/regression files.
 
 ## Fast Parity Smoke (`backend=both`)
 
-Use `examples/baseline_smoke.yaml` for a fast operator/CI smoke pass that still emits parity artifacts.
+Use `examples/baseline_smoke.yaml` for a fast smoke pass that still emits parity artifacts.
 
 ```bash
 # 1) Run both engines through fp run
 uv run fp run examples/baseline_smoke.yaml --backend both --with-drift --output-dir artifacts/quickstart_both_smoke
 
-# 2) Open dashboard on this artifact root
-uv run fp dashboard --artifacts-dir artifacts/quickstart_both_smoke --port 8501
-
-# 3) Generate triage artifacts from the run root
+# 2) Generate triage artifacts from the run root
 uv run fp triage fppy-report artifacts/quickstart_both_smoke/<scenario>_<timestamp>
 uv run fp triage parity-hardfails artifacts/quickstart_both_smoke/<scenario>_<timestamp>
 ```
@@ -201,7 +194,7 @@ Use this checklist before running production-style scenario edits.
 ### Recommended first run sequence
 
 ```bash
-# 1) Fast smoke gate (Tandy/CI-friendly)
+# 1) Fast smoke gate
 uv run fp run examples/baseline_smoke.yaml --backend both --with-drift --output-dir artifacts/ready_smoke
 
 # 2) Full baseline run (fp.exe only)
@@ -265,7 +258,7 @@ uv run fp parity examples/demand_shock.yaml --with-drift --regression artifacts/
 
 ## Data update loop (refresh bundle -> rerun)
 
-Primary operator loop: refresh `FM/` from upstream sources, then rerun smoke or scenarios on the produced bundle.
+Refresh `FM/` from upstream sources, then rerun smoke or scenarios on the produced bundle.
 
 ```bash
 # 1) Refresh FM bundle with multi-source update
@@ -290,11 +283,6 @@ uv run fp run artifacts/model_updates/2026-03-03/scenarios/baseline_smoke.yaml -
 
 - Need full flags, extend-sample caveats, and `fminput` patch behavior?
   - follow [data-update details](data-update.md).
-
-- Open the dashboard and use the **Data Update** page while pointing at the updated output area:
-```bash
-uv run fp dashboard --artifacts-dir artifacts/model_updates/2026-03-03
-```
 
 ## Official Fair bundle workflow (recommended for new quarters)
 
@@ -371,13 +359,6 @@ uv run fp report artifacts/higher_growth_20260223_120000 --baseline artifacts/ba
 ```bash
 uv run fp graph FM/fminput.txt
 uv run fp graph FM/fminput.txt --variable PCY --export dot --output artifacts/pcy.dot
-```
-
-## Launch dashboard
-
-```bash
-uv run fp dashboard
-uv run fp dashboard --artifacts-dir artifacts --port 8501
 ```
 
 ## Use the MCP server

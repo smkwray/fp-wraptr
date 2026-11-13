@@ -84,16 +84,14 @@ def compare_fp_r_series_csv(
                 continue
             mismatch_count += 1
             if len(mismatches) < max_mismatches:
-                mismatches.append(
-                    {
-                        "period": period,
-                        "variable": variable,
-                        "actual": actual_value,
-                        "expected": expected_value,
-                        "abs_diff": abs_diff,
-                        "tolerance": tolerance,
-                    }
-                )
+                mismatches.append({
+                    "period": period,
+                    "variable": variable,
+                    "actual": actual_value,
+                    "expected": expected_value,
+                    "abs_diff": abs_diff,
+                    "tolerance": tolerance,
+                })
 
     ok = not missing_periods and not missing_variables and mismatch_count == 0
     return FpRComparisonResult(
@@ -117,5 +115,7 @@ def write_fp_r_comparison_report(result: FpRComparisonResult, output_path: Path 
 
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(result.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(result.to_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path

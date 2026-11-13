@@ -5,7 +5,7 @@ Real projects often introduce scenario-specific symbols (e.g. PSE/JG layer) or
 require scenario-specific meaning/units for existing variable codes.
 
 This module implements a small, tolerant overlay format that can be merged on
-top of the bundled dictionary at runtime (dashboard, MCP, CLI).
+top of the bundled dictionary at runtime (Pages export, MCP, CLI).
 
 Overlay JSON format (best-effort; unknown keys are preserved):
 

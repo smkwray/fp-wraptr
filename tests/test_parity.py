@@ -100,7 +100,9 @@ def test_run_parity_does_not_mutate_input_config_fp_home(tmp_path, monkeypatch) 
 
     def fake_fpexe_run(self, input_file=None, work_dir=None, extra_env=None):
         assert work_dir is not None
-        _write_single_period_pabev(work_dir / "PABEV.TXT", period="2020.1")
+        # Must reach forecast_end, or the truncated-output guard fails the run
+        # before the fp_home handling under test is exercised.
+        _write_minimal_pabev(work_dir / "PABEV.TXT")
         (work_dir / "fp-exe.stdout.txt").write_text("", encoding="utf-8")
         (work_dir / "fp-exe.stderr.txt").write_text("", encoding="utf-8")
         return RunResult(
@@ -290,7 +292,9 @@ def test_run_parity_supports_fpexe_vs_fpr_pair(tmp_path, monkeypatch) -> None:
     assert result.engine_runs["fp-r"].pabev_path.endswith("/work_fpr/PACEV.TXT")
 
 
-def test_run_parity_defaults_compare_start_to_scenario_forecast_start(tmp_path, monkeypatch) -> None:
+def test_run_parity_defaults_compare_start_to_scenario_forecast_start(
+    tmp_path, monkeypatch
+) -> None:
     fp_home = tmp_path / "fp_home"
     fp_home.mkdir()
     bundle_path = tmp_path / "bundle.R"

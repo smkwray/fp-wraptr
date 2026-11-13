@@ -2,8 +2,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from fp_wraptr.scenarios.bundle import BundleConfig
 from fp_wraptr.scenarios.config import ScenarioConfig
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+pytestmark = pytest.mark.skipif(
+    not (_REPO_ROOT / "bundles" / "pse2008.yaml").exists()
+    or not (_REPO_ROOT / "examples" / "pse2008_base.yaml").exists(),
+    reason="local PSE 2008 project files are not distributed with the repository",
+)
 
 
 def test_pse2008_bundle_resolves_base_low_high_variants() -> None:

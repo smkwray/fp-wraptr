@@ -4,7 +4,7 @@ Packs are agent-facing manifests for scenario families.
 
 ## Purpose
 
-A pack tells agents and dashboards how to treat a local or public family such as `pse2025`:
+A pack tells agents and tools how to treat a local or public family such as `pse2025`:
 
 - which catalog entries belong to the family
 - which cards should be exposed
@@ -39,4 +39,4 @@ visualizations:
 
 ## Local pack guidance
 
-Use local packs for personal families, overlays, and experiments that should not define the public product story. `pse2025` follows this model: the core repo ships the generic workflow, while the family-specific recipes and visualization presets live in a local pack manifest.
+Use local packs for personal scenario families, overlays, and experiments. The core package ships the generic workflow; family-specific recipes and visualization presets live in the local pack manifest.

@@ -85,25 +85,23 @@ def build_backend_release_corpus_report(
         else:
             status = "not_preview_ready"
 
-        rows.append(
-            {
-                "name": name,
-                "category": str(raw_entry.get("category", "") or ""),
-                "required": required,
-                "scenario_path": scenario_path,
-                "scenario_exists": scenario_exists,
-                "anchor_report_path": anchor_report_path,
-                "anchor_report_exists": anchor_report_exists,
-                "release_shape_report_path": release_shape_path,
-                "release_shape_report_exists": release_shape_exists,
-                "recommended_label": recommended_label,
-                "preview_ready": preview_ready,
-                "peer_backend_ready": peer_backend_ready,
-                "status": status,
-                "blockers": blockers,
-                "notes": str(raw_entry.get("notes", "") or ""),
-            }
-        )
+        rows.append({
+            "name": name,
+            "category": str(raw_entry.get("category", "") or ""),
+            "required": required,
+            "scenario_path": scenario_path,
+            "scenario_exists": scenario_exists,
+            "anchor_report_path": anchor_report_path,
+            "anchor_report_exists": anchor_report_exists,
+            "release_shape_report_path": release_shape_path,
+            "release_shape_report_exists": release_shape_exists,
+            "recommended_label": recommended_label,
+            "preview_ready": preview_ready,
+            "peer_backend_ready": peer_backend_ready,
+            "status": status,
+            "blockers": blockers,
+            "notes": str(raw_entry.get("notes", "") or ""),
+        })
 
     return {
         "manifest_path": str(manifest_file),
@@ -112,8 +110,12 @@ def build_backend_release_corpus_report(
         "required_entry_count": required_total,
         "required_preview_ready_count": required_preview_ready,
         "required_peer_ready_count": required_peer_ready,
-        "corpus_green_for_preview": bool(required_total > 0 and required_preview_ready == required_total),
-        "corpus_green_for_peer": bool(required_total > 0 and required_peer_ready == required_total),
+        "corpus_green_for_preview": bool(
+            required_total > 0 and required_preview_ready == required_total
+        ),
+        "corpus_green_for_peer": bool(
+            required_total > 0 and required_peer_ready == required_total
+        ),
         "rows": rows,
     }
 

@@ -9,8 +9,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    env:
-      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-lint-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -23,8 +21,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
-    env:
-      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-test-${{ matrix.python-version }}-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -35,8 +31,6 @@ jobs:
 
   fpr-release-surface:
     runs-on: ubuntu-latest
-    env:
-      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-fpr-release-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -46,16 +40,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends r-base-core
-      - name: Bootstrap supported external-venv workflow
+      - run: uv sync --all-extras
+      - name: Verify documented fp-r bundle workflow
         run: |
-          chmod +x scripts/uvsync scripts/uvsafe
-          bash -n scripts/uvsync scripts/uvsafe
-          scripts/uvsync --all-extras
-      - name: Verify documented fp-r wrapper workflow
-        run: |
-          scripts/uvsafe fp --help
+          uv run fp --help
           rm -rf /tmp/fpr-public-ci
-          scripts/uvsafe fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir /tmp/fpr-public-ci
+          uv run fp run examples/fpr_bundle_demo.yaml --backend fp-r --output-dir /tmp/fpr-public-ci
           latest="$(ls -td /tmp/fpr-public-ci/fpr_bundle_demo_* | head -1)"
           test -f "$latest/PABEV.TXT"
           test -f "$latest/LOADFORMAT.DAT"
@@ -63,10 +53,7 @@ jobs:
           test -f "$latest/fp_r_report.txt"
       - name: Run focused tracked fp-r tests
         run: |
-          scripts/uvsafe python -m pytest -q tests/test_backend.py tests/test_cli.py -k "fpr or fp_r or backend_requires_fp_home"
-      - name: Run fp-r R suite
-        run: |
-          Rscript fp-r/tests/testthat.R
+          uv run python -m pytest -q tests/test_backend.py tests/test_cli.py -k "fpr or fp_r or backend_requires_fp_home"
       - name: Build package artifacts
         run: |
           rm -rf /tmp/fp-wraptr-build-ci
@@ -115,8 +102,6 @@ jobs:
     # Optional: enable only when FP assets provisioning inputs are configured.
     if: ${{ vars.FP_INTEGRATION_ENABLED == 'true' }}
     runs-on: ubuntu-latest
-    env:
-      UV_PROJECT_ENVIRONMENT: /tmp/fp-wraptr-fp-integration-venv
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4

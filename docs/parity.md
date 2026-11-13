@@ -1,6 +1,6 @@
 # Parity Mode (`fp.exe` vs `fppy`)
 
-This page is the operator playbook for parity runs and scenario changes.
+This page explains how to run parity checks, read their reports, and handle scenario changes.
 
 fp-wraptr parity uses the vendored minimal `fppy` execution/parity core (module name `fp_py`) and compares engine outputs on the `PABEV.TXT` contract.
 
@@ -27,7 +27,7 @@ fppy:
   eq_flags_preset: default
 ```
 
-- Use `default` only when intentionally testing legacy/non-parity behavior; parity artifacts and dashboard views will still surface the active preset so results remain auditable.
+- Use `default` only when intentionally testing legacy/non-parity behavior; parity artifacts still record the active preset so results remain auditable.
 
 ## Identity Overlay (Why Parity Can Diverge At A Boundary Quarter)
 
@@ -205,7 +205,7 @@ This emits:
 
 ### Divergence interpretation matrix
 
-| `status` | `exit_code` | Meaning | Operator action |
+| `status` | `exit_code` | Meaning | Action |
 |---|---:|---|---|
 | `ok` | `0` | Hard-fail checks passed and numeric gate passed. | Approve parity gate for this scenario/run fingerprint. |
 | `hard_fail` | `3` | Semantic mismatch (`missing/discrete/signflip`). | Stop release; investigate hard-fail rows first. |
@@ -235,7 +235,7 @@ This emits:
 
 Hard-fail invariants (`missing/discrete/signflip`) are non-negotiable and are enforced regardless of tolerance or drift settings.
 
-## Scenario-change policy (operator)
+## Scenario-change policy
 
 If a scenario input set changes (deck edits, exogenous changes, forecast var list changes):
 
@@ -246,29 +246,20 @@ If a scenario input set changes (deck edits, exogenous changes, forecast var lis
 
 ## Fingerprint lock commands
 
-Write a new fingerprint lockfile:
+Every `parity_report.json` records an `input_fingerprint` (SHA-256 of `fminput.txt`,
+`fmdata.txt`, `fmage.txt`, `fmexog.txt`, and `fmout.txt` in `fp_home`). Save it from an
+approved run as a lockfile:
 
 ```bash
-scripts/onedrive_safe_env.sh python3 scripts/iss02_acceptance_gate.py \
-  --base-dir <SCENARIO_DIR> \
-  --write-fingerprint-lock docs/verification/iss02_baseline_fingerprint_<SCENARIO>.json
+python3 -c "import json,sys; print(json.dumps(json.load(open(sys.argv[1]))['input_fingerprint'], indent=2))" \
+  artifacts/<scenario>_<timestamp>/parity_report.json > parity-fingerprint.json
 ```
 
-Run acceptance with lockfile + drift:
+Later runs with `--fingerprint-lock` stop with `status=fingerprint_mismatch` (exit code `5`)
+if any locked input file changed:
 
 ```bash
-scripts/onedrive_safe_env.sh python3 scripts/iss02_acceptance_gate.py \
-  --base-dir <SCENARIO_DIR> \
-  --with-drift \
-  --fingerprint-lock docs/verification/iss02_baseline_fingerprint_<SCENARIO>.json \
-  --out-root /tmp/fairpy-iss02-acceptance
-```
-
-Interpret an existing run without re-running engines:
-
-```bash
-scripts/onedrive_safe_env.sh python3 scripts/iss02_acceptance_gate.py \
-  --summary-path /tmp/fairpy-iss02-acceptance/<TIMESTAMP>/summary.json
+uv run fp parity examples/baseline.yaml --with-drift --fingerprint-lock parity-fingerprint.json
 ```
 
 ## `fp.exe` assets installer/provision script

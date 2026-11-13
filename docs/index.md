@@ -27,14 +27,14 @@ It supports three solver paths: the original `fp.exe`, the pure-Python `fppy` en
 - **Update data from FRED** — Pull the latest economic data from FRED, BEA, and BLS directly into the model
 - **Explore equations** — Build dependency graphs, trace how variables flow through 130+ equations
 - **Validate with parity** — Run `fp.exe` and `fppy` head-to-head by default, or select an explicit parity pair such as `fpexe` vs `fp-r`
-- **Use AI agents** — An MCP server with 44 tools lets LLMs author scenarios, run models, and interpret results
+- **Use AI agents** — An MCP server with 43 tools lets LLMs author scenarios, run models, and interpret results
 
 ## Getting started
 
 ```bash
 git clone https://github.com/smkwray/fp-wraptr.git
 cd fp-wraptr
-scripts/uvsync --all-extras
+uv sync --all-extras
 ```
 
 Then follow the [Quickstart guide](quickstart.md) to configure your model files and run your first scenario.
@@ -55,11 +55,11 @@ Archie still covers the Python route. fp-wraptr now includes an R route too via 
 graph LR
     A[YAML Scenario] --> B[ScenarioConfig]
     B --> C[Runner]
-    C --> D[fp.exe / fppy]
+    C --> D[fp.exe / fppy / fp-r]
     D --> E[Parser]
     E --> F[DataFrames]
     F --> G[Reports & Charts]
-    F --> H[Dashboard]
+    F --> H[Model Runs Explorer]
     F --> I[Parity Check]
 ```
 
@@ -70,8 +70,8 @@ graph LR
 - **Batch runner** — Execute multiple scenarios and compare against golden baselines
 - **Dependency graph** — Trace upstream/downstream variable dependencies with networkx
 - **Report generation** — Markdown run reports and comparison summaries
-- **Visualization** — Matplotlib charts and a 12-page Streamlit dashboard with Plotly
-- **MCP server** — 44 tools for LLM-assisted exploration and scenario authoring
+- **Visualization** — Matplotlib charts and a static Model Runs Explorer export for sharing results
+- **MCP server** — 43 tools for LLM-assisted exploration and scenario authoring
 - **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
 - **Three solver paths** — Run the FORTRAN engine, the pure-Python solver, or the bundle-backed R solver
 - **Data pipelines** — FRED, BEA, and BLS data integration with safe-lane update workflows
@@ -86,7 +86,7 @@ graph LR
 
 -   **[Architecture](architecture.md)**
 
-    Module layout, data flow, and design decisions
+    Module layout and data flow
 
 -   **[Scenarios](scenarios.md)**
 
@@ -94,11 +94,7 @@ graph LR
 
 -   **[CLI Reference](cli.md)**
 
-    Complete command reference for 70+ CLI commands
-
--   **[Dashboard](dashboard.md)**
-
-    12-page Streamlit dashboard guide
+    Complete command reference for the `fp` CLI
 
 -   **[Agent Workflows](agent-workflows.md)**
 
@@ -106,7 +102,7 @@ graph LR
 
 -   **[Parity](parity.md)**
 
-    Operator playbook for dual-engine validation
+    Running and interpreting cross-engine parity checks
 
 -   **[Data Update](data-update.md)**
 

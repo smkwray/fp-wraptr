@@ -146,7 +146,7 @@ def _repo_root() -> Path:
 
 
 def _run_summary_payload(*, run_id: str, artifacts_dir: Path | None = None) -> dict[str, object]:
-    from fp_wraptr.dashboard.artifacts import scan_artifacts
+    from fp_wraptr.run_artifacts import scan_artifacts
 
     root = artifacts_dir or (_repo_root() / "artifacts")
     for run in scan_artifacts(root):
@@ -270,7 +270,7 @@ def list_scenarios(examples_dir: str = "examples") -> str:
 @mcp.tool()
 def get_run_history(artifacts_dir: str = "artifacts") -> str:
     """List runs discovered under an artifacts root directory."""
-    from fp_wraptr.dashboard.artifacts import scan_artifacts
+    from fp_wraptr.run_artifacts import scan_artifacts
 
     runs = scan_artifacts(Path(artifacts_dir))
     payload = {
@@ -769,7 +769,6 @@ def run_bundle(
     payload["run_root"] = str(run_root)
     payload["report_path"] = str(report_path)
     return json.dumps(payload, indent=2, sort_keys=True)
-
 
 
 @mcp.tool()
@@ -1486,11 +1485,11 @@ if hasattr(mcp, "prompt"):
             "scenario or bundle runs, and `build_visualization_view` for a chart-ready payload over tracked variables."
         )
 
-    @mcp.prompt(name="Prepare dashboard visualization set")
+    @mcp.prompt(name="Prepare visualization set")
     def prompt_prepare_visualizations() -> str:
         return (
             "Use `list_visualizations` and `build_visualization_view` to prepare forecast overlays, delta "
-            "tables, or tracked-variable views that can be handed off to the dashboard pages."
+            "tables, or tracked-variable views as chart-ready payloads."
         )
 
 
@@ -1507,7 +1506,7 @@ def get_latest_run(
         scenario_filter: Optional scenario name substring to filter by.
         limit: Number of recent runs to return (default 1).
     """
-    from fp_wraptr.dashboard.artifacts import latest_runs, scan_artifacts
+    from fp_wraptr.run_artifacts import latest_runs, scan_artifacts
 
     runs = scan_artifacts(Path(artifacts_dir))
     if scenario_filter:
@@ -1549,7 +1548,7 @@ def get_parity_report(run_dir: str = "", artifacts_dir: str = "artifacts") -> st
             )
         return report_path.read_text(encoding="utf-8")
 
-    from fp_wraptr.dashboard.artifacts import scan_artifacts
+    from fp_wraptr.run_artifacts import scan_artifacts
 
     runs = scan_artifacts(Path(artifacts_dir))
     for run in runs:

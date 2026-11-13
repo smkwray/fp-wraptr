@@ -82,6 +82,8 @@ def test_prepare_work_dir_for_fp_run_errors_on_missing_includes(tmp_path: Path) 
 def test_repo_pse2008_input_tree_copies_expected_family_includes(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     overlay = repo_root / "projects_local" / "pse2008"
+    if not (overlay / "psebase.txt").exists():
+        pytest.skip("local PSE 2008 overlay files are not distributed with the repository")
     fp_home = tmp_path / "FM"
     fp_home.mkdir()
     for name in ("fmdata.txt", "fmage.txt", "fmexog.txt"):
@@ -120,13 +122,17 @@ def test_prepare_work_dir_for_fp_run_overwrites_existing_include_with_overlay_co
     work_dir.mkdir()
 
     (work_dir / "psebase.txt").write_text("INPUT FILE=pse_common.txt;\n", encoding="utf-8")
-    (fp_home / "pse_common.txt").write_text("PRINTVAR FILEOUT=OUT_BASE.DAT GDP;\n", encoding="utf-8")
+    (fp_home / "pse_common.txt").write_text(
+        "PRINTVAR FILEOUT=OUT_BASE.DAT GDP;\n", encoding="utf-8"
+    )
     (overlay / "pse_common.txt").write_text(
         "PRINTVAR FILEOUT=OUT_OVERLAY.DAT UR;\n", encoding="utf-8"
     )
 
     # Simulate a previously staged base include that must be replaced by the overlay copy.
-    (work_dir / "pse_common.txt").write_text("PRINTVAR FILEOUT=OUT_STALE.DAT WF;\n", encoding="utf-8")
+    (work_dir / "pse_common.txt").write_text(
+        "PRINTVAR FILEOUT=OUT_STALE.DAT WF;\n", encoding="utf-8"
+    )
 
     manifest = prepare_work_dir_for_fp_run(
         entry_input=work_dir / "psebase.txt",

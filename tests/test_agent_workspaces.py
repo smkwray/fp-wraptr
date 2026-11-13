@@ -290,4 +290,4 @@ def test_mcp_pack_and_workspace_tools(tmp_path: Path, monkeypatch) -> None:
     prompts = asyncio.run(mcp.list_prompts())
     prompt_names = {getattr(item, "name", "") for item in prompts}
     assert "Create a variant from base/high/low" in prompt_names
-    assert "Prepare dashboard visualization set" in prompt_names
+    assert "Prepare visualization set" in prompt_names

@@ -59,7 +59,7 @@ Command-aware patches edit command parameters without requiring exact whole-line
 
 ## `track_variables`
 
-`track_variables` controls which forecast series are shown in run summaries and charts (CLI `fp run`, `fp report`, and dashboard views). Defaults to:
+`track_variables` controls which forecast series are shown in run summaries and charts (CLI `fp run`, `fp report`, and exported run views). Defaults to:
 
 ```yaml
 track_variables:
@@ -129,7 +129,7 @@ track_variables:
 
 ## Walkthrough: from override to parity triage
 
-For fast smoke validation (for example Tandy/CI runs), use `examples/baseline_smoke.yaml` with `--backend both` to produce parity artifacts quickly before running larger policy scenarios.
+For fast smoke validation (for example in CI), use `examples/baseline_smoke.yaml` with `--backend both` to produce parity artifacts quickly before running larger policy scenarios.
 If you want to refresh model history before scenario runs, generate an updated bundle with
 `fp data update-fred` and set scenario `fp_home` to the new `.../FM` directory
 (see [`docs/data-update.md`](data-update.md)).
@@ -139,7 +139,7 @@ If you want to refresh model history before scenario runs, generate an updated b
 - Baseline exogenous settings from `FM/fmexog.txt` remain in effect by default.
 - Scenario `overrides` are merged/appended into the run-local `fmexog.txt` used for execution.
 - `fminput.txt` is not patched to point at another exogenous filename for this flow.
-- A copy of the merged exogenous script is also written as `fmexog_override.txt` for operator inspection.
+- A copy of the merged exogenous script is also written as `fmexog_override.txt` for inspection.
 - First artifact to inspect when results surprise you: `<run>/work_*/fmexog.txt` (inspection copy: `<run>/work_*/fmexog_override.txt`).
 
 ### 1. How overrides map to run exogenous files
@@ -169,11 +169,6 @@ uv run fp parity examples/demand_shock.yaml --with-drift --output-dir artifacts/
 ```
 
 - Parity writes `parity_report.json` plus per-engine `PABEV.TXT` under the run directory.
-- For interactive triage, launch dashboard against that artifacts root:
-
-```bash
-uv run fp dashboard --artifacts-dir artifacts/scenario_walkthrough_parity --port 8501
-```
 
 ### 4. Triage from CLI when parity fails
 

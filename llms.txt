@@ -5,20 +5,22 @@
 ## Project overview
 fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python tooling for scenario management, IO parsing, result comparison, visualization, and LLM-assisted exploration.
 
-## Dual engines
+## Solver backends
 - **fpexe** -- Original Fair-Parke Windows PE32 binary (FORTRAN). Runs via Wine on macOS/Linux.
 - **fppy** -- Pure-Python re-implementation of the FP solver core. No Wine required.
-- Parity mode runs both engines head-to-head and compares PABEV.TXT outputs.
+- **fp-r** -- Bundle-backed R solver run through `Rscript` (`fpr.bundle_path` in scenario YAML).
+- Parity mode runs two engines head-to-head (default fpexe vs fppy) and compares PABEV.TXT outputs.
 
 ## Key entry points
-- `src/fp_wraptr/cli.py` -- Typer CLI app (`fp` command). Subcommands: `run`, `parity`, `validate`, `batch`, `diff`, `report`, `graph`, `history`, `dashboard`, `export`, `dsl compile`, `describe`, `dictionary`, `fred`, `io parse-output`, `io parse-input`, `viz plot`, `version`, `info`.
+- `src/fp_wraptr/cli.py` -- Typer CLI app (`fp` command). Subcommands: `run`, `parity`, `validate`, `batch`, `diff`, `report`, `graph`, `history`, `export`, `dsl compile`, `describe`, `dictionary`, `fred`, `io parse-output`, `io parse-input`, `viz plot`, `version`, `info`.
 - `src/fp_wraptr/runtime/fp_exe.py` -- Subprocess wrapper for fp.exe.
 - `src/fp_wraptr/runtime/fairpy.py` -- Subprocess wrapper for fppy (pure-Python backend).
+- `src/fp_wraptr/runtime/fpr.py` -- Rscript wrapper for the fp-r backend.
 - `src/fp_wraptr/io/parser.py` -- FP output file parser (forecast tables -> pandas DataFrames).
 - `src/fp_wraptr/io/input_parser.py` -- FP input file parser (canonical snake_case keys).
 - `src/fp_wraptr/io/writer.py` -- Write FP-format files from Python objects.
 - `src/fp_wraptr/scenarios/config.py` -- Pydantic models for scenario YAML configs.
-- `src/fp_wraptr/scenarios/runner.py` -- Scenario execution pipeline (backend selection: fpexe/fppy/both).
+- `src/fp_wraptr/scenarios/runner.py` -- Scenario execution pipeline (backend selection: fpexe/fppy/fp-r/both).
 - `src/fp_wraptr/scenarios/batch.py` -- Batch scenario execution and comparison.
 - `src/fp_wraptr/scenarios/bundle.py` -- Bundle management for multi-variant runs.
 - `src/fp_wraptr/scenarios/packs.py` -- Pack discovery (local/public manifests).
@@ -28,17 +30,15 @@ fp-wraptr wraps Ray Fair's US Macroeconometric Model (fp.exe) with Python toolin
 - `src/fp_wraptr/analysis/parity.py` -- Dual-engine PABEV-based parity validation.
 - `src/fp_wraptr/analysis/report.py` -- Build markdown reports from run output.
 - `src/fp_wraptr/analysis/graph.py` -- Build variable dependency graphs from input file.
-- `src/fp_wraptr/analysis/sensitivity.py` -- Sensitivity analysis with fan charts.
+- `src/fp_wraptr/analysis/sensitivity.py` -- Sensitivity sweeps with response tables.
 - `src/fp_wraptr/data/dictionary.py` -- Variable dictionary with source coverage.
 - `src/fp_wraptr/data/source_map.py` -- Data source tracking (FRED/BEA/BLS mappings).
 - `src/fp_wraptr/data/update_fred.py` -- FRED data integration pipeline.
 - `src/fp_wraptr/viz/plots.py` -- Matplotlib charts for forecast series.
-- `src/fp_wraptr/dashboard/artifacts.py` -- Discover and parse run artifacts.
-- `src/fp_wraptr/dashboard/charts.py` -- Plotly chart helpers.
-- `src/fp_wraptr/pages_export.py` -- Static GitHub Pages export.
-- `src/fp_wraptr/mcp_server.py` -- FastMCP server exposing 44 tools, 9 resources, and 6 prompts.
+- `src/fp_wraptr/run_artifacts.py` -- Discover run directories under artifacts/.
+- `src/fp_wraptr/pages_export.py` -- Static Model Runs Explorer export for GitHub Pages.
+- `src/fp_wraptr/mcp_server.py` -- FastMCP server exposing 43 tools, 9 resources, and 6 prompts.
   Canonical tool docs: `docs/mcp-tools.md`.
-- Dashboard: `apps/dashboard/Run_Manager.py` (home) + 11 pages in `apps/dashboard/pages/`.
 
 ## MCP server
 
@@ -73,7 +73,7 @@ get_project_info, get_latest_run, get_parity_report
 - Attach a new series override
 - Build a bundle of policy variants
 - Compare latest family runs
-- Prepare dashboard visualization set
+- Prepare visualization set
 
 ## Data files (not in repo, gitignored)
 - `FM/fp.exe` -- Fair-Parke Windows executable.
@@ -97,15 +97,15 @@ get_project_info, get_latest_run, get_parity_report
 - Config: Pydantic v2 models, YAML scenarios.
 - Build: hatchling, managed by uv.
 - Lint/format: ruff.
-- Tests: pytest (tests/ directory, 81 test files, 500+ tests).
-- Dashboard: Streamlit (12 pages including home).
+- Tests: pytest (tests/ directory).
+- Model Runs Explorer: static site exported by `fp export pages` (`public/model-runs/`).
 - Docs: MkDocs Material + mkdocstrings.
 - MCP: FastMCP (optional extra).
 - Data: FRED, BEA, BLS pipelines with source-map tracking.
 
 ## Conventions
 - Python 3.11+, ruff for style.
-- Tests skip automatically when FM/ files are missing.
+- Tests that need FM/ files, fp.exe, or Rscript skip automatically when they are missing.
 - Scenario configs are YAML files in examples/.
 - Run artifacts go to artifacts/ (gitignored).
 - Parity contract is always PABEV.TXT with hard-fail invariants.
@@ -114,16 +114,15 @@ get_project_info, get_latest_run, get_parity_report
 - Site: https://smkwray.github.io/fp-wraptr/
 - `docs/index.md` -- Home page.
 - `docs/quickstart.md` -- Getting started guide.
-- `docs/architecture.md` -- Design decisions.
+- `docs/architecture.md` -- Module layout and data flow.
 - `docs/scenarios.md` -- YAML configuration reference.
-- `docs/cli.md` -- CLI command reference (70+ commands).
-- `docs/dashboard.md` -- 12-page Streamlit dashboard guide.
-- `docs/parity.md` -- Parity operator playbook.
+- `docs/cli.md` -- CLI command reference.
+- `docs/parity.md` -- Running and interpreting parity checks.
 - `docs/agent-workflows.md` -- MCP workspace authoring flow.
 - `docs/packs.md` -- Pack manifests for scenario families.
 - `docs/mcp.md` -- MCP server setup.
 - `docs/mcp-tools.md` -- Full tool/resource/prompt reference.
 - `docs/data-update.md` -- FRED/BEA/BLS refresh workflows.
-- `docs/model-runs.md` -- Static GitHub Pages export.
+- `docs/model-runs.md` -- Model Runs Explorer export.
 - `docs/api.md` -- Auto-generated API reference.
 - `docs/changelog.md` -- Release history.

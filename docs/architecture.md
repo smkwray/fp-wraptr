@@ -25,7 +25,6 @@ graph TD
     subgraph Analysis
         F --> G[DataFrames]
         G --> H[Reports & Charts]
-        G --> I[Dashboard<br/>12 Streamlit pages]
         G --> J[Run Diff]
         E1 & E2 --> K[Parity Engine]
         K --> L[parity_report.json]
@@ -47,7 +46,6 @@ graph LR
     G -->|no| I[parity_report.json<br/>status: pass]
     H --> J[Regression gate]
     I --> J
-    J --> K[Dashboard Parity page]
 ```
 
 ## Module layout
@@ -67,6 +65,7 @@ src/fp_wraptr/
     backend.py          # Backend interface
     fp_exe.py           # Subprocess wrapper for fp.exe
     fairpy.py           # Subprocess wrapper for fppy (pure-Python backend)
+    fpr.py              # Rscript wrapper for the fp-r backend
     solve_errors.py     # Solve error classification
   scenarios/
     config.py           # Pydantic scenario config models
@@ -99,13 +98,9 @@ src/fp_wraptr/
   bls/                  # BLS API client
   viz/
     plots.py            # Matplotlib forecast charts
-  dashboard/
-    artifacts.py        # Artifact scanning and metadata
-    charts.py           # Plotly dashboard charts
-    scenario_tools.py   # Scenario manipulation helpers
-    ptcoef_editor.py    # Coefficient editor UI
-  mcp_server.py         # FastMCP server (44 tools, 9 resources)
-  pages_export.py       # GitHub Pages static export
+  run_artifacts.py      # Run-directory discovery under artifacts/
+  mcp_server.py         # FastMCP server (43 tools, 9 resources, 6 prompts)
+  pages_export.py       # Model Runs Explorer static export
 ```
 
 ## Key design decisions
@@ -124,7 +119,7 @@ Scenario configs use Pydantic v2 models for validation, serialization, and type 
 
 ### Copy-and-patch for input overrides
 
-The initial approach to scenario overrides is simple text-level patching of `fminput.txt`. A future AST-level manipulation layer will replace this once the input parser is complete.
+Scenario overrides are applied by copying the model input files into a per-run work directory and patching them as text (`fminput.txt` patches, merged `fmexog.txt` `CHANGEVAR` blocks). The files in `FM/` are never modified.
 
 ### Canonical parser contract
 
@@ -132,12 +127,12 @@ The initial approach to scenario overrides is simple text-level patching of `fmi
 
 ### Optional extras
 
-Heavy dependencies (matplotlib, streamlit, fastmcp, networkx) are optional extras to keep the core package lightweight. Install what you need:
+Heavy dependencies (matplotlib, fastmcp, networkx, fredapi) are optional extras to keep the core package lightweight. Install what you need:
 
 ```bash
 uv sync                       # core only
 uv sync --all-extras          # everything
-pip install fp-wraptr[dashboard,mcp]  # specific extras
+uv sync --extra mcp --extra viz # specific extras
 ```
 
 ## FP file format reference

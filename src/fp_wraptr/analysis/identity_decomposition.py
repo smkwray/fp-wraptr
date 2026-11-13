@@ -121,7 +121,9 @@ def _evaluate_expression(expression: str, values: dict[str, float]) -> float:
     return float(result)
 
 
-def _collect_period_rows(engine_paths: dict[str, Path], period: str) -> dict[str, dict[str, float]]:
+def _collect_period_rows(
+    engine_paths: dict[str, Path], period: str
+) -> dict[str, dict[str, float]]:
     rows: dict[str, dict[str, float]] = {}
     for engine, path in engine_paths.items():
         periods, series = read_loadformat(path)

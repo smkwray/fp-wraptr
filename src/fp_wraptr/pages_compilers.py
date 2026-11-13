@@ -21,13 +21,11 @@ def apply_public_run_compilers(
     childcare_regime_output_contract_path: Path | str | None = None,
 ) -> None:
     """Apply all configured public-bundle compilers in place."""
-    if not any(
-        (
-            childcare_regime_compiler_config_path,
-            childcare_regime_input_contract_path,
-            childcare_regime_output_contract_path,
-        )
-    ):
+    if not any((
+        childcare_regime_compiler_config_path,
+        childcare_regime_input_contract_path,
+        childcare_regime_output_contract_path,
+    )):
         return
     required = {
         "childcare_regime_compiler_config_path": childcare_regime_compiler_config_path,
@@ -155,7 +153,9 @@ def _derive_gccprice(series: dict[str, Any]) -> list[float | None] | None:
     subsidy = _coerce_series(series.get("GCSUB"))
     if burden is None or subsidy is None:
         return None
-    return _vector_binary(burden, subsidy, op=lambda left_value, right_value: left_value + right_value)
+    return _vector_binary(
+        burden, subsidy, op=lambda left_value, right_value: left_value + right_value
+    )
 
 
 def _derive_gcbur(series: dict[str, Any], *, subsidy_rate: float) -> list[float | None] | None:
@@ -208,13 +208,22 @@ def _normalize_contracts(
     config_method_tag = str(config.get("method_tag") or "").strip()
     config_quantity_basis = str(config.get("quantity_basis") or "").strip()
     output_method_tag = str(
-        ((output_contract.get("required_metadata") or {}).get("method_tag") or {}).get("required_value") or ""
+        ((output_contract.get("required_metadata") or {}).get("method_tag") or {}).get(
+            "required_value"
+        )
+        or ""
     ).strip()
     input_quantity_basis = str(
-        ((input_contract.get("required_metadata") or {}).get("quantity_basis") or {}).get("required_value") or ""
+        ((input_contract.get("required_metadata") or {}).get("quantity_basis") or {}).get(
+            "required_value"
+        )
+        or ""
     ).strip()
     output_quantity_basis = str(
-        ((output_contract.get("required_metadata") or {}).get("quantity_basis") or {}).get("required_value") or ""
+        ((output_contract.get("required_metadata") or {}).get("quantity_basis") or {}).get(
+            "required_value"
+        )
+        or ""
     ).strip()
     if config_method_tag != output_method_tag:
         raise PagesCompilerError("Compiler config method_tag must match the output contract")
@@ -225,7 +234,9 @@ def _normalize_contracts(
     unpriced_config = dict(config.get("unpriced_external_handoff") or {})
     if unpriced_config.get("enabled"):
         if not str(unpriced_config.get("source_env_var") or "").strip():
-            raise PagesCompilerError("Unpriced external handoff requires source_env_var when enabled")
+            raise PagesCompilerError(
+                "Unpriced external handoff requires source_env_var when enabled"
+            )
 
 
 def _coerce_regime_inputs(run_payload: dict[str, Any]) -> dict[str, float]:
@@ -324,10 +335,16 @@ def _load_external_unpriced_handoff(*, config: dict[str, Any]) -> dict[str, Any]
         if not token:
             continue
         if not isinstance(raw_entry, dict):
-            raise PagesCompilerError(f"External unpriced handoff entry for {token} must be an object")
-        source = raw_entry.get("series") if isinstance(raw_entry.get("series"), dict) else raw_entry
+            raise PagesCompilerError(
+                f"External unpriced handoff entry for {token} must be an object"
+            )
+        source = (
+            raw_entry.get("series") if isinstance(raw_entry.get("series"), dict) else raw_entry
+        )
         if not isinstance(source, dict):
-            raise PagesCompilerError(f"External unpriced handoff missing series map for run {token}")
+            raise PagesCompilerError(
+                f"External unpriced handoff missing series map for run {token}"
+            )
         price_values = _coerce_external_unpriced_series(source.get(price_name))
         paid_quantity_values = _coerce_external_unpriced_series(source.get(paid_quantity_name))
         unpaid_quantity_values = _coerce_external_unpriced_series(source.get(unpaid_quantity_name))
@@ -343,7 +360,11 @@ def _load_external_unpriced_handoff(*, config: dict[str, Any]) -> dict[str, Any]
             },
             "regime_inputs": _normalize_external_regime_inputs(raw_entry.get("regime_inputs")),
             "scalars": _normalize_external_regime_inputs(raw_entry.get("scalars")),
-            "notes": [str(item).strip() for item in list(raw_entry.get("notes") or []) if str(item).strip()],
+            "notes": [
+                str(item).strip()
+                for item in list(raw_entry.get("notes") or [])
+                if str(item).strip()
+            ],
         }
     return {
         "requested": True,
@@ -428,9 +449,7 @@ def _run_childcare_fixed_point_core(
     alpha_price_penalty = float(assumptions.get("alpha_price_penalty") or 0.0)
     slot_pressure_price_scale = float(assumptions.get("slot_pressure_price_scale") or 0.0)
     kappa_c_price_scale = float(assumptions.get("kappa_c_price_scale") or 0.0)
-    qcap_floor_multiplier = max(
-        1e-6, float(assumptions.get("qcap_floor_multiplier") or 0.0)
-    )
+    qcap_floor_multiplier = max(1e-6, float(assumptions.get("qcap_floor_multiplier") or 0.0))
     qcap_alpha_accommodation = float(assumptions.get("qcap_alpha_accommodation") or 0.0)
     tax_exposure_floor = _clamp(
         float(assumptions.get("tax_exposure_floor") or 0.0),
@@ -669,7 +688,9 @@ def _apply_childcare_regime_compiler(
     config = _load_json(config_path)
     input_contract = _load_json(input_contract_path)
     output_contract = _load_json(output_contract_path)
-    _normalize_contracts(config=config, input_contract=input_contract, output_contract=output_contract)
+    _normalize_contracts(
+        config=config, input_contract=input_contract, output_contract=output_contract
+    )
 
     shared_assumptions = dict(config.get("assumptions") or {})
     solver = dict(config.get("solver") or {})
@@ -697,7 +718,6 @@ def _apply_childcare_regime_compiler(
             )
 
     for run_payload in compiler_run_payloads:
-        run_id = str(run_payload.get("run_id") or "").strip()
         base_run_id = str(run_payload.get("base_run_id") or "").strip()
         base_payload = run_payloads.get(base_run_id)
         if base_payload is None:
@@ -738,11 +758,16 @@ def _apply_childcare_regime_to_run(
         run_input_map = dict(external_unpriced_handoff.get("run_inputs") or {})
         external_unpriced_entry = run_input_map.get(str(run_payload.get("run_id") or "").strip())
     if external_unpriced_entry is not None:
-        regime_inputs = {**dict(external_unpriced_entry.get("regime_inputs") or {}), **regime_inputs}
+        regime_inputs = {
+            **dict(external_unpriced_entry.get("regime_inputs") or {}),
+            **regime_inputs,
+        }
         unpriced_handoff_mode = str(external_unpriced_handoff.get("handoff_mode") or "").strip()
         unpriced_source = unpriced_handoff_mode or "external_handoff"
         unpriced_external = unpriced_handoff_mode == "external_handoff"
-        unpriced_method = str(external_unpriced_handoff.get("method_tag") or "").strip() or unpriced_method
+        unpriced_method = (
+            str(external_unpriced_handoff.get("method_tag") or "").strip() or unpriced_method
+        )
         unpriced_repo = str(external_unpriced_handoff.get("source_repo") or "").strip()
         unpriced_generated_at = str(external_unpriced_handoff.get("generated_at") or "").strip()
     elif external_unpriced_handoff:
@@ -752,7 +777,9 @@ def _apply_childcare_regime_to_run(
     run_burden = _derive_gcbur(run_series, subsidy_rate=float(regime_inputs.get("sub_t") or 0.0))
     base_burden = _derive_gcbur(base_series, subsidy_rate=0.0)
     if run_price is None or base_price is None or run_burden is None or base_burden is None:
-        raise PagesCompilerError(f"Missing childcare price/burden inputs for {run_payload.get('run_id')}")
+        raise PagesCompilerError(
+            f"Missing childcare price/burden inputs for {run_payload.get('run_id')}"
+        )
 
     run_l2c = _resolve_series(run_series, candidates=quantity_proxy_order)
     base_l2c = _resolve_series(base_series, candidates=quantity_proxy_order)
@@ -760,7 +787,9 @@ def _apply_childcare_regime_to_run(
         raise PagesCompilerError(f"Missing quantity proxy for {run_payload.get('run_id')}")
     p0_cc = list(base_price)
     q0_cc = list(base_l2c)
-    u0_cc_base = _vector_scale(list(base_l2c), float(shared_assumptions.get("unpaid_care_pool_multiplier") or 0.0))
+    u0_cc_base = _vector_scale(
+        list(base_l2c), float(shared_assumptions.get("unpaid_care_pool_multiplier") or 0.0)
+    )
     if external_unpriced_entry is not None:
         series_names = dict(external_unpriced_handoff.get("series_names") or {})
         source_series = dict(external_unpriced_entry.get("series") or {})
@@ -787,10 +816,6 @@ def _apply_childcare_regime_to_run(
         p0_cc = list(external_price)
         q0_cc = list(external_paid_quantity)
         u0_cc_base = list(external_unpaid_quantity)
-    run_household = _coerce_series(run_series.get("GCCHH")) or _vector_fill(
-        base_burden,
-        default=float(shared_assumptions.get("household_burden_floor") or 0.0),
-    )
     base_household = _coerce_series(base_series.get("GCCHH")) or _vector_fill(
         base_burden,
         default=float(shared_assumptions.get("household_burden_floor") or 0.0),
@@ -925,7 +950,11 @@ def _apply_childcare_regime_to_run(
     max_u0_cc = max((value for value in u0_cc_out if value is not None), default=0.0)
     rerun_trigger_epsilon = max(
         1e-9,
-        float(outer_loop_config.get("rerun_trigger_epsilon") or shared_assumptions.get("labor_seed_epsilon") or 0.0),
+        float(
+            outer_loop_config.get("rerun_trigger_epsilon")
+            or shared_assumptions.get("labor_seed_epsilon")
+            or 0.0
+        ),
     )
     run_payload["regime_meta"] = {
         "method_tag": str(run_payload.get("method_tag") or "").strip(),
@@ -936,7 +965,11 @@ def _apply_childcare_regime_to_run(
         "financing_rule": str(run_payload.get("financing_rule") or "").strip(),
         "public_interpretation": str(run_payload.get("public_interpretation") or "").strip(),
         "regime_inputs": regime_inputs,
-        "notes": [str(item).strip() for item in list(run_payload.get("details") or []) if str(item).strip()],
+        "notes": [
+            str(item).strip()
+            for item in list(run_payload.get("details") or [])
+            if str(item).strip()
+        ],
         "solver_mode": "conditional_fixed_point",
         "solver_iterations": max(solver_iterations) if solver_iterations else 0,
         "solver_converged": all_converged,
@@ -963,7 +996,9 @@ def _apply_childcare_regime_to_run(
         "labor_seed_source": "regime_response_seed"
         if "regime_response_seed" in labor_seed_sources
         else "observed_l2c_delta",
-        "quantity_per_worker_delta": float(shared_assumptions.get("quantity_per_worker_delta") or 0.0),
+        "quantity_per_worker_delta": float(
+            shared_assumptions.get("quantity_per_worker_delta") or 0.0
+        ),
         "unpaid_care_pool_multiplier": float(
             shared_assumptions.get("unpaid_care_pool_multiplier") or 0.0
         ),

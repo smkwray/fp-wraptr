@@ -34,7 +34,7 @@ def read_loadformat(path: Path | str) -> tuple[list[str], dict[str, list[float]]
 
 
 def add_derived_series(series: dict[str, list[float]]) -> dict[str, list[float]]:
-    """Add common derived series used in dashboards.
+    """Add common derived series used in run views.
 
     Currently supported:
       - WR = WF / PF  (when both exist)

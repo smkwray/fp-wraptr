@@ -1,6 +1,6 @@
 # Model Runs Export
 
-The GitHub Pages run explorer is a separate, read-only product surface. It does not reuse the live Streamlit dashboard at runtime and it does not read local `artifacts/` on Pages.
+The Model Runs Explorer is a static, read-only site for sharing completed runs. It is published from a checked-in bundle and does not read local `artifacts/` at runtime.
 
 ## What it ships
 
@@ -12,23 +12,17 @@ The public bundle under `public/model-runs/` contains:
 - `presets.json`
 - `runs/<run_id>.json`
 
-The static app lazy-loads run payloads from `manifest.json` and renders multi-run charts with the same transform and run-comparison semantics used by Run Panels.
+The static app lazy-loads run payloads from `manifest.json` and renders multi-run charts with per-variable transforms (level, change, percent change, share of a denominator) and run comparisons.
 
 ## Export command
 
 Use the checked-in export spec:
 
 ```bash
-scripts/uvsafe python -B -m fp_wraptr.cli export pages \
+uv run fp export pages \
   --spec public/model-runs.spec.yaml \
   --artifacts-dir artifacts \
   --out-dir public/model-runs
-```
-
-Or via the installed CLI:
-
-```bash
-fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --out-dir public/model-runs
 ```
 
 ## Spec contract
@@ -46,13 +40,13 @@ It declares:
 
 Run ids are stable public ids. The exporter resolves each one to the latest matching artifact directory by `scenario_name` and records the artifact timestamp in the exported manifest.
 
-## Operator workflow
+## Publishing workflow
 
 1. Refresh or curate the source runs under `artifacts/`.
-2. Run `fp export pages ...`.
+2. Run `fp export pages ...`. It refuses runs whose `fp.exe` solve hit errors such as the iteration limit; re-solve them or pass `--allow-solve-errors`.
 3. Review the diff under `public/model-runs/`.
 4. Commit the generated bundle together with any spec or doc changes.
-5. Push to `main`; GitHub Pages publishes docs plus the run explorer under `/model-runs/`.
+5. Push to `main`; the Pages workflow checks that every run listed in `manifest.json` has its payload, then publishes the docs plus the run explorer under `/model-runs/`.
 
 ## Safety rules
 
@@ -64,23 +58,8 @@ The exporter intentionally fails if the generated JSON would leak:
 
 Only portable, relative asset paths are written into the bundle.
 
-## Current default bundle
+## Published bundle
 
-The checked-in default bundle targets:
-
-- `stock_fm_baseline`
-- `low_15h`
-- `high_15h`
-- `pse2025_base`
-- `pse2025_high`
-- `pse2025_low`
-
-Default selected runs:
-
-- `pse2025_base`
-- `pse2025_high`
-- `pse2025_low`
-
-Default preset:
-
-- `Economy`
+The live explorer is built from `public/model-runs.spec.yaml`. The exported
+`public/model-runs/manifest.json` lists every published run, the runs selected by default
+(`default_run_ids`), and the default chart preset (`default_preset_ids`).

@@ -9,10 +9,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from fp_wraptr.analysis.parity import normalize_parity_engine_name
 from fppy.pabev_parity import (
     toleranced_compare,
 )
-from fp_wraptr.analysis.parity import normalize_parity_engine_name
 
 _SCHEMA_VERSION = 1
 
@@ -99,7 +99,9 @@ def _load_report(run_dir: Path) -> dict[str, Any]:
 def _parity_pair_from_report(report: dict[str, Any]) -> tuple[str, str]:
     left_raw = report.get("left_engine", "fpexe")
     right_raw = report.get("right_engine", "fppy")
-    return normalize_parity_engine_name(str(left_raw)), normalize_parity_engine_name(str(right_raw))
+    return normalize_parity_engine_name(str(left_raw)), normalize_parity_engine_name(
+        str(right_raw)
+    )
 
 
 def _work_dir_name_for_engine(engine_name: str) -> str:

@@ -6,7 +6,7 @@ import json
 import math
 import re
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from hashlib import sha1
 from pathlib import Path
@@ -15,20 +15,17 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from fp_wraptr.dashboard.artifacts import RunArtifact, overlay_paths_for_runs, scan_artifacts
-from fp_wraptr.dashboard.mini_dash_helpers import (
-    normalize_preset_transforms,
-    normalize_preset_variables,
-)
 from fp_wraptr.data.dictionary_overlays import load_dictionary_with_overlays
 from fp_wraptr.hygiene import find_project_root
 from fp_wraptr.io.input_parser import parse_fmexog_text, parse_fp_input
 from fp_wraptr.io.loadformat import add_derived_series, read_loadformat
 from fp_wraptr.pages_compilers import PagesCompilerError, apply_public_run_compilers
+from fp_wraptr.run_artifacts import RunArtifact, overlay_paths_for_runs, scan_artifacts
+from fp_wraptr.runtime.solve_errors import scan_run_solution_errors
 
 SCHEMA_VERSION = 1
 STATIC_SITE_SUBPATH = "model-runs"
-ALLOWED_SITE_SUBPATHS = {STATIC_SITE_SUBPATH, "private-runs"}
+ALLOWED_SITE_SUBPATHS = {STATIC_SITE_SUBPATH}
 DEFAULT_SPEC_PATH = Path("public") / "model-runs.spec.yaml"
 _RUN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
@@ -74,7 +71,9 @@ class PagesRunSpec(BaseModel):
     label: str = Field(default="", description="Optional display label for the site")
     summary: str = Field(default="", description="Optional one-line scenario summary")
     group: str = Field(default="", description="Optional run grouping label")
-    family_id: str = Field(default="", description="Optional logical family id for horizon pairing")
+    family_id: str = Field(
+        default="", description="Optional logical family id for horizon pairing"
+    )
     horizon_id: str = Field(default="", description="Optional horizon id such as 5y or 10y")
     horizon_label: str = Field(default="", description="Optional display horizon label such as 5Y")
     horizon_years: int | None = Field(default=None, description="Optional numeric horizon length")
@@ -159,8 +158,7 @@ class PagesRunSpec(BaseModel):
         if collisions:
             formatted = ", ".join(collisions)
             raise ValueError(
-                "public_metadata duplicates top-level horizon/family metadata: "
-                f"{formatted}"
+                f"public_metadata duplicates top-level horizon/family metadata: {formatted}"
             )
         return self
 
@@ -211,10 +209,10 @@ class PagesPresetSpec(BaseModel):
 
     @model_validator(mode="after")
     def _normalize_fields(self) -> PagesPresetSpec:
-        self.variables = normalize_preset_variables(self.variables)
+        self.variables = _normalize_preset_variables(self.variables)
         if not self.variables:
             raise ValueError("preset must include at least one variable")
-        self.transforms = normalize_preset_transforms(
+        self.transforms = _normalize_preset_transforms(
             variables=self.variables,
             transforms=self.transforms,
         )
@@ -309,6 +307,7 @@ class PagesExportResult:
     run_count: int
     variable_count: int
     generated_at: str
+    solve_error_runs: dict[str, int] = field(default_factory=dict)
 
 
 def default_pages_export_spec_path(start: Path | None = None) -> Path:
@@ -343,13 +342,30 @@ def export_pages_bundle(
     childcare_regime_compiler_config_path: Path | str | None = None,
     childcare_regime_input_contract_path: Path | str | None = None,
     childcare_regime_output_contract_path: Path | str | None = None,
+    allow_solve_errors: bool = False,
 ) -> PagesExportResult:
-    """Build a fully static public run bundle."""
+    """Build a fully static public run bundle.
+
+    Runs whose fp.exe solve reported errors (fp.exe keeps non-converged values and
+    continues) are refused unless ``allow_solve_errors`` is set.
+    """
     spec = load_pages_export_spec(spec_path)
     artifacts_root = Path(artifacts_dir)
     output_root = Path(out_dir)
     selected_runs = _resolve_selected_runs(spec=spec, artifacts_dir=artifacts_root)
     public_runs = [item.run for item in selected_runs]
+
+    solve_error_runs: dict[str, int] = {}
+    for item in selected_runs:
+        errors = scan_run_solution_errors(item.run.run_dir)
+        if errors:
+            solve_error_runs[item.spec.run_id] = len(errors)
+    if solve_error_runs and not allow_solve_errors:
+        listed = ", ".join(f"{run_id} ({n})" for run_id, n in sorted(solve_error_runs.items()))
+        raise PagesExportError(
+            "fp.exe reported solution errors (non-converged periods) for: "
+            f"{listed}. Re-solve them, or pass allow_solve_errors to publish anyway."
+        )
 
     generated_at = datetime.now(tz=UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     run_payloads: dict[str, dict[str, Any]] = {}
@@ -420,6 +436,7 @@ def export_pages_bundle(
         run_count=len(selected_runs),
         variable_count=len(available_variable_list),
         generated_at=generated_at,
+        solve_error_runs=solve_error_runs,
     )
 
 
@@ -595,7 +612,6 @@ def _validate_or_fill_overlay_exogenous_series(
             idx = period_index.get(period)
             if idx is None:
                 continue
-            solved_value = target[idx]
             overlay_value = float(value)
             # These variables are authored policy/control lanes. The public site
             # is supposed to show the authored overlay path even when the solved
@@ -683,7 +699,9 @@ def _input_paths_for_run(run: RunArtifact) -> list[Path]:
     candidates: list[Path] = []
     work_dir = run.run_dir / "work"
     if work_dir.exists():
-        has_scenario_model_deck = any(path.name.lower().startswith("pse") for path in work_dir.glob("*.txt"))
+        has_scenario_model_deck = any(
+            path.name.lower().startswith("pse") for path in work_dir.glob("*.txt")
+        )
         for path in sorted(work_dir.glob("*.txt")):
             name = path.name.lower()
             if name in {
@@ -796,7 +814,9 @@ def _append_solver_equation_payload(
     if equation is None:
         return
     lhs_expr = str(equation.get("lhs_expr", "") or "").strip().upper()
-    rhs_variables = [str(name).strip().upper() for name in list(equation.get("rhs_variables") or [])]
+    rhs_variables = [
+        str(name).strip().upper() for name in list(equation.get("rhs_variables") or [])
+    ]
     if not _equation_touches_visible_variables(
         lhs=lhs_expr,
         rhs_variables=rhs_variables,
@@ -847,7 +867,9 @@ def _build_run_input_equation_payloads(
                         lhs_expr = lhs_name.strip().upper()
                         formula = lhs_formula.strip()
                         if formula:
-                            eq_id = pending_solver_equation.get("model_eq_id", pending_solver_equation.get("id", ""))
+                            eq_id = pending_solver_equation.get(
+                                "model_eq_id", pending_solver_equation.get("id", "")
+                            )
                             _append_solver_equation_payload(
                                 payloads=payloads,
                                 equation={
@@ -855,11 +877,15 @@ def _build_run_input_equation_payloads(
                                     "model_eq_id": eq_id,
                                     "type": "scenario_equation",
                                     "sector_block": "scenario_input",
-                                    "label": f"Eq {eq_id} LHS" if eq_id != "" else f"LHS {lhs_expr}".strip(),
+                                    "label": f"Eq {eq_id} LHS"
+                                    if eq_id != ""
+                                    else f"LHS {lhs_expr}".strip(),
                                     "lhs_expr": lhs_expr,
                                     "rhs_variables": _extract_input_refs(formula),
                                     "formula": formula,
-                                    "display_id": f"Eq {eq_id} LHS" if eq_id != "" else f"LHS {lhs_expr}".strip(),
+                                    "display_id": f"Eq {eq_id} LHS"
+                                    if eq_id != ""
+                                    else f"LHS {lhs_expr}".strip(),
                                     "source_runs": [],
                                 },
                                 visible_variables=visible_variables,
@@ -1092,6 +1118,60 @@ def _iter_strings(value: Any) -> list[str]:
     if isinstance(value, list):
         for inner in value:
             out.extend(_iter_strings(inner))
+    return out
+
+
+_TRANSFORM_LEVEL = "level"
+_TRANSFORM_PCT_OF = "pct_of"
+_VALID_TRANSFORM_MODES = {_TRANSFORM_LEVEL, _TRANSFORM_PCT_OF, "lvl_change", "pct_change"}
+_DEFAULT_TRANSFORM_DENOMINATOR = "GDP"
+
+
+def _normalize_preset_variables(variables: list[str]) -> list[str]:
+    """Normalize preset variable tokens to uppercase, unique, non-empty values."""
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for token in variables:
+        value = str(token or "").strip().upper()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+    return normalized
+
+
+def _normalize_preset_transforms(
+    *,
+    variables: list[str],
+    transforms: dict[str, Any] | None,
+) -> dict[str, dict[str, str]]:
+    """Normalize a preset transform map keyed by variable code; level entries are dropped."""
+    allowed_vars = {str(token).strip().upper() for token in variables if str(token).strip()}
+    if not allowed_vars or transforms is None:
+        return {}
+    if not isinstance(transforms, dict):
+        raise ValueError("Preset transforms must be an object keyed by variable code.")
+
+    out: dict[str, dict[str, str]] = {}
+    for raw_var, raw_cfg in transforms.items():
+        var_name = str(raw_var or "").strip().upper()
+        if not var_name or var_name not in allowed_vars:
+            continue
+        if not isinstance(raw_cfg, dict):
+            raise ValueError(f"Transform config for '{var_name}' must be an object.")
+        mode = str(raw_cfg.get("mode", _TRANSFORM_LEVEL) or "").strip().lower() or _TRANSFORM_LEVEL
+        if mode not in _VALID_TRANSFORM_MODES or mode == _TRANSFORM_LEVEL:
+            continue
+        if mode == _TRANSFORM_PCT_OF:
+            denominator = (
+                str(raw_cfg.get("denominator", _DEFAULT_TRANSFORM_DENOMINATOR) or "")
+                .strip()
+                .upper()
+                or _DEFAULT_TRANSFORM_DENOMINATOR
+            )
+            out[var_name] = {"mode": _TRANSFORM_PCT_OF, "denominator": denominator}
+            continue
+        out[var_name] = {"mode": mode}
     return out
 
 

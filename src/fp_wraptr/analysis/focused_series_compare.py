@@ -54,40 +54,60 @@ def build_focused_series_compare_report(
             fpexe = values["fpexe"]
             fppy = values["fppy"]
             fpr = values["fp-r"]
-            abs_fpr_vs_fppy = abs(float(fpr) - float(fppy)) if fpr is not None and fppy is not None else math.nan
-            abs_fpr_vs_fpexe = abs(float(fpr) - float(fpexe)) if fpr is not None and fpexe is not None else math.nan
-            abs_fppy_vs_fpexe = abs(float(fppy) - float(fpexe)) if fppy is not None and fpexe is not None else math.nan
-            if math.isfinite(abs_fpr_vs_fppy):
-                summary[variable]["max_abs_fpr_vs_fppy"] = max(summary[variable]["max_abs_fpr_vs_fppy"], float(abs_fpr_vs_fppy))
-            if math.isfinite(abs_fpr_vs_fpexe):
-                summary[variable]["max_abs_fpr_vs_fpexe"] = max(summary[variable]["max_abs_fpr_vs_fpexe"], float(abs_fpr_vs_fpexe))
-            if math.isfinite(abs_fppy_vs_fpexe):
-                summary[variable]["max_abs_fppy_vs_fpexe"] = max(summary[variable]["max_abs_fppy_vs_fpexe"], float(abs_fppy_vs_fpexe))
-
-            rows.append(
-                {
-                    "period": period,
-                    "variable": variable,
-                    "fpexe": fpexe,
-                    "fppy": fppy,
-                    "fpr": fpr,
-                    "fpr_minus_fppy": (float(fpr) - float(fppy)) if fpr is not None and fppy is not None else math.nan,
-                    "fpr_minus_fpexe": (float(fpr) - float(fpexe)) if fpr is not None and fpexe is not None else math.nan,
-                    "fppy_minus_fpexe": (float(fppy) - float(fpexe)) if fppy is not None and fpexe is not None else math.nan,
-                    "abs_fpr_vs_fppy": abs_fpr_vs_fppy,
-                    "abs_fpr_vs_fpexe": abs_fpr_vs_fpexe,
-                    "abs_fppy_vs_fpexe": abs_fppy_vs_fpexe,
-                    "rel_pct_fpr_vs_fppy": _safe_rel_pct(float(fpr), float(fppy), rel_scale_floor)
-                    if fpr is not None and fppy is not None
-                    else math.nan,
-                    "rel_pct_fpr_vs_fpexe": _safe_rel_pct(float(fpr), float(fpexe), rel_scale_floor)
-                    if fpr is not None and fpexe is not None
-                    else math.nan,
-                    "rel_pct_fppy_vs_fpexe": _safe_rel_pct(float(fppy), float(fpexe), rel_scale_floor)
-                    if fppy is not None and fpexe is not None
-                    else math.nan,
-                }
+            abs_fpr_vs_fppy = (
+                abs(float(fpr) - float(fppy)) if fpr is not None and fppy is not None else math.nan
             )
+            abs_fpr_vs_fpexe = (
+                abs(float(fpr) - float(fpexe))
+                if fpr is not None and fpexe is not None
+                else math.nan
+            )
+            abs_fppy_vs_fpexe = (
+                abs(float(fppy) - float(fpexe))
+                if fppy is not None and fpexe is not None
+                else math.nan
+            )
+            if math.isfinite(abs_fpr_vs_fppy):
+                summary[variable]["max_abs_fpr_vs_fppy"] = max(
+                    summary[variable]["max_abs_fpr_vs_fppy"], float(abs_fpr_vs_fppy)
+                )
+            if math.isfinite(abs_fpr_vs_fpexe):
+                summary[variable]["max_abs_fpr_vs_fpexe"] = max(
+                    summary[variable]["max_abs_fpr_vs_fpexe"], float(abs_fpr_vs_fpexe)
+                )
+            if math.isfinite(abs_fppy_vs_fpexe):
+                summary[variable]["max_abs_fppy_vs_fpexe"] = max(
+                    summary[variable]["max_abs_fppy_vs_fpexe"], float(abs_fppy_vs_fpexe)
+                )
+
+            rows.append({
+                "period": period,
+                "variable": variable,
+                "fpexe": fpexe,
+                "fppy": fppy,
+                "fpr": fpr,
+                "fpr_minus_fppy": (float(fpr) - float(fppy))
+                if fpr is not None and fppy is not None
+                else math.nan,
+                "fpr_minus_fpexe": (float(fpr) - float(fpexe))
+                if fpr is not None and fpexe is not None
+                else math.nan,
+                "fppy_minus_fpexe": (float(fppy) - float(fpexe))
+                if fppy is not None and fpexe is not None
+                else math.nan,
+                "abs_fpr_vs_fppy": abs_fpr_vs_fppy,
+                "abs_fpr_vs_fpexe": abs_fpr_vs_fpexe,
+                "abs_fppy_vs_fpexe": abs_fppy_vs_fpexe,
+                "rel_pct_fpr_vs_fppy": _safe_rel_pct(float(fpr), float(fppy), rel_scale_floor)
+                if fpr is not None and fppy is not None
+                else math.nan,
+                "rel_pct_fpr_vs_fpexe": _safe_rel_pct(float(fpr), float(fpexe), rel_scale_floor)
+                if fpr is not None and fpexe is not None
+                else math.nan,
+                "rel_pct_fppy_vs_fpexe": _safe_rel_pct(float(fppy), float(fpexe), rel_scale_floor)
+                if fppy is not None and fpexe is not None
+                else math.nan,
+            })
 
     return {
         "engine_paths": {engine: str(path) for engine, path in normalized_paths.items()},

@@ -3,33 +3,13 @@
 Install `fp-wraptr` and use the `fp` command:
 
 ```bash
-scripts/uvsync --all-extras
+uv sync --all-extras
+uv run fp --help
 ```
 
-## No Repo-Local Envs/Prefixes
-
-To avoid creating forbidden runtime artifacts inside this repo:
-
-- Set `UV_PROJECT_ENVIRONMENT` to a project-specific external venv path (for example via repo-local `.env`) so `uv` does not create a local `.venv/`.
-- Use a Wine prefix outside the repo, for example `WINEPREFIX=$HOME/.wine-<project-name>` (repo-local `.wine*` directories are forbidden).
-
-Example `.env`:
-
-```dotenv
-UV_PROJECT_ENVIRONMENT=$HOME/venvs/<project-name>
-WINEPREFIX=$HOME/.wine-<project-name>
-PYTHONDONTWRITEBYTECODE=1
-PYTHONPYCACHEPREFIX=/tmp/<project-name>-pycache
-UV_CACHE_DIR=/tmp/uv-cache-<project-name>
-RUFF_CACHE_DIR=/tmp/ruff-cache-<project-name>
-```
-
-Supported local workflow in this repo:
-
-```bash
-scripts/uvsync --all-extras
-scripts/uvsafe fp --help
-```
+`uv sync` creates the standard project-local `.venv/`. When running `fp.exe` through Wine,
+set `WINEPREFIX` to keep a dedicated Wine prefix for the model, for example
+`WINEPREFIX=$HOME/.wine-fp-wraptr` (that is the default prefix fp-wraptr uses).
 
 ## Global options
 
@@ -37,7 +17,7 @@ scripts/uvsafe fp --help
 
 ## Agent-first authoring commands
 
-These commands mirror the new MCP workspace flow for users or agents that prefer the CLI.
+These commands mirror the MCP workspace flow for users or agents that prefer the CLI.
 
 ### `fp packs list`
 
@@ -171,6 +151,7 @@ Export a portable, read-only run bundle for GitHub Pages.
   - `--spec` (`Path`, default `public/model-runs.spec.yaml`) — checked-in export spec
   - `--artifacts-dir` (`Path`, default `artifacts`) — source run artifacts
   - `--out-dir` (`Path`, default `public/model-runs`) — generated public bundle directory
+  - `--allow-solve-errors` — export runs whose `fp.exe` solve reported errors (off by default)
 
 Example:
 
@@ -179,6 +160,8 @@ fp export pages --spec public/model-runs.spec.yaml --artifacts-dir artifacts --o
 ```
 
 The exporter writes only static assets and JSON payloads. It fails if the generated bundle would contain absolute local paths.
+
+It also refuses runs whose `fmout.txt` records `fp.exe` solution errors, such as `Iteration limit of 100 reached`: `fp.exe` keeps the non-converged values for those periods and carries them forward. Re-solve those runs (for example with a higher `SETUPSOLVE MAXITERS`), or pass `--allow-solve-errors` to publish them knowingly.
 
 ## `fp run <scenario.yaml>`
 
@@ -231,7 +214,7 @@ fp fpr-compare path/to/fpr.yaml path/to/expected.csv
 
 Notes:
 - This is a diagnostic/helper command for reduced `fp-r` slices.
-- It is not the main public `fp-r` workflow; the main phase-1 public path is `fp run ... --backend fp-r`.
+- The main `fp-r` workflow is `fp run ... --backend fp-r`.
 
 ## `fp parity <scenario.yaml>`
 
@@ -285,7 +268,7 @@ Parity exit codes:
 - `4` — engine/runtime/output failure
 - `5` — fingerprint lock mismatch
 
-Operator interpretation matrix and metric checklist: see [`docs/parity.md`](parity.md#divergence-interpretation-matrix).
+Interpretation matrix and metric checklist: see [`docs/parity.md`](parity.md#divergence-interpretation-matrix).
 
 Hard-fail invariants are always enforced (missing sentinel mismatch, discrete mismatch, sign-flip mismatch) regardless of tolerance settings.
 
@@ -483,14 +466,6 @@ List prior runs from artifacts.
 - Options:
   - `--artifacts-dir` (`Path`, default `artifacts`) — artifacts root
 
-## `fp dashboard`
-
-Launch the Streamlit dashboard.
-
-- Options:
-  - `--artifacts-dir` (`Path`, default `artifacts`)
-  - `--port` (`int`, default `8501`)
-
 ## `fp dsl compile <scenario.dsl>`
 
 Compile a human-readable scenario DSL file into YAML or JSON scenario config.
@@ -533,7 +508,7 @@ API keys (environment variables):
 - BLS: `BLS_API_KEY` (optional but recommended when `--sources bls` is enabled)
 
 API-key safety rules:
-- Never commit keys into repo files (`docs/`, `do/`, scenario YAML, or source-map YAML).
+- Never commit keys into repository files (docs, scenario YAML, or source-map YAML).
 - Prefer local shell profile export or OS keychain-backed injection so keys stay machine-local.
 - Use source-specific commands to validate connectivity before full updates: `fp bea fetch-nipa ...` and `fp bls fetch ...`.
 

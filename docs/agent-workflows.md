@@ -1,6 +1,6 @@
 # Agent Workflows
 
-`fp-wraptr` now treats agents as the primary authoring surface.
+`fp-wraptr` is designed so that agents can author scenarios through the MCP server.
 
 ## Recommended flow
 
@@ -12,7 +12,7 @@
    - bundle variant add/remove
 4. Compile the workspace and inspect the compile report.
 5. Run the compiled scenario or bundle.
-6. Compare runs and build visualization payloads for the dashboard.
+6. Compare runs and build chart-ready visualization payloads.
 
 ## Why workspaces
 
@@ -24,7 +24,7 @@ Workspaces keep agents out of raw FP files for common tasks. They provide:
 - compile outputs and reports
 - a reversible, structured mutation surface
 
-Low-level file tools still exist, but they are now the advanced fallback path.
+Low-level file tools are still available for advanced use.
 
 ## Common MCP tasks
 
@@ -33,6 +33,6 @@ Low-level file tools still exist, but they are now the advanced fallback path.
 - Attach a new series override
 - Build a bundle of policy variants
 - Compare latest family runs
-- Prepare dashboard visualization set
+- Prepare visualization set
 
-These are available as FastMCP prompts and are designed to help weaker agents chain the right tools in the right order.
+These are available as FastMCP prompts that describe which tools to chain, and in what order.

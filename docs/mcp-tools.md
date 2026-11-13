@@ -2,7 +2,7 @@
 
 Source of truth: `src/fp_wraptr/mcp_server.py`.
 
-## Tools (44)
+## Tools (43)
 
 ## Capability matrix
 
@@ -93,7 +93,7 @@ Source of truth: `src/fp_wraptr/mcp_server.py`.
 - `update_workspace_metadata`
   - Updates label, description, forecast window, backend, or tracked variables.
 - `list_workspace_cards`
-  - Returns the current cards/defaults for a workspace so weaker agents can discover editable surfaces.
+  - Returns the current cards/defaults for a workspace so agents can discover editable surfaces.
   - Optional `variant_id` inspects bundle-variant-local card state instead of shared bundle cards.
 - `apply_workspace_card`
   - Applies constant/target changes to one card via `constants_json`.
@@ -333,4 +333,4 @@ Source of truth: `src/fp_wraptr/mcp_server.py`.
 - Attach a new series override
 - Build a bundle of policy variants
 - Compare latest family runs
-- Prepare dashboard visualization set
+- Prepare visualization set

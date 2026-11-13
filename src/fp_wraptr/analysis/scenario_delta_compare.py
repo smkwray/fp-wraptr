@@ -72,9 +72,17 @@ def build_scenario_delta_compare_report(
         common_periods &= set(periods)
     ordered_periods = sorted(common_periods, key=_parse_period_key)
     if start:
-        ordered_periods = [period for period in ordered_periods if _parse_period_key(period) >= _parse_period_key(start)]
+        ordered_periods = [
+            period
+            for period in ordered_periods
+            if _parse_period_key(period) >= _parse_period_key(start)
+        ]
     if end:
-        ordered_periods = [period for period in ordered_periods if _parse_period_key(period) <= _parse_period_key(end)]
+        ordered_periods = [
+            period
+            for period in ordered_periods
+            if _parse_period_key(period) <= _parse_period_key(end)
+        ]
 
     common_variables: set[str] | None = None
     for _periods, series in payloads.values():
@@ -121,7 +129,9 @@ def build_scenario_delta_compare_report(
             delta_left = sl - bl
             delta_right = sr - br
             delta_abs = abs(delta_left - delta_right)
-            delta_rel = _safe_rel(delta_abs, max(abs(delta_left), abs(delta_right)), rel_scale_floor)
+            delta_rel = _safe_rel(
+                delta_abs, max(abs(delta_left), abs(delta_right)), rel_scale_floor
+            )
 
             if baseline_abs > baseline_max_abs_diff:
                 baseline_max_abs_diff = baseline_abs
@@ -154,30 +164,34 @@ def build_scenario_delta_compare_report(
         else:
             classification = "review"
 
-        summary_rows.append(
-            {
-                "variable": variable,
-                "classification": classification,
-                "baseline_max_abs_diff": baseline_max_abs_diff,
-                "baseline_max_period": baseline_max_period,
-                "scenario_max_abs_diff": scenario_max_abs_diff,
-                "scenario_max_period": scenario_max_period,
-                "delta_max_abs_diff": delta_max_abs_diff,
-                "delta_max_period": delta_max_period,
-                "delta_max_rel_pct": (delta_max_rel * 100.0) if math.isfinite(delta_max_rel) else math.nan,
-                "scale_at_max": scale_at_max,
-                f"{left_label}_delta_at_max": delta_left_at_max,
-                f"{right_label}_delta_at_max": delta_right_at_max,
-                f"{left_label}_baseline_at_max": baseline_left_at_max,
-                f"{left_label}_scenario_at_max": scenario_left_at_max,
-                f"{right_label}_baseline_at_max": baseline_right_at_max,
-                f"{right_label}_scenario_at_max": scenario_right_at_max,
-            }
-        )
+        summary_rows.append({
+            "variable": variable,
+            "classification": classification,
+            "baseline_max_abs_diff": baseline_max_abs_diff,
+            "baseline_max_period": baseline_max_period,
+            "scenario_max_abs_diff": scenario_max_abs_diff,
+            "scenario_max_period": scenario_max_period,
+            "delta_max_abs_diff": delta_max_abs_diff,
+            "delta_max_period": delta_max_period,
+            "delta_max_rel_pct": (delta_max_rel * 100.0)
+            if math.isfinite(delta_max_rel)
+            else math.nan,
+            "scale_at_max": scale_at_max,
+            f"{left_label}_delta_at_max": delta_left_at_max,
+            f"{right_label}_delta_at_max": delta_right_at_max,
+            f"{left_label}_baseline_at_max": baseline_left_at_max,
+            f"{left_label}_scenario_at_max": scenario_left_at_max,
+            f"{right_label}_baseline_at_max": baseline_right_at_max,
+            f"{right_label}_scenario_at_max": scenario_right_at_max,
+        })
 
     summary_rows.sort(
         key=lambda item: (
-            0 if item["classification"] == "review" else 1 if item["classification"] == "close" else 2,
+            0
+            if item["classification"] == "review"
+            else 1
+            if item["classification"] == "close"
+            else 2,
             float(item["delta_max_abs_diff"]),
             float(item["scenario_max_abs_diff"]),
         ),

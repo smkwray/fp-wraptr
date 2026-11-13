@@ -58,7 +58,9 @@ def test_backend_defensibility_writes_json_and_csv(tmp_path: Path) -> None:
         end="2025.4",
         focus_variables=["A"],
     )
-    summary_json, summary_csv = write_backend_defensibility_report(report, output_dir=tmp_path / "out")
+    summary_json, summary_csv = write_backend_defensibility_report(
+        report, output_dir=tmp_path / "out"
+    )
 
     assert summary_json.exists()
     assert summary_csv.exists()

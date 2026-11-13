@@ -15,7 +15,6 @@ import importlib.util
 import io
 import json
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Annotated, Any
@@ -26,7 +25,7 @@ from pydantic import ValidationError
 from rich.console import Console
 from rich.table import Table
 
-from fp_wraptr.hygiene import assert_no_forbidden_dirs, find_project_root
+from fp_wraptr.hygiene import find_project_root
 
 app = typer.Typer(
     name="fp",
@@ -254,9 +253,6 @@ workspace_app = typer.Typer(
     help="Managed workspaces for agent-first scenario and bundle authoring.",
 )
 export_app = typer.Typer(name="export", help="Export portable public bundles and reports.")
-private_app = typer.Typer(
-    name="private", help="Bootstrap and manage the local private scenario family."
-)
 app.add_typer(io_app, name="io")
 app.add_typer(viz_app, name="viz")
 app.add_typer(fred_app, name="fred")
@@ -270,7 +266,6 @@ app.add_typer(triage_app, name="triage")
 app.add_typer(packs_app, name="packs")
 app.add_typer(workspace_app, name="workspace")
 app.add_typer(export_app, name="export")
-app.add_typer(private_app, name="private")
 
 console = Console()
 
@@ -329,14 +324,6 @@ def main(
     ] = None,
 ) -> None:
     """fp-wraptr: Python utilities for the Fair-Parke macroeconomic model."""
-    root = find_project_root(Path(__file__).resolve())
-    if root is None:
-        return
-    try:
-        assert_no_forbidden_dirs(root)
-    except RuntimeError as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(code=2) from exc
 
 
 @app.command()
@@ -846,125 +833,6 @@ def workspace_build_view(
     _emit_json(payload)
 
 
-@private_app.command("init")
-def private_init(
-    fp_home: Annotated[
-        Path,
-        typer.Option("--fp-home", help="Local FM/fair bundle directory to bootstrap from"),
-    ] = Path("FM"),
-    force: Annotated[
-        bool,
-        typer.Option("--force", help="Overwrite previously generated family files"),
-    ] = False,
-) -> None:
-    """Bootstrap the local/private private family from a local Fair model directory."""
-    from fp_wraptr.private_family import initialize_private_family
-
-    try:
-        payload = initialize_private_family(
-            repo_root=_cli_repo_root(),
-            fp_home=fp_home,
-            force=force,
-        )
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(code=1) from None
-    _emit_json(payload)
-
-
-@private_app.command("refresh-data")
-def private_refresh_data(
-    dataset: Annotated[
-        str,
-        typer.Option(
-            "--dataset",
-            help=(
-                "Dataset to refresh: childcare, paid-leave, caregiver-leave, "
-                "mother-share, tax-wedge, or all"
-            ),
-        ),
-    ] = "childcare",
-    force: Annotated[
-        bool,
-        typer.Option("--force", help="Re-download the selected official source when supported"),
-    ] = False,
-    source_url: Annotated[
-        str,
-        typer.Option("--source-url", help="Optional exact official source URL override"),
-    ] = "",
-) -> None:
-    """Fetch or materialize exact-source private helper-series data into the family data area."""
-    from fp_wraptr.private_family import refresh_private_data
-
-    try:
-        payload = refresh_private_data(
-            repo_root=_cli_repo_root(),
-            force=force,
-            source_url=source_url,
-            dataset=dataset,
-        )
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(code=1) from None
-    _emit_json(payload)
-
-
-@private_app.command("status")
-def private_status_command() -> None:
-    """Report private family bootstrap/data readiness and runnable assets."""
-    from fp_wraptr.private_family import private_status
-
-    _emit_json(private_status(repo_root=_cli_repo_root()))
-
-
-@private_app.command("refresh-mothers-override")
-def private_refresh_mothers_override(
-    fmout_path: Annotated[
-        Path | None,
-        typer.Option(
-            "--fmout",
-            help="Optional fmout.txt path; defaults to the latest mothers-paid-leave base artifact.",
-        ),
-    ] = None,
-) -> None:
-    """Refresh the default mothers fppy override from a canonical fp.exe fmout.txt."""
-    from fp_wraptr.private_family import refresh_mothers_override
-
-    try:
-        payload = refresh_mothers_override(
-            repo_root=_cli_repo_root(),
-            fmout_path=fmout_path,
-        )
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(code=1) from None
-    _emit_json(payload)
-
-
-@private_app.command("analyze-mothers-fit")
-def private_analyze_mothers_fit(
-    fmout_path: Annotated[
-        Path | None,
-        typer.Option(
-            "--fmout",
-            help="Optional fmout.txt path; defaults to the latest mothers-paid-leave base artifact.",
-        ),
-    ] = None,
-) -> None:
-    """Compare mothers/non-mothers OLS research coefficients against fp.exe-estimated equations."""
-    from fp_wraptr.private_family import analyze_mothers_fit
-
-    try:
-        payload = analyze_mothers_fit(
-            repo_root=_cli_repo_root(),
-            fmout_path=fmout_path,
-        )
-    except (FileNotFoundError, ValueError, RuntimeError) as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise typer.Exit(code=1) from None
-    _emit_json(payload)
-
-
 @bundle_app.command("run")
 def bundle_run(
     bundle_yaml: Annotated[Path, typer.Argument(help="Path to bundle YAML config")],
@@ -1085,15 +953,9 @@ def triage_parity_hardfails(
 
 @triage_app.command("anchor-acceptance")
 def triage_anchor_acceptance(
-    fpexe: Annotated[
-        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
-    ],
-    fppy: Annotated[
-        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
-    ],
-    fpr: Annotated[
-        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
-    ],
+    fpexe: Annotated[Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")],
+    fppy: Annotated[Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")],
+    fpr: Annotated[Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")],
     preset: Annotated[
         str,
         typer.Option(
@@ -1144,8 +1006,14 @@ def triage_anchor_acceptance(
             anchor_vars = list(preset_payload.get("anchors", []) or [])
         if not methodology_vars and preset_payload is not None:
             methodology_vars = list(preset_payload.get("methodology", []) or [])
-        effective_start = start if start is not None else (preset_payload.get("start") if preset_payload else None)
-        effective_end = end if end is not None else (preset_payload.get("end") if preset_payload else None)
+        effective_start = (
+            start
+            if start is not None
+            else (preset_payload.get("start") if preset_payload else None)
+        )
+        effective_end = (
+            end if end is not None else (preset_payload.get("end") if preset_payload else None)
+        )
         if not anchor_vars:
             raise ValueError("Provide --anchors or a known --preset")
         report = build_anchor_acceptance_report(
@@ -1175,15 +1043,9 @@ def triage_anchor_acceptance(
 
 @triage_app.command("backend-defensibility")
 def triage_backend_defensibility(
-    fpexe: Annotated[
-        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
-    ],
-    fppy: Annotated[
-        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
-    ],
-    fpr: Annotated[
-        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
-    ],
+    fpexe: Annotated[Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")],
+    fppy: Annotated[Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")],
+    fpr: Annotated[Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")],
     variables: Annotated[
         str,
         typer.Option(
@@ -1244,15 +1106,9 @@ def triage_backend_defensibility(
 
 @triage_app.command("focused-series")
 def triage_focused_series(
-    fpexe: Annotated[
-        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
-    ],
-    fppy: Annotated[
-        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
-    ],
-    fpr: Annotated[
-        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
-    ],
+    fpexe: Annotated[Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")],
+    fppy: Annotated[Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")],
+    fpr: Annotated[Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")],
     variables: Annotated[
         str,
         typer.Option(
@@ -1304,15 +1160,9 @@ def triage_focused_series(
 
 @triage_app.command("identity-decomposition")
 def triage_identity_decomposition(
-    fpexe: Annotated[
-        Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")
-    ],
-    fppy: Annotated[
-        Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")
-    ],
-    fpr: Annotated[
-        Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")
-    ],
+    fpexe: Annotated[Path, typer.Option("--fpexe", help="LOADFORMAT path for fp.exe output")],
+    fppy: Annotated[Path, typer.Option("--fppy", help="LOADFORMAT path for fppy output")],
+    fpr: Annotated[Path, typer.Option("--fpr", help="LOADFORMAT path for fp-r output")],
     identity: Annotated[
         str,
         typer.Option(
@@ -1368,23 +1218,36 @@ def triage_backend_release_shape(
     ],
     stock_baseline_ok: Annotated[
         bool,
-        typer.Option("--stock-baseline-ok/--stock-baseline-fail", help="Whether stock baseline acceptance is green"),
+        typer.Option(
+            "--stock-baseline-ok/--stock-baseline-fail",
+            help="Whether stock baseline acceptance is green",
+        ),
     ] = True,
     raw_input_public_ok: Annotated[
         bool,
-        typer.Option("--raw-input-public-ok/--raw-input-public-fail", help="Whether the raw-input public path is real"),
+        typer.Option(
+            "--raw-input-public-ok/--raw-input-public-fail",
+            help="Whether the raw-input public path is real",
+        ),
     ] = True,
     modified_decks_run: Annotated[
         bool,
-        typer.Option("--modified-decks-run/--modified-decks-fail", help="Whether the modified-deck surface runs"),
+        typer.Option(
+            "--modified-decks-run/--modified-decks-fail",
+            help="Whether the modified-deck surface runs",
+        ),
     ] = True,
     docs_honest: Annotated[
         bool,
-        typer.Option("--docs-honest/--docs-not-honest", help="Whether docs match the supported surface"),
+        typer.Option(
+            "--docs-honest/--docs-not-honest", help="Whether docs match the supported surface"
+        ),
     ] = True,
     corpus_green: Annotated[
         bool,
-        typer.Option("--corpus-green/--corpus-not-green", help="Whether the broader release corpus is green"),
+        typer.Option(
+            "--corpus-green/--corpus-not-green", help="Whether the broader release corpus is green"
+        ),
     ] = False,
     out_dir: Annotated[
         Path,
@@ -1430,7 +1293,7 @@ def triage_backend_release_corpus(
             "--manifest",
             help="Path to a backend release corpus manifest JSON file",
         ),
-    ] = Path("docs/backend-release-corpus.json"),
+    ],
     out_dir: Annotated[
         Path,
         typer.Option("--out-dir", help="Output directory for JSON + CSV corpus artifact"),
@@ -1528,7 +1391,7 @@ def triage_scenario_delta_compare(
             start=start,
             end=end,
         )
-        json_path, summary_csv_path, detail_csv_path = write_scenario_delta_compare_report(
+        json_path, summary_csv_path = write_scenario_delta_compare_report(
             report, output_dir=out_dir
         )
     except (FileNotFoundError, ValueError) as exc:
@@ -1546,63 +1409,6 @@ def triage_scenario_delta_compare(
     )
     console.print(f"[green]json:[/green] {json_path}")
     console.print(f"[green]summary csv:[/green] {summary_csv_path}")
-    console.print(f"[green]rows csv:[/green] {detail_csv_path}")
-
-
-@triage_app.command("external-project-publication")
-def triage_external-project_publication(
-    manifest: Annotated[
-        str,
-        typer.Option("--manifest", help="Manifest path or URL for the external-project run bundle"),
-    ] = "https://smkwray.github.io/external-project/manifest.json",
-    matrix: Annotated[
-        Path,
-        typer.Option("--matrix", help="Path to the current external-project fp-r matrix JSON"),
-    ] = Path("artifacts/external-project_fpr_matrix_20260405/external-project_fpr_matrix.json"),
-    contract: Annotated[
-        Path,
-        typer.Option("--contract", help="Path to external-project publication guardrails JSON"),
-    ] = Path("docs/external-project-publication-guardrails.json"),
-    out_dir: Annotated[
-        Path,
-        typer.Option("--out-dir", help="Output directory for JSON + CSV publication artifacts"),
-    ] = Path("artifacts/external-project_publication_validation"),
-) -> None:
-    """Validate an external-project publication bundle against the current fp-r defensibility gate."""
-
-    from fp_wraptr.analysis.external-project_publication_validation import (
-        validate_external-project_publication,
-        write_external-project_publication_report,
-    )
-
-    try:
-        report = validate_external-project_publication(
-            manifest_source=manifest,
-            matrix_path=matrix,
-            contract_path=contract,
-        )
-        json_path, csv_path = write_external-project_publication_report(report, output_dir=out_dir)
-    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
-        console.print(f"[red]external-project publication validation failed:[/red] {exc}")
-        raise typer.Exit(code=1) from None
-
-    summary = report.get("summary", {}) or {}
-    console.print(
-        "published_runs="
-        f"{summary.get('published_run_count', 0)} "
-        f"modern_ok={summary.get('modern_branch_ok_count', 0)} "
-        f"legacy_split={summary.get('modern_branch_ok_but_legacy_split_count', 0)} "
-        f"default_safe={summary.get('default_runs_public_default_safe_count', 0)}/{summary.get('default_run_count', 0)}"
-    )
-    console.print(
-        "status="
-        f"{'pass' if report.get('ok') else 'fail'} "
-        f"failure_count={len(report.get('failures', []) or [])}"
-    )
-    console.print(f"[green]json:[/green] {json_path}")
-    console.print(f"[green]csv:[/green] {csv_path}")
-    if not report.get("ok"):
-        raise typer.Exit(code=1)
 
 
 @triage_app.command("loop")
@@ -2684,9 +2490,9 @@ def run(
 ) -> None:
     """Run an FP scenario and optionally diff against a baseline."""
     from fp_wraptr.scenarios.runner import (
-        backend_requires_fp_home,
         load_scenario_config,
         run_scenario,
+        scenario_requires_fp_home,
         validate_fp_home,
     )
 
@@ -2702,7 +2508,7 @@ def run(
     backend_choice = str(backend or getattr(config, "backend", "fpexe") or "fpexe").strip().lower()
     if fp_home:
         config.fp_home = fp_home
-    if backend_requires_fp_home(backend_choice):
+    if scenario_requires_fp_home(config, backend_choice):
         validate_fp_home(config.fp_home)
 
     if backend_choice == "both":
@@ -2752,6 +2558,12 @@ def run(
     result = run_scenario(config, output_dir=output_dir, allow_stale_output=allow_stale_output)
 
     console.print(f"[green]Run completed.[/green] Output: {result.output_dir}")
+    solve_errors = (getattr(result, "backend_diagnostics", None) or {}).get("solve_errors") or []
+    if solve_errors:
+        console.print(
+            f"[yellow]Warning:[/yellow] fp.exe reported {len(solve_errors)} solution error(s) "
+            "(e.g. iteration limit reached); those periods are not converged. See fmout.txt."
+        )
 
     if baseline:
         from fp_wraptr.analysis.diff import diff_runs
@@ -2765,7 +2577,7 @@ def run(
             _print_validation_error(exc)
             raise typer.Exit(code=1) from None
 
-        if backend_requires_fp_home(getattr(baseline_config, "backend", "fpexe")):
+        if scenario_requires_fp_home(baseline_config):
             validate_fp_home(baseline_config.fp_home)
         baseline_result = run_scenario(
             baseline_config,
@@ -2801,9 +2613,9 @@ def fpr_compare(
         write_fp_r_comparison_report,
     )
     from fp_wraptr.scenarios.runner import (
-        backend_requires_fp_home,
         load_scenario_config,
         run_scenario,
+        scenario_requires_fp_home,
         validate_fp_home,
     )
 
@@ -2817,7 +2629,7 @@ def fpr_compare(
         raise typer.Exit(code=1) from None
 
     config.backend = "fp-r"
-    if backend_requires_fp_home(config.backend):
+    if scenario_requires_fp_home(config):
         validate_fp_home(config.fp_home)
 
     expected_path = expected
@@ -2935,8 +2747,8 @@ def parity(
         write_regression_report,
     )
     from fp_wraptr.scenarios.runner import (
-        backend_requires_fp_home,
         load_scenario_config,
+        scenario_requires_fp_home,
         validate_fp_home,
     )
 
@@ -2968,7 +2780,7 @@ def parity(
 
     if fp_home:
         config.fp_home = fp_home
-    if any(backend_requires_fp_home(name) for name in (left_engine, right_engine)):
+    if any(scenario_requires_fp_home(config, name) for name in (left_engine, right_engine)):
         validate_fp_home(config.fp_home)
 
     effective_gate_end = gate_pabev_end
@@ -3223,59 +3035,6 @@ def report(
         return
 
     console.print(Markdown(report_markdown))
-
-
-@app.command()
-def dashboard(
-    artifacts_dir: Annotated[
-        Path,
-        typer.Option("--artifacts-dir", help="Artifacts directory containing fp-wraptr runs"),
-    ] = Path("artifacts"),
-    port: Annotated[
-        int,
-        typer.Option("--port", help="Streamlit server port"),
-    ] = 8501,
-) -> None:
-    """Launch the fp-wraptr Streamlit dashboard."""
-    if importlib.util.find_spec("streamlit") is None:
-        console.print("[red]streamlit is not installed.[/red]")
-        console.print("[yellow]Install with:[/yellow] `uv pip install fp-wraptr[dashboard]`")
-        raise typer.Exit(code=1)
-
-    cli_dir = Path(__file__).resolve().parent
-    app_path = cli_dir.parents[1] / "apps" / "dashboard" / "Run_Manager.py"
-    if not app_path.exists():
-        app_path = Path.cwd() / "apps" / "dashboard" / "Run_Manager.py"
-    if not app_path.exists():
-        app_path = cli_dir.parents[1] / "apps" / "dashboard" / "app.py"
-    if not app_path.exists():
-        app_path = Path.cwd() / "apps" / "dashboard" / "app.py"
-
-    if not app_path.exists():
-        console.print(f"[red]Dashboard app not found at: {app_path}[/red]")
-        raise typer.Exit(code=1)
-
-    console.print(
-        f"[bold blue]Launching dashboard:[/bold blue] {app_path} "
-        f"(artifacts_dir={artifacts_dir}, port={port})"
-    )
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "streamlit",
-            "run",
-            str(app_path),
-            "--server.port",
-            str(port),
-            "--",
-            "--artifacts-dir",
-            str(artifacts_dir),
-        ],
-        check=False,
-    )
-    if result.returncode != 0:
-        raise typer.Exit(code=result.returncode)
 
 
 @data_app.command("fetch-fair-bundle")
@@ -4345,8 +4104,6 @@ def info() -> None:
     optional_extras = [
         "networkx",
         "matplotlib",
-        "streamlit",
-        "plotly",
         "fastmcp",
         "openpyxl",
         "fredapi",
@@ -4425,7 +4182,7 @@ def history(
     ] = False,
 ) -> None:
     """List historical runs from the artifacts directory."""
-    from fp_wraptr.dashboard.artifacts import scan_artifacts
+    from fp_wraptr.run_artifacts import scan_artifacts
 
     runs = scan_artifacts(artifacts_dir)
     if not runs:
@@ -4472,6 +4229,13 @@ def export_pages(
         Path,
         typer.Option("--out-dir", help="Target output directory for the public bundle"),
     ] = Path("public/model-runs"),
+    allow_solve_errors: Annotated[
+        bool,
+        typer.Option(
+            "--allow-solve-errors",
+            help="Export runs whose fp.exe solve reported errors (e.g. iteration limit reached).",
+        ),
+    ] = False,
 ) -> None:
     """Export a read-only run bundle for GitHub Pages."""
     from fp_wraptr.pages_export import PagesExportError, export_pages_bundle
@@ -4481,10 +4245,16 @@ def export_pages(
             spec_path=spec,
             artifacts_dir=artifacts_dir,
             out_dir=out_dir,
+            allow_solve_errors=allow_solve_errors,
         )
     except PagesExportError as exc:
         console.print(f"[red]Pages export failed:[/red] {exc}")
         raise typer.Exit(code=1) from None
+
+    for run_id, count in sorted(result.solve_error_runs.items()):
+        console.print(
+            f"[yellow]Warning:[/yellow] exported run {run_id!r} has {count} fp.exe solution error(s)."
+        )
 
     console.print(f"[green]Public bundle:[/green] {result.out_dir}")
     console.print(f"[green]Manifest:[/green] {result.manifest_path}")
