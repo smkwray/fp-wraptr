@@ -34,7 +34,6 @@ nav:
   - Home: index.md
   - Getting Started:
     - Quickstart: quickstart.md
-    - Architecture: architecture.md
   - Workflows:
     - Scenarios: scenarios.md
     - Data Update: data-update.md
@@ -42,7 +41,6 @@ nav:
     - Stock FM Fast Mode: stock-fm-fast-mode.md
     - Model Runs Export: model-runs.md
   - Agent & MCP:
-    - Agent Workflows: agent-workflows.md
     - Pack Authoring: packs.md
     - MCP Server: mcp.md
     - MCP Tools: mcp-tools.md

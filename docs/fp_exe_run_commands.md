@@ -1,8 +1,6 @@
 # Running `fp.exe` (Fair–Parke / FP program) from the command line
 This is a practical command reference for **running the Fair–Parke (FP) program executable (`fp.exe`)** in a reproducible way.
 
-It favors copy/pasteable commands with minimal narrative.
-
 > Notes
 > - Official docs often show the executable as `FP` at a DOS prompt. On Windows, that’s effectively `fp.exe`.
 > - FP is designed around **command input files** (e.g., `FMINPUT.TXT`, `JOB.INP`) and a **piped output file** (often `OUT`).
@@ -54,8 +52,6 @@ The FP User’s Guide recommends:
 - Put all commands in an input file (e.g., `IS.INP`, `FMINPUT.TXT`).
 - Run FP and **pipe output to a file** (example name `OUT`) so you can inspect/search it later.
 - Optionally, fully automate keyboard typing with stdin redirection.
-
-You’ll see this pattern everywhere:
 
 ### Pattern A: manual batch-mode run (type the INPUT line after launching)
 **Windows (cmd.exe):**

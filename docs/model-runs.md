@@ -40,15 +40,9 @@ It declares:
 
 Run ids are stable public ids. The exporter resolves each one to the latest matching artifact directory by `scenario_name` and records the artifact timestamp in the exported manifest.
 
-## Publishing workflow
+Runs whose `fp.exe` solve reports an error cause the export to fail unless you pass `--allow-solve-errors`.
 
-1. Refresh or curate the source runs under `artifacts/`.
-2. Run `fp export pages ...`. It refuses runs whose `fp.exe` solve hit errors such as the iteration limit; re-solve them or pass `--allow-solve-errors`.
-3. Review the diff under `public/model-runs/`.
-4. Commit the generated bundle together with any spec or doc changes.
-5. Push to `main`; the Pages workflow checks that every run listed in `manifest.json` has its payload, then publishes the docs plus the run explorer under `/model-runs/`.
-
-## Safety rules
+## Exported paths
 
 The exporter intentionally fails if the generated JSON would leak:
 

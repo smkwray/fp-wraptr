@@ -4,8 +4,6 @@
   <img src="assets/fp-wraptr-logo.png" alt="fp-wraptr — Rex and Raptr" style="max-width: 200px;">
 </div>
 
-**Python toolkit to modernize the Fair-Parke macroeconomic model workflow.**
-
 fp-wraptr wraps [Ray Fair's US Macroeconometric Model](https://fairmodel.econ.yale.edu/), making it easier to run scenarios, inspect results, compare forecasts, and build on decades of economic modeling work — all from Python.
 
 It reads the standard Fair Model files (`fminput.txt`, `fmdata.txt`, `fmexog.txt`, `fmout.txt`) directly, so you can use your existing model data as-is. On top of that, fp-wraptr adds YAML scenario configs, a compact DSL, and an MCP server for LLM-assisted authoring.
@@ -39,43 +37,6 @@ uv sync --all-extras
 
 Then follow the [Quickstart guide](quickstart.md) to configure your model files and run your first scenario.
 
-## Meet the mascots
-
-| | Name | Role |
-|---|---|---|
-| <img src="assets/rex.png" alt="Rex" width="56"> | **Rex** (Velociraptor) | `fp.exe` — the original FORTRAN engine |
-| <img src="assets/archie.png" alt="Archie" width="64"> | **Archie** (Archaeopteryx) | `fppy` — the pure-Python solver |
-| <img src="assets/logo.png" alt="Raptr" width="56"> | **Raptr** (Eagle) | Agentic features — MCP server, packs, and workspace authoring |
-
-Archie still covers the Python route. fp-wraptr now includes an R route too via `fp-r`.
-
-## Architecture at a glance
-
-```mermaid
-graph LR
-    A[YAML Scenario] --> B[ScenarioConfig]
-    B --> C[Runner]
-    C --> D[fp.exe / fppy / fp-r]
-    D --> E[Parser]
-    E --> F[DataFrames]
-    F --> G[Reports & Charts]
-    F --> H[Model Runs Explorer]
-    F --> I[Parity Check]
-```
-
-## Features
-
-- **Scenario configs** — Define runs in YAML with Pydantic validation
-- **IO parsing** — Read FP outputs into pandas DataFrames with canonical keys
-- **Batch runner** — Execute multiple scenarios and compare against golden baselines
-- **Dependency graph** — Trace upstream/downstream variable dependencies with networkx
-- **Report generation** — Markdown run reports and comparison summaries
-- **Visualization** — Matplotlib charts and a static Model Runs Explorer export for sharing results
-- **MCP server** — 43 tools for LLM-assisted exploration and scenario authoring
-- **Managed workspaces** — reusable scenario packs and templates for LLM-driven or manual authoring
-- **Three solver paths** — Run the FORTRAN engine, the pure-Python solver, or the bundle-backed R solver
-- **Data pipelines** — FRED, BEA, and BLS data integration with safe-lane update workflows
-
 ## Documentation
 
 <div class="grid cards" markdown>
@@ -84,10 +45,6 @@ graph LR
 
     Set up your environment and run your first scenario
 
--   **[Architecture](architecture.md)**
-
-    Module layout and data flow
-
 -   **[Scenarios](scenarios.md)**
 
     YAML configuration reference with examples
@@ -95,10 +52,6 @@ graph LR
 -   **[CLI Reference](cli.md)**
 
     Complete command reference for the `fp` CLI
-
--   **[Agent Workflows](agent-workflows.md)**
-
-    LLM-assisted scenario design with managed workspaces
 
 -   **[Parity](parity.md)**
 

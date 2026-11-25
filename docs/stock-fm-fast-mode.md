@@ -1,13 +1,13 @@
 # Stock FM Fast Mode
 
-This page documents the fastest validated `fppy` settings for the stock model with low divergence versus `fp.exe`.
+These settings run the stock model with `fppy`. Compare your run against `fp.exe` using the command below.
 
 ## What this mode is
 
 - Scope: stock FM (`FM/fminput.txt`) only.
 - Goal: maximize `fppy` speed while keeping divergence tightly bounded versus `fp.exe`.
 - Measured profile on the stock model:
-  - runtime: ~99-101s (down from ~506.5s before the solver-path and cache optimizations)
+  - runtime: ~99-101s
   - `max % diff` vs `fp.exe`: `0.0376329663%`
   - `p95 % diff` vs `fp.exe`: `0.0000441579%`
   - convergence: `converged`
@@ -64,8 +64,6 @@ Use these stock-FM gates:
 - `p95 % diff <= 1.0`
 - stop reason is converged
 - convergence classification is converged
-
-The measured results above are substantially tighter than those gates.
 
 ## Notes on threading
 
