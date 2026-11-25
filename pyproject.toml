@@ -5,6 +5,7 @@ description = "Python utilities to modernize the Fair-Parke (FP) macroeconomic m
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
+authors = [{ name = "smkwray" }]
 keywords = ["economics", "macroeconomics", "fair-model", "econometrics"]
 classifiers = [
     "Development Status :: 3 - Alpha",
